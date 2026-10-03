@@ -7,9 +7,13 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { mockVocab } from "@/lib/mock-data";
+import { connection } from "next/server";
+import { listVocab } from "@/lib/db/vocab";
 
-export default function VocabPage() {
+export default async function VocabPage() {
+  await connection();
+  const entries = await listVocab();
+
   return (
     <main className="mx-auto w-full max-w-5xl px-4 py-8">
       <h1 className="mb-6 text-2xl font-semibold">Vocabulary</h1>
@@ -24,7 +28,14 @@ export default function VocabPage() {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {mockVocab.map((entry) => (
+          {entries.length === 0 && (
+            <TableRow>
+              <TableCell colSpan={5} className="text-muted-foreground">
+                No words yet. Mark words as known or ignored on the Extract page.
+              </TableCell>
+            </TableRow>
+          )}
+          {entries.map((entry) => (
             <TableRow key={entry.id}>
               <TableCell>
                 <div className="flex items-center gap-2">

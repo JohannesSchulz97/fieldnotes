@@ -13,8 +13,8 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Textarea } from "@/components/ui/textarea";
-import { mockExtract } from "@/lib/mock-data";
-import type { ExtractedItem, ExtractionResult } from "@/lib/types";
+import { extract, markItem } from "@/app/actions";
+import type { ExtractedItem, ExtractionResult, WordStatus } from "@/lib/types";
 
 export function Extractor() {
   const [text, setText] = useState("");
@@ -25,14 +25,19 @@ export function Extractor() {
 
   async function handleExtract() {
     setLoading(true);
-    const res = await mockExtract(text);
+    const res = await extract(text);
     setResult(res);
     setItems(res.items);
     setSelected(new Set());
     setLoading(false);
   }
 
-  /** Mock: removes the row locally. Persisting known/ignored comes with the DB. */
+  async function mark(item: ExtractedItem, status: WordStatus) {
+    if (!result) return;
+    await markItem(item, result.sourceLanguage, result.targetLanguage, status);
+    removeItem(item.lemma);
+  }
+
   function removeItem(lemma: string) {
     setItems((prev) => prev.filter((i) => i.lemma !== lemma));
     setSelected((prev) => {
@@ -141,14 +146,14 @@ export function Extractor() {
                         <Button
                           size="sm"
                           variant="secondary"
-                          onClick={() => removeItem(item.lemma)}
+                          onClick={() => mark(item, "known")}
                         >
                           Known
                         </Button>
                         <Button
                           size="sm"
                           variant="ghost"
-                          onClick={() => removeItem(item.lemma)}
+                          onClick={() => mark(item, "ignored")}
                         >
                           Ignore
                         </Button>
