@@ -2,11 +2,12 @@
 
 import { revalidatePath } from "next/cache";
 import { getStoredLemmas, saveWithStatus } from "@/lib/db/vocab";
-import { mockExtract } from "@/lib/mock-data";
+import { llmExtract } from "@/lib/llm/extract";
 import type { ExtractedItem, ExtractionResult, LanguageCode, WordStatus } from "@/lib/types";
 
 export async function extract(text: string): Promise<ExtractionResult> {
-  const result = await mockExtract(text);
+  if (!text.trim()) throw new Error("Empty text");
+  const result = await llmExtract(text);
   const stored = await getStoredLemmas(
     result.sourceLanguage,
     result.items.map((i) => i.lemma)

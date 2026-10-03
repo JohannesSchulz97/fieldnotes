@@ -19,17 +19,24 @@ import type { ExtractedItem, ExtractionResult, WordStatus } from "@/lib/types";
 export function Extractor() {
   const [text, setText] = useState("");
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<ExtractionResult | null>(null);
   const [items, setItems] = useState<ExtractedItem[]>([]);
   const [selected, setSelected] = useState<Set<string>>(new Set());
 
   async function handleExtract() {
     setLoading(true);
-    const res = await extract(text);
-    setResult(res);
-    setItems(res.items);
-    setSelected(new Set());
-    setLoading(false);
+    setError(null);
+    try {
+      const res = await extract(text);
+      setResult(res);
+      setItems(res.items);
+      setSelected(new Set());
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Extraction failed");
+    } finally {
+      setLoading(false);
+    }
   }
 
   async function mark(item: ExtractedItem, status: WordStatus) {
@@ -74,6 +81,7 @@ export function Extractor() {
         >
           {loading ? "Extracting…" : "Extract vocabulary"}
         </Button>
+        {error && <p className="text-sm text-destructive">{error}</p>}
       </div>
 
       {result && (
