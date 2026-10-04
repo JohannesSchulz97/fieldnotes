@@ -28,14 +28,13 @@ export interface VocabEntry {
 /** An unknown word/expression found in a pasted text. */
 export interface ExtractedItem {
   lemma: string;
-  /** Forms as they appeared in the text, e.g. ["allions", "va"]. */
-  surfaceForms: string[];
   partOfSpeech: string | null;
   kind: WordKind;
   /** Context-aware translation. */
   translation: string;
   exampleSentence: string;
-  occurrences: number;
+  /** The item exactly as it appears in exampleSentence, e.g. "assise" for "s'asseoir". */
+  form: string;
 }
 
 export interface ExtractionResult {

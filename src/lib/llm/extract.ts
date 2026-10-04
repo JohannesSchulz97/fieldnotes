@@ -15,12 +15,11 @@ const Extraction = z.object({
   items: z.array(
     z.object({
       lemma: z.string(),
-      surfaceForms: z.array(z.string()),
       partOfSpeech: z.string().nullable(),
       kind: z.enum(["word", "expression"]),
       translation: z.string(),
       sentence: z.number().int(),
-      occurrences: z.number().int(),
+      form: z.string(),
     })
   ),
 });
@@ -38,11 +37,10 @@ Procedure:
 Fields for each item (each lemma exactly once):
 - lemma: dictionary form, lowercase. Infinitive for verbs (reflexive verbs with "se"); masculine singular for adjectives; nouns with their definite article (e.g. "le quai", "l'arbre"); expressions in their citation form.
 - kind: "expression" for items from step 3, otherwise "word".
-- surfaceForms: the distinct forms exactly as they appear in the text.
 - partOfSpeech: e.g. "noun", "verb", "adjective", "adverb", "pronoun", "preposition", "conjunction", "determiner"; null for expressions if unclear.
 - translation: concise ${TARGET_LANGUAGE} translation fitting the meaning used in the text.
 - sentence: the number of the sentence where the item first appears. The input text is given as numbered sentences "[n] ...".
-- occurrences: how often the item appears in the text.`;
+- form: the item exactly as it appears in that sentence, copied character for character (e.g. "assise" for "s'asseoir", "s'est rendu compte" for "se rendre compte").`;
 
 function splitSentences(text: string): string[] {
   const segmenter = new Intl.Segmenter(undefined, { granularity: "sentence" });

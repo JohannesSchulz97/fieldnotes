@@ -140,7 +140,7 @@ export function Extractor() {
                     <LemmaCell item={item} />
                     <TableCell>{item.translation}</TableCell>
                     <TableCell className="max-w-xs whitespace-normal text-sm italic text-muted-foreground">
-                      {item.exampleSentence}
+                      <Highlighted text={item.exampleSentence} part={item.form} />
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-2">
@@ -190,7 +190,7 @@ export function Extractor() {
                   <LemmaCell item={item} />
                   <TableCell>{item.translation}</TableCell>
                   <TableCell className="max-w-xs whitespace-normal text-sm italic">
-                    {item.exampleSentence}
+                    <Highlighted text={item.exampleSentence} part={item.form} />
                   </TableCell>
                 </TableRow>
               ))}
@@ -210,8 +210,33 @@ function LemmaCell({ item }: { item: ExtractedItem }) {
         {item.kind === "expression" && <Badge variant="secondary">expr.</Badge>}
       </div>
       <div className="text-xs text-muted-foreground">
-        {[item.partOfSpeech, item.surfaceForms.join(", ")].filter(Boolean).join(" · ")}
+        {item.partOfSpeech}
       </div>
     </TableCell>
   );
+}
+
+/** Bolds the first whole-word, case-insensitive match of part in text; plain text if not found. */
+function Highlighted({ text, part }: { text: string; part: string }) {
+  const match = part ? findWord(text, part) : null;
+  if (!match) return text;
+  const [start, end] = match;
+  return (
+    <>
+      {text.slice(0, start)}
+      <strong className="font-semibold not-italic text-foreground">
+        {text.slice(start, end)}
+      </strong>
+      {text.slice(end)}
+    </>
+  );
+}
+
+/** Like indexOf, but the match may not be glued to letters on either side ("le" must not match in "elle"). */
+function findWord(text: string, part: string): [number, number] | null {
+  const escaped = part.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const before = /^\p{L}/u.test(part) ? "(?<!\\p{L})" : "";
+  const after = /\p{L}$/u.test(part) ? "(?!\\p{L})" : "";
+  const m = new RegExp(before + escaped + after, "iu").exec(text);
+  return m ? [m.index, m.index + m[0].length] : null;
 }
