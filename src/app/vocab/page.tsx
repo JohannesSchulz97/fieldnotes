@@ -8,6 +8,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { connection } from "next/server";
+import { BulkAdd } from "@/components/bulk-add";
 import { listVocab } from "@/lib/db/vocab";
 
 export default async function VocabPage() {
@@ -17,6 +18,9 @@ export default async function VocabPage() {
   return (
     <main className="mx-auto w-full max-w-5xl px-4 py-8">
       <h1 className="mb-6 text-2xl font-semibold">Vocabulary</h1>
+      <div className="mb-8">
+        <BulkAdd />
+      </div>
       <Table>
         <TableHeader>
           <TableRow>
@@ -31,7 +35,7 @@ export default async function VocabPage() {
           {entries.length === 0 && (
             <TableRow>
               <TableCell colSpan={5} className="text-muted-foreground">
-                No words yet. Mark words as known or ignored on the Extract page.
+                No words yet. Add known words above, or mark words on the Extract page.
               </TableCell>
             </TableRow>
           )}

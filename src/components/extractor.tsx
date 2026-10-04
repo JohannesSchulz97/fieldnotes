@@ -13,7 +13,9 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Textarea } from "@/components/ui/textarea";
-import { extract, markItem } from "@/app/actions";
+import { extract, markExported, markItem } from "@/app/actions";
+import { buildAnkiFile } from "@/lib/anki";
+import { findWord } from "@/lib/highlight";
 import type { ExtractedItem, ExtractionResult, WordStatus } from "@/lib/types";
 
 export function Extractor() {
@@ -24,6 +26,7 @@ export function Extractor() {
   const [items, setItems] = useState<ExtractedItem[]>([]);
   const [knownItems, setKnownItems] = useState<ExtractedItem[]>([]);
   const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [exporting, setExporting] = useState(false);
 
   async function handleExtract() {
     setLoading(true);
@@ -46,6 +49,27 @@ export function Extractor() {
     await markItem(item, result.sourceLanguage, result.targetLanguage, status);
     removeItem(item.lemma);
     if (status === "known") setKnownItems((prev) => [item, ...prev]);
+  }
+
+  async function handleExport() {
+    if (!result) return;
+    const toExport = items.filter((i) => selected.has(i.lemma));
+    setExporting(true);
+    setError(null);
+    try {
+      await markExported(toExport, result.sourceLanguage, result.targetLanguage);
+      download(
+        buildAnkiFile(toExport),
+        `anki-${result.sourceLanguage}-${new Date().toISOString().slice(0, 10)}.txt`
+      );
+      setItems((prev) => prev.filter((i) => !selected.has(i.lemma)));
+      setKnownItems((prev) => [...toExport, ...prev]);
+      setSelected(new Set());
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Export failed");
+    } finally {
+      setExporting(false);
+    }
   }
 
   function removeItem(lemma: string) {
@@ -96,8 +120,14 @@ export function Extractor() {
                 {items.length}
               </span>
             </h2>
-            <Button variant="outline" disabled>
-              Export {selected.size > 0 ? selected.size : ""} to Anki
+            <Button
+              variant="outline"
+              onClick={handleExport}
+              disabled={exporting || selected.size === 0}
+            >
+              {exporting
+                ? "Exporting…"
+                : `Export ${selected.size > 0 ? selected.size : ""} to Anki`}
             </Button>
           </div>
 
@@ -232,11 +262,12 @@ function Highlighted({ text, part }: { text: string; part: string }) {
   );
 }
 
-/** Like indexOf, but the match may not be glued to letters on either side ("le" must not match in "elle"). */
-function findWord(text: string, part: string): [number, number] | null {
-  const escaped = part.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-  const before = /^\p{L}/u.test(part) ? "(?<!\\p{L})" : "";
-  const after = /\p{L}$/u.test(part) ? "(?!\\p{L})" : "";
-  const m = new RegExp(before + escaped + after, "iu").exec(text);
-  return m ? [m.index, m.index + m[0].length] : null;
+
+function download(content: string, filename: string) {
+  const url = URL.createObjectURL(new Blob([content], { type: "text/plain;charset=utf-8" }));
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(url);
 }
