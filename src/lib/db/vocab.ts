@@ -8,17 +8,17 @@ export async function listVocab(): Promise<VocabEntry[]> {
   return db.select().from(vocabEntries).orderBy(desc(vocabEntries.createdAt));
 }
 
-/** Returns which of the given lemmas are already stored (known or ignored). */
-export async function getStoredLemmas(
+/** Returns the status of each given lemma that is already stored. */
+export async function getStoredStatuses(
   language: LanguageCode,
   lemmas: string[]
-): Promise<Set<string>> {
-  if (lemmas.length === 0) return new Set();
+): Promise<Map<string, WordStatus>> {
+  if (lemmas.length === 0) return new Map();
   const rows = await db
-    .select({ lemma: vocabEntries.lemma })
+    .select({ lemma: vocabEntries.lemma, status: vocabEntries.status })
     .from(vocabEntries)
     .where(and(eq(vocabEntries.language, language), inArray(vocabEntries.lemma, lemmas)));
-  return new Set(rows.map((r) => r.lemma));
+  return new Map(rows.map((r) => [r.lemma, r.status]));
 }
 
 /** Inserts the item with the given status, or updates the status if (language, lemma) exists. */

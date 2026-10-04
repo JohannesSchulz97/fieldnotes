@@ -1,24 +1,26 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { getStoredLemmas, saveWithStatus } from "@/lib/db/vocab";
+import { getStoredStatuses, saveWithStatus } from "@/lib/db/vocab";
 import { llmExtract } from "@/lib/llm/extract";
 import type { ExtractedItem, ExtractionResult, LanguageCode, WordStatus } from "@/lib/types";
 
 export async function extract(text: string): Promise<ExtractionResult> {
   if (!text.trim()) throw new Error("Empty text");
   const result = await llmExtract(text);
-  const stored = await getStoredLemmas(
+  const stored = await getStoredStatuses(
     result.sourceLanguage,
     result.items.map((i) => i.lemma)
   );
   const items = result.items.filter((i) => !stored.has(i.lemma));
+  const knownItems = result.items.filter((i) => stored.get(i.lemma) === "known");
   return {
     ...result,
     items,
+    knownItems,
     stats: {
       totalLemmas: result.stats.totalLemmas,
-      knownCount: result.stats.totalLemmas - items.length,
+      knownCount: knownItems.length,
       unknownCount: items.length,
     },
   };

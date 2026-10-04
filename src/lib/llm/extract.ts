@@ -7,7 +7,8 @@ import type { ExtractionResult } from "../types";
 const TARGET_LANGUAGE = "en";
 
 let client: OpenAI | null = null;
-const model = process.env.OPENAI_MODEL ?? "gpt-5.4-mini";
+const model = process.env.OPENAI_MODEL ?? "gpt-5.5";
+const reasoningEffort = (process.env.OPENAI_REASONING_EFFORT ?? "low") as OpenAI.ReasoningEffort;
 
 const Extraction = z.object({
   sourceLanguage: z.string().describe("ISO 639-1 code of the text's language"),
@@ -18,7 +19,7 @@ const Extraction = z.object({
       partOfSpeech: z.string().nullable(),
       kind: z.enum(["word", "expression"]),
       translation: z.string(),
-      exampleSentence: z.string(),
+      sentence: z.number().int(),
       occurrences: z.number().int(),
     })
   ),
@@ -40,29 +41,42 @@ Fields for each item (each lemma exactly once):
 - surfaceForms: the distinct forms exactly as they appear in the text.
 - partOfSpeech: e.g. "noun", "verb", "adjective", "adverb", "pronoun", "preposition", "conjunction", "determiner"; null for expressions if unclear.
 - translation: concise ${TARGET_LANGUAGE} translation fitting the meaning used in the text.
-- exampleSentence: the sentence from the text where the item first appears, verbatim.
+- sentence: the number of the sentence where the item first appears. The input text is given as numbered sentences "[n] ...".
 - occurrences: how often the item appears in the text.`;
 
+function splitSentences(text: string): string[] {
+  const segmenter = new Intl.Segmenter(undefined, { granularity: "sentence" });
+  return [...segmenter.segment(text)].map((s) => s.segment.trim()).filter(Boolean);
+}
+
 export async function llmExtract(text: string): Promise<ExtractionResult> {
+  const sentences = splitSentences(text);
   client ??= new OpenAI();
   const response = await client.responses.parse({
     model,
+    reasoning: { effort: reasoningEffort },
     instructions: INSTRUCTIONS,
-    input: text,
+    input: sentences.map((s, i) => `[${i}] ${s}`).join("\n"),
     text: { format: zodTextFormat(Extraction, "extraction") },
   });
 
   const parsed = response.output_parsed;
   if (!parsed) throw new Error("LLM returned no parseable extraction");
 
+  const items = parsed.items.map(({ sentence, ...item }) => ({
+    ...item,
+    exampleSentence: sentences[sentence] ?? "",
+  }));
+
   return {
     sourceLanguage: parsed.sourceLanguage.toLowerCase(),
     targetLanguage: TARGET_LANGUAGE,
-    items: parsed.items,
+    items,
+    knownItems: [],
     stats: {
-      totalLemmas: parsed.items.length,
+      totalLemmas: items.length,
       knownCount: 0,
-      unknownCount: parsed.items.length,
+      unknownCount: items.length,
     },
   };
 }

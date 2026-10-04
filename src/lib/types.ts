@@ -41,8 +41,10 @@ export interface ExtractedItem {
 export interface ExtractionResult {
   sourceLanguage: LanguageCode;
   targetLanguage: LanguageCode;
-  /** Only items not yet in the vocabulary DB. */
+  /** Items not yet in the vocabulary DB. */
   items: ExtractedItem[];
+  /** Items already stored with status "known". Ignored items appear in neither list. */
+  knownItems: ExtractedItem[];
   stats: {
     totalLemmas: number;
     knownCount: number;

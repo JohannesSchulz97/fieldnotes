@@ -22,6 +22,7 @@ export function Extractor() {
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<ExtractionResult | null>(null);
   const [items, setItems] = useState<ExtractedItem[]>([]);
+  const [knownItems, setKnownItems] = useState<ExtractedItem[]>([]);
   const [selected, setSelected] = useState<Set<string>>(new Set());
 
   async function handleExtract() {
@@ -31,6 +32,7 @@ export function Extractor() {
       const res = await extract(text);
       setResult(res);
       setItems(res.items);
+      setKnownItems(res.knownItems);
       setSelected(new Set());
     } catch (e) {
       setError(e instanceof Error ? e.message : "Extraction failed");
@@ -43,6 +45,7 @@ export function Extractor() {
     if (!result) return;
     await markItem(item, result.sourceLanguage, result.targetLanguage, status);
     removeItem(item.lemma);
+    if (status === "known") setKnownItems((prev) => [item, ...prev]);
   }
 
   function removeItem(lemma: string) {
@@ -85,12 +88,14 @@ export function Extractor() {
       </div>
 
       {result && (
-        <div className="flex flex-col gap-3">
+        <section className="flex flex-col gap-3">
           <div className="flex items-center justify-between">
-            <p className="text-sm text-muted-foreground">
-              {result.stats.totalLemmas} lemmas · {result.stats.knownCount}{" "}
-              known · {items.length} unknown
-            </p>
+            <h2 className="text-lg font-semibold">
+              New words{" "}
+              <span className="font-normal text-muted-foreground">
+                {items.length}
+              </span>
+            </h2>
             <Button variant="outline" disabled>
               Export {selected.size > 0 ? selected.size : ""} to Anki
             </Button>
@@ -98,7 +103,7 @@ export function Extractor() {
 
           {items.length === 0 ? (
             <p className="text-sm text-muted-foreground">
-              No unknown words left.
+              No new words left.
             </p>
           ) : (
             <Table>
@@ -132,19 +137,7 @@ export function Extractor() {
                         aria-label={`Select ${item.lemma}`}
                       />
                     </TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        <span className="font-medium">{item.lemma}</span>
-                        {item.kind === "expression" && (
-                          <Badge variant="secondary">expr.</Badge>
-                        )}
-                      </div>
-                      <div className="text-xs text-muted-foreground">
-                        {[item.partOfSpeech, item.surfaceForms.join(", ")]
-                          .filter(Boolean)
-                          .join(" · ")}
-                      </div>
-                    </TableCell>
+                    <LemmaCell item={item} />
                     <TableCell>{item.translation}</TableCell>
                     <TableCell className="max-w-xs whitespace-normal text-sm italic text-muted-foreground">
                       {item.exampleSentence}
@@ -172,8 +165,53 @@ export function Extractor() {
               </TableBody>
             </Table>
           )}
-        </div>
+        </section>
+      )}
+
+      {result && knownItems.length > 0 && (
+        <section className="flex flex-col gap-3">
+          <h2 className="text-lg font-semibold">
+            Known words{" "}
+            <span className="font-normal text-muted-foreground">
+              {knownItems.length}
+            </span>
+          </h2>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Lemma</TableHead>
+                <TableHead>Translation</TableHead>
+                <TableHead>Example</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {knownItems.map((item) => (
+                <TableRow key={item.lemma} className="text-muted-foreground">
+                  <LemmaCell item={item} />
+                  <TableCell>{item.translation}</TableCell>
+                  <TableCell className="max-w-xs whitespace-normal text-sm italic">
+                    {item.exampleSentence}
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </section>
       )}
     </div>
+  );
+}
+
+function LemmaCell({ item }: { item: ExtractedItem }) {
+  return (
+    <TableCell>
+      <div className="flex items-center gap-2">
+        <span className="font-medium">{item.lemma}</span>
+        {item.kind === "expression" && <Badge variant="secondary">expr.</Badge>}
+      </div>
+      <div className="text-xs text-muted-foreground">
+        {[item.partOfSpeech, item.surfaceForms.join(", ")].filter(Boolean).join(" · ")}
+      </div>
+    </TableCell>
   );
 }
