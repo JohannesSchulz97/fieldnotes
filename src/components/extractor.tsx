@@ -15,6 +15,7 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { extract, markExported, markItem, unmarkItem } from "@/app/actions";
 import { buildAnkiFile } from "@/lib/anki";
+import { formatUsd } from "@/lib/format";
 import { findWord } from "@/lib/highlight";
 import type { ExtractedItem, ExtractionResult, WordStatus } from "@/lib/types";
 
@@ -116,6 +117,11 @@ export function Extractor() {
           {loading ? "Extracting…" : "Extract vocabulary"}
         </Button>
         {error && <p className="text-sm text-destructive">{error}</p>}
+        {result && (
+          <p className="text-xs text-muted-foreground">
+            Cost {formatUsd(result.costUsd)} · total spent {formatUsd(result.totalCostUsd)}
+          </p>
+        )}
       </div>
 
       {result && (

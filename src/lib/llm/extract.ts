@@ -2,7 +2,7 @@ import "server-only";
 import { zodTextFormat } from "openai/helpers/zod";
 import { z } from "zod";
 import type { ExtractionResult } from "../types";
-import { getClient, LEMMA_RULES, model, reasoningEffort, TARGET_LANGUAGE } from "./client";
+import { getClient, LEMMA_RULES, model, reasoningEffort, TARGET_LANGUAGE, trackUsage } from "./client";
 
 const Extraction = z.object({
   sourceLanguage: z.string().describe("ISO 639-1 code of the text's language"),
@@ -38,7 +38,7 @@ function splitSentences(text: string): string[] {
   return [...segmenter.segment(text)].map((s) => s.segment.trim()).filter(Boolean);
 }
 
-export async function llmExtract(text: string): Promise<ExtractionResult> {
+export async function llmExtract(text: string): Promise<Omit<ExtractionResult, "totalCostUsd">> {
   const sentences = splitSentences(text);
   const response = await getClient().responses.parse({
     model,
@@ -48,10 +48,14 @@ export async function llmExtract(text: string): Promise<ExtractionResult> {
     text: { format: zodTextFormat(Extraction, "extraction") },
   });
 
+  const costUsd = await trackUsage("extraction", response.usage);
   const parsed = response.output_parsed;
   if (!parsed) throw new Error("LLM returned no parseable extraction");
 
-  const items = parsed.items.map(({ sentence, ...item }) => ({
+  // The model occasionally repeats a lemma; keep the first occurrence so lemmas stay unique.
+  const seen = new Set<string>();
+  const unique = parsed.items.filter((i) => !seen.has(i.lemma) && seen.add(i.lemma));
+  const items = unique.map(({ sentence, ...item }) => ({
     ...item,
     exampleSentence: sentences[sentence] ?? "",
   }));
@@ -61,6 +65,7 @@ export async function llmExtract(text: string): Promise<ExtractionResult> {
     targetLanguage: TARGET_LANGUAGE,
     items,
     knownItems: [],
+    costUsd,
     stats: {
       totalLemmas: items.length,
       knownCount: 0,

@@ -48,6 +48,10 @@ export interface ExtractionResult {
   items: ExtractedItem[];
   /** Items already stored with status "known". Ignored items appear in neither list. */
   knownItems: ExtractedItem[];
+  /** Cost of this extraction's LLM call in USD; null if the model has no known price. */
+  costUsd: number | null;
+  /** Total LLM cost recorded so far in USD, including this extraction. */
+  totalCostUsd: number;
   stats: {
     totalLemmas: number;
     knownCount: number;

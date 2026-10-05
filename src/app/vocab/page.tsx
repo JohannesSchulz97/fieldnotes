@@ -11,7 +11,9 @@ import Link from "next/link";
 import { connection } from "next/server";
 import { BulkAdd } from "@/components/bulk-add";
 import { UnmarkButton } from "@/components/unmark-button";
+import { getTotalCost } from "@/lib/db/usage";
 import { countBySource, listVocab } from "@/lib/db/vocab";
+import { formatUsd } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import type { WordSource } from "@/lib/types";
 
@@ -30,7 +32,11 @@ export default async function VocabPage({
   await connection();
   const param = (await searchParams).source;
   const source = SOURCES.find((s) => s.value === param)?.value;
-  const [entries, counts] = await Promise.all([listVocab(source), countBySource()]);
+  const [entries, counts, totalCost] = await Promise.all([
+    listVocab(source),
+    countBySource(),
+    getTotalCost(),
+  ]);
   const filters = [
     { value: undefined, label: "All", n: Object.values(counts).reduce((a, b) => a + b, 0) },
     ...SOURCES.map((s) => ({ ...s, n: counts[s.value] })),
@@ -38,7 +44,12 @@ export default async function VocabPage({
 
   return (
     <main className="mx-auto w-full max-w-5xl px-4 py-8">
-      <h1 className="mb-6 text-2xl font-semibold">Vocabulary</h1>
+      <div className="mb-6 flex items-baseline justify-between">
+        <h1 className="text-2xl font-semibold">Vocabulary</h1>
+        <p className="text-sm text-muted-foreground">
+          Total API cost {formatUsd(totalCost)}
+        </p>
+      </div>
       <div className="mb-8">
         <BulkAdd />
       </div>

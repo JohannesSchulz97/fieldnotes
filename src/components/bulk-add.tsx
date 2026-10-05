@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { addKnownWords } from "@/app/actions";
+import { formatUsd } from "@/lib/format";
 
 export function BulkAdd() {
   const [text, setText] = useState("");
@@ -19,7 +20,8 @@ export function BulkAdd() {
       const res = await addKnownWords(text);
       setMessage(
         `${res.added} added · ${res.alreadyStored} already in list` +
-          (res.skippedLines > 0 ? ` · ${res.skippedLines} lines skipped` : "")
+          (res.skippedLines > 0 ? ` · ${res.skippedLines} lines skipped` : "") +
+          ` · cost ${formatUsd(res.costUsd)} · total spent ${formatUsd(res.totalCostUsd)}`
       );
       setText("");
     } catch (e) {

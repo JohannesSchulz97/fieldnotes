@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { getTotalCost } from "@/lib/db/usage";
 import { deleteEntry, getStoredStatuses, upsertEntries } from "@/lib/db/vocab";
 import { TARGET_LANGUAGE } from "@/lib/llm/client";
 import { llmExtract } from "@/lib/llm/extract";
@@ -20,6 +21,7 @@ export async function extract(text: string): Promise<ExtractionResult> {
     ...result,
     items,
     knownItems,
+    totalCostUsd: await getTotalCost(),
     stats: {
       totalLemmas: result.stats.totalLemmas,
       knownCount: knownItems.length,
@@ -57,6 +59,8 @@ export interface AddKnownResult {
   added: number;
   alreadyStored: number;
   skippedLines: number;
+  costUsd: number | null;
+  totalCostUsd: number;
 }
 
 /** Normalizes pasted entries (one per line) to lemmas via the LLM and stores them as known. */
@@ -65,7 +69,7 @@ export async function addKnownWords(text: string): Promise<AddKnownResult> {
   if (lines.length === 0) throw new Error("Nothing to add");
   if (lines.length > MAX_LINES) throw new Error(`Too many lines (max ${MAX_LINES})`);
 
-  const items = await llmNormalize(lines);
+  const { items, costUsd } = await llmNormalize(lines);
   const byLanguage = Map.groupBy(items, (i: NormalizedItem) => i.language);
 
   let added = 0;
@@ -78,7 +82,13 @@ export async function addKnownWords(text: string): Promise<AddKnownResult> {
     await upsertEntries(group, language, TARGET_LANGUAGE, "known", "manual");
   }
   revalidatePath("/vocab");
-  return { added, alreadyStored, skippedLines: Math.max(0, lines.length - items.length) };
+  return {
+    added,
+    alreadyStored,
+    skippedLines: Math.max(0, lines.length - items.length),
+    costUsd,
+    totalCostUsd: await getTotalCost(),
+  };
 }
 
 /** Removes a stored word so it shows up as new again. */
