@@ -13,7 +13,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Textarea } from "@/components/ui/textarea";
-import { extract, markExported, markItem } from "@/app/actions";
+import { extract, markExported, markItem, unmarkItem } from "@/app/actions";
 import { buildAnkiFile } from "@/lib/anki";
 import { findWord } from "@/lib/highlight";
 import type { ExtractedItem, ExtractionResult, WordStatus } from "@/lib/types";
@@ -49,6 +49,13 @@ export function Extractor() {
     await markItem(item, result.sourceLanguage, result.targetLanguage, status);
     removeItem(item.lemma);
     if (status === "known") setKnownItems((prev) => [item, ...prev]);
+  }
+
+  async function unmark(item: ExtractedItem) {
+    if (!result) return;
+    await unmarkItem(result.sourceLanguage, item.lemma);
+    setKnownItems((prev) => prev.filter((i) => i.lemma !== item.lemma));
+    setItems((prev) => [...prev, item]);
   }
 
   async function handleExport() {
@@ -212,6 +219,7 @@ export function Extractor() {
                 <TableHead>Lemma</TableHead>
                 <TableHead>Translation</TableHead>
                 <TableHead>Example</TableHead>
+                <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -221,6 +229,11 @@ export function Extractor() {
                   <TableCell>{item.translation}</TableCell>
                   <TableCell className="max-w-xs whitespace-normal text-sm italic">
                     <Highlighted text={item.exampleSentence} part={item.form} />
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <Button size="sm" variant="ghost" onClick={() => unmark(item)}>
+                      Mark as new
+                    </Button>
                   </TableCell>
                 </TableRow>
               ))}

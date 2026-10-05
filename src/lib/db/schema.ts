@@ -9,6 +9,9 @@ export const vocabEntries = sqliteTable(
     partOfSpeech: text("part_of_speech"),
     kind: text("kind", { enum: ["word", "expression"] }).notNull(),
     status: text("status", { enum: ["known", "ignored"] }).notNull(),
+    source: text("source", { enum: ["extraction", "manual", "anki", "basic"] })
+      .notNull()
+      .default("extraction"),
     translation: text("translation"),
     translationLanguage: text("translation_language").notNull(),
     exampleSentence: text("example_sentence"),

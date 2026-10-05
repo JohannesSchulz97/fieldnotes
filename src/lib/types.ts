@@ -4,6 +4,9 @@ export type LanguageCode = string;
 /** known = real vocabulary you know; ignored = not vocabulary (names, places, numbers, typos). */
 export type WordStatus = "known" | "ignored";
 
+/** Where an entry came from. Informational only; all sources count the same for matching. */
+export type WordSource = "extraction" | "manual" | "anki" | "basic";
+
 /** "expression" = multi-word unit, e.g. "se rendre compte". */
 export type WordKind = "word" | "expression";
 
@@ -16,6 +19,7 @@ export interface VocabEntry {
   partOfSpeech: string | null;
   kind: WordKind;
   status: WordStatus;
+  source: WordSource;
   translation: string | null;
   translationLanguage: LanguageCode;
   exampleSentence: string | null;

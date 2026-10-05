@@ -1,11 +1,32 @@
 import "server-only";
-import { and, desc, eq, inArray } from "drizzle-orm";
-import type { LanguageCode, VocabEntry, WordKind, WordStatus } from "../types";
+import { and, count, desc, eq, inArray } from "drizzle-orm";
+import type { LanguageCode, VocabEntry, WordKind, WordSource, WordStatus } from "../types";
 import { db } from ".";
 import { vocabEntries } from "./schema";
 
-export async function listVocab(): Promise<VocabEntry[]> {
-  return db.select().from(vocabEntries).orderBy(desc(vocabEntries.createdAt));
+export async function listVocab(source?: WordSource): Promise<VocabEntry[]> {
+  return db
+    .select()
+    .from(vocabEntries)
+    .where(source ? eq(vocabEntries.source, source) : undefined)
+    .orderBy(desc(vocabEntries.createdAt));
+}
+
+export async function countBySource(): Promise<Record<WordSource, number>> {
+  const rows = await db
+    .select({ source: vocabEntries.source, n: count() })
+    .from(vocabEntries)
+    .groupBy(vocabEntries.source);
+  const counts: Record<WordSource, number> = { extraction: 0, manual: 0, anki: 0, basic: 0 };
+  for (const r of rows) counts[r.source] = r.n;
+  return counts;
+}
+
+/** Removes an entry, so the word counts as new again. */
+export async function deleteEntry(language: LanguageCode, lemma: string): Promise<void> {
+  await db
+    .delete(vocabEntries)
+    .where(and(eq(vocabEntries.language, language), eq(vocabEntries.lemma, lemma)));
 }
 
 /** Returns the status of each given lemma that is already stored. */
@@ -33,14 +54,15 @@ export interface EntryInput {
 const BATCH_SIZE = 500;
 
 /**
- * Inserts entries with the given status. Existing (language, lemma) rows keep their data
- * but get the new status (and exportedAt, if given).
+ * Inserts entries with the given status and source. Existing (language, lemma) rows keep
+ * their data and source but get the new status (and exportedAt, if given).
  */
 export async function upsertEntries(
   entries: EntryInput[],
   language: LanguageCode,
   translationLanguage: LanguageCode,
   status: WordStatus,
+  source: WordSource,
   exportedAt: string | null = null
 ): Promise<void> {
   const unique = [...new Map(entries.map((e) => [e.lemma, e])).values()];
@@ -56,6 +78,7 @@ export async function upsertEntries(
           partOfSpeech: e.partOfSpeech,
           kind: e.kind,
           status,
+          source,
           translation: e.translation,
           translationLanguage,
           exampleSentence: e.exampleSentence ?? null,

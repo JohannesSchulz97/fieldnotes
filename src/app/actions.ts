@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { getStoredStatuses, upsertEntries } from "@/lib/db/vocab";
+import { deleteEntry, getStoredStatuses, upsertEntries } from "@/lib/db/vocab";
 import { TARGET_LANGUAGE } from "@/lib/llm/client";
 import { llmExtract } from "@/lib/llm/extract";
 import { llmNormalize, type NormalizedItem } from "@/lib/llm/normalize";
@@ -36,7 +36,7 @@ export async function markItem(
 ): Promise<void> {
   if (status !== "known" && status !== "ignored") throw new Error("Invalid status");
   if (!item?.lemma?.trim()) throw new Error("Missing lemma");
-  await upsertEntries([item], language, translationLanguage, status);
+  await upsertEntries([item], language, translationLanguage, status, "extraction");
   revalidatePath("/vocab");
 }
 
@@ -47,7 +47,7 @@ export async function markExported(
   translationLanguage: LanguageCode
 ): Promise<void> {
   if (items.length === 0 || items.some((i) => !i?.lemma?.trim())) throw new Error("Invalid items");
-  await upsertEntries(items, language, translationLanguage, "known", new Date().toISOString());
+  await upsertEntries(items, language, translationLanguage, "known", "extraction", new Date().toISOString());
   revalidatePath("/vocab");
 }
 
@@ -75,8 +75,15 @@ export async function addKnownWords(text: string): Promise<AddKnownResult> {
     const stored = await getStoredStatuses(language, lemmas);
     alreadyStored += stored.size;
     added += lemmas.length - stored.size;
-    await upsertEntries(group, language, TARGET_LANGUAGE, "known");
+    await upsertEntries(group, language, TARGET_LANGUAGE, "known", "manual");
   }
   revalidatePath("/vocab");
   return { added, alreadyStored, skippedLines: Math.max(0, lines.length - items.length) };
+}
+
+/** Removes a stored word so it shows up as new again. */
+export async function unmarkItem(language: LanguageCode, lemma: string): Promise<void> {
+  if (!language?.trim() || !lemma?.trim()) throw new Error("Missing language or lemma");
+  await deleteEntry(language, lemma);
+  revalidatePath("/vocab");
 }
