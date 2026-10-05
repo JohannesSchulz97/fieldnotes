@@ -6,6 +6,7 @@ import {
   getExtractionText,
   hashText,
   insertExtraction,
+  saveTranslations,
   updateExtraction,
 } from "@/lib/db/extractions";
 import { getTotalCost } from "@/lib/db/usage";
@@ -13,6 +14,8 @@ import { deleteEntry, getStoredStatuses, upsertEntries } from "@/lib/db/vocab";
 import { TARGET_LANGUAGE } from "@/lib/llm/client";
 import { llmExtract } from "@/lib/llm/extract";
 import { llmNormalize, type NormalizedItem } from "@/lib/llm/normalize";
+import { llmTranslate } from "@/lib/llm/translate";
+import { splitSentences } from "@/lib/sentences";
 import type { ExtractedItem, LanguageCode, WordStatus } from "@/lib/types";
 
 /**
@@ -26,6 +29,14 @@ export async function extract(text: string): Promise<{ id: string; reused: boole
   const id = await insertExtraction(text, await llmExtract(text));
   revalidatePath("/");
   return { id, reused: false };
+}
+
+/** Translates a saved extraction's text sentence by sentence and stores the result. */
+export async function translateExtraction(id: string): Promise<void> {
+  const text = await getExtractionText(id);
+  if (text === null) throw new Error("Extraction not found");
+  await saveTranslations(id, await llmTranslate(splitSentences(text)));
+  revalidatePath(`/extractions/${id}`);
 }
 
 /** Runs the LLM again on a saved extraction's text and replaces its items. */

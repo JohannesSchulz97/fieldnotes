@@ -1,6 +1,7 @@
 import "server-only";
 import { zodTextFormat } from "openai/helpers/zod";
 import { z } from "zod";
+import { splitSentences } from "../sentences";
 import type { ExtractedItem, LanguageCode } from "../types";
 import { getClient, LEMMA_RULES, model, reasoningEffort, TARGET_LANGUAGE, trackUsage } from "./client";
 
@@ -32,11 +33,6 @@ Each lemma exactly once. Additional fields:
 - translation: fitting the meaning used in the text.
 - sentence: the number of the sentence where the item first appears. The input text is given as numbered sentences "[n] ...".
 - form: the item exactly as it appears in that sentence, copied character for character (e.g. "assise" for "s'asseoir", "s'est rendu compte" for "se rendre compte").`;
-
-function splitSentences(text: string): string[] {
-  const segmenter = new Intl.Segmenter(undefined, { granularity: "sentence" });
-  return [...segmenter.segment(text)].map((s) => s.segment.trim()).filter(Boolean);
-}
 
 export interface LlmExtraction {
   sourceLanguage: LanguageCode;

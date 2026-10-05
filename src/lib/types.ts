@@ -45,6 +45,10 @@ export interface ExtractedItem {
 export interface ExtractionResult {
   id: string;
   text: string;
+  /** The text split into paragraphs of sentences; sentence numbers count across paragraphs. */
+  paragraphs: string[][];
+  /** English translation per sentence (same numbering); null until translated. */
+  translations: string[] | null;
   sourceLanguage: LanguageCode;
   targetLanguage: LanguageCode;
   /** Items not yet in the vocabulary DB. */

@@ -2,6 +2,7 @@ import "server-only";
 import { createHash } from "node:crypto";
 import { desc, eq } from "drizzle-orm";
 import type { LlmExtraction } from "../llm/extract";
+import { splitParagraphs } from "../sentences";
 import type { ExtractionResult, ExtractionSummary } from "../types";
 import { db } from ".";
 import { extractions } from "./schema";
@@ -46,6 +47,13 @@ export async function insertExtraction(text: string, result: LlmExtraction): Pro
   return id;
 }
 
+export async function saveTranslations(id: string, translations: string[]): Promise<void> {
+  await db
+    .update(extractions)
+    .set({ translations, updatedAt: new Date().toISOString() })
+    .where(eq(extractions.id, id));
+}
+
 /** Replaces the stored items with a fresh LLM run. */
 export async function updateExtraction(id: string, result: LlmExtraction): Promise<void> {
   await db
@@ -71,6 +79,8 @@ export async function loadExtraction(id: string): Promise<ExtractionResult | nul
   return {
     id: row.id,
     text: row.text,
+    paragraphs: splitParagraphs(row.text),
+    translations: row.translations,
     sourceLanguage: row.sourceLanguage,
     targetLanguage: row.targetLanguage,
     items: row.items.filter((i) => !stored.has(i.lemma)),

@@ -27,7 +27,7 @@ export const vocabEntries = sqliteTable(
 /** One row per OpenAI call, for cost tracking. */
 export const llmUsage = sqliteTable("llm_usage", {
   id: text("id").primaryKey(),
-  kind: text("kind", { enum: ["extraction", "normalization"] }).notNull(),
+  kind: text("kind", { enum: ["extraction", "normalization", "translation"] }).notNull(),
   model: text("model").notNull(),
   inputTokens: integer("input_tokens").notNull(),
   cachedInputTokens: integer("cached_input_tokens").notNull(),
@@ -48,6 +48,8 @@ export const extractions = sqliteTable(
     sourceLanguage: text("source_language").notNull(),
     targetLanguage: text("target_language").notNull(),
     items: text("items", { mode: "json" }).$type<ExtractedItem[]>().notNull(),
+    /** English translation per sentence, aligned with splitSentences(text); null until translated. */
+    translations: text("translations", { mode: "json" }).$type<string[]>(),
     /** Cost of the latest LLM run for this text. */
     costUsd: real("cost_usd"),
     createdAt: text("created_at").notNull(),

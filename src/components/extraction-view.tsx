@@ -25,6 +25,11 @@ export function ExtractionView({ result }: { result: ExtractionResult }) {
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [exporting, setExporting] = useState(false);
 
+  // English for each example sentence, once the text has been translated.
+  const sentences = result.paragraphs.flat();
+  const translationOf = (sentence: string) =>
+    result.translations?.[sentences.indexOf(sentence)] || null;
+
   async function mark(item: ExtractedItem, status: WordStatus) {
     await markItem(item, result.sourceLanguage, result.targetLanguage, status);
     removeItem(item.lemma);
@@ -139,7 +144,7 @@ export function ExtractionView({ result }: { result: ExtractionResult }) {
                   <LemmaCell item={item} />
                   <TableCell>{item.translation}</TableCell>
                   <TableCell className="max-w-xs whitespace-normal text-sm italic text-muted-foreground">
-                    <Highlighted text={item.exampleSentence} part={item.form} />
+                    <Example item={item} translation={translationOf(item.exampleSentence)} />
                   </TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-2">
@@ -189,7 +194,7 @@ export function ExtractionView({ result }: { result: ExtractionResult }) {
                   <LemmaCell item={item} />
                   <TableCell>{item.translation}</TableCell>
                   <TableCell className="max-w-xs whitespace-normal text-sm italic">
-                    <Highlighted text={item.exampleSentence} part={item.form} />
+                    <Example item={item} translation={translationOf(item.exampleSentence)} />
                   </TableCell>
                   <TableCell className="text-right">
                     <Button size="sm" variant="ghost" onClick={() => unmark(item)}>
@@ -217,6 +222,15 @@ function LemmaCell({ item }: { item: ExtractedItem }) {
         {item.partOfSpeech}
       </div>
     </TableCell>
+  );
+}
+
+function Example({ item, translation }: { item: ExtractedItem; translation: string | null }) {
+  return (
+    <>
+      <Highlighted text={item.exampleSentence} part={item.form} />
+      {translation && <div className="mt-1 text-xs not-italic">{translation}</div>}
+    </>
   );
 }
 

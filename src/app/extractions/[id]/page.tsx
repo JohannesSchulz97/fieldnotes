@@ -1,8 +1,9 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { connection } from "next/server";
-import { ExtractionView } from "@/components/extraction-view";
+import { ExtractionTabs } from "@/components/extraction-tabs";
 import { ReextractButton } from "@/components/reextract-button";
+import { TranslateButton } from "@/components/translate-button";
 import { loadExtraction } from "@/lib/db/extractions";
 import { getTotalCost } from "@/lib/db/usage";
 import { formatUsd } from "@/lib/format";
@@ -21,18 +22,17 @@ export default async function ExtractionPage({ params }: { params: Promise<{ id:
         </Link>
         <div className="flex items-baseline justify-between gap-4">
           <h1 className="text-2xl font-semibold">Extraction {result.createdAt.slice(0, 10)}</h1>
-          <ReextractButton id={result.id} />
+          <div className="flex gap-2">
+            {!result.translations && <TranslateButton id={result.id} />}
+            <ReextractButton id={result.id} />
+          </div>
         </div>
         <p className="text-xs text-muted-foreground">
           Cost {formatUsd(result.costUsd)} · total spent {formatUsd(totalCost)}
         </p>
-        <details className="text-sm">
-          <summary className="cursor-pointer text-muted-foreground">Show text</summary>
-          <p className="mt-2 whitespace-pre-wrap">{result.text}</p>
-        </details>
       </div>
-      {/* Keyed by updatedAt so a re-extraction resets the local list state. */}
-      <ExtractionView key={result.updatedAt} result={result} />
+      {/* Keyed by updatedAt so a re-extraction or translation resets the local list state. */}
+      <ExtractionTabs key={result.updatedAt} result={result} />
     </main>
   );
 }
