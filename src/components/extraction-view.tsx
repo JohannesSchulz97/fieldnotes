@@ -12,18 +12,27 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { markExported, markItem, unmarkItem } from "@/app/actions";
+import { markExported, markItem, unmarkItem, updateAnkiSettings } from "@/app/actions";
+import { AnkiSettingsPanel } from "@/components/anki-settings-panel";
 import { buildAnkiFile } from "@/lib/anki";
 import { findWord } from "@/lib/highlight";
-import type { ExtractedItem, ExtractionResult, WordStatus } from "@/lib/types";
+import type { AnkiSettings, ExtractedItem, ExtractionResult, WordStatus } from "@/lib/types";
 
 /** New and known words of a saved extraction. Marking and exporting persist immediately. */
-export function ExtractionView({ result }: { result: ExtractionResult }) {
+export function ExtractionView({
+  result,
+  ankiSettings: initialAnkiSettings,
+}: {
+  result: ExtractionResult;
+  ankiSettings: AnkiSettings;
+}) {
   const [error, setError] = useState<string | null>(null);
   const [items, setItems] = useState(result.items);
   const [knownItems, setKnownItems] = useState(result.knownItems);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [exporting, setExporting] = useState(false);
+  const [ankiSettings, setAnkiSettings] = useState(initialAnkiSettings);
+  const [showSettings, setShowSettings] = useState(false);
 
   // English for each example sentence, once the text has been translated.
   const sentences = result.paragraphs.flat();
@@ -42,6 +51,14 @@ export function ExtractionView({ result }: { result: ExtractionResult }) {
     setItems((prev) => [...prev, item]);
   }
 
+  // Preview the first selected word, or the first new word if none is selected.
+  const previewItem = items.find((i) => selected.has(i.lemma)) ?? items[0];
+
+  function changeAnkiSettings(next: AnkiSettings) {
+    setAnkiSettings(next);
+    updateAnkiSettings(next).catch(() => setError("Could not save export settings"));
+  }
+
   async function handleExport() {
     const toExport = items.filter((i) => selected.has(i.lemma));
     setExporting(true);
@@ -49,7 +66,7 @@ export function ExtractionView({ result }: { result: ExtractionResult }) {
     try {
       await markExported(toExport, result.sourceLanguage, result.targetLanguage);
       download(
-        buildAnkiFile(toExport),
+        buildAnkiFile(toExport, ankiSettings, translationOf),
         `anki-${result.sourceLanguage}-${new Date().toISOString().slice(0, 10)}.txt`
       );
       setItems((prev) => prev.filter((i) => !selected.has(i.lemma)));
@@ -94,16 +111,34 @@ export function ExtractionView({ result }: { result: ExtractionResult }) {
               {items.length}
             </span>
           </h2>
-          <Button
-            variant="outline"
-            onClick={handleExport}
-            disabled={exporting || selected.size === 0}
-          >
-            {exporting
-              ? "Exporting…"
-              : `Export ${selected.size > 0 ? selected.size : ""} to Anki`}
-          </Button>
+          <div className="flex gap-2">
+            <Button
+              variant="ghost"
+              onClick={() => setShowSettings((v) => !v)}
+              aria-expanded={showSettings}
+            >
+              Export settings
+            </Button>
+            <Button
+              variant="outline"
+              onClick={handleExport}
+              disabled={exporting || selected.size === 0}
+            >
+              {exporting
+                ? "Exporting…"
+                : `Export ${selected.size > 0 ? selected.size : ""} to Anki`}
+            </Button>
+          </div>
         </div>
+
+        {showSettings && (
+          <AnkiSettingsPanel
+            settings={ankiSettings}
+            onChange={changeAnkiSettings}
+            previewItem={previewItem}
+            previewTranslation={previewItem ? translationOf(previewItem.exampleSentence) : null}
+          />
+        )}
 
         {items.length === 0 ? (
           <p className="text-sm text-muted-foreground">

@@ -57,3 +57,10 @@ export const extractions = sqliteTable(
   },
   (t) => [uniqueIndex("extractions_text_hash_idx").on(t.textHash)]
 );
+
+/** App settings as JSON values under a fixed key, e.g. "anki". */
+export const settings = sqliteTable("settings", {
+  key: text("key").primaryKey(),
+  value: text("value", { mode: "json" }).notNull(),
+  updatedAt: text("updated_at").notNull(),
+});

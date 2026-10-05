@@ -5,13 +5,18 @@ import { ExtractionTabs } from "@/components/extraction-tabs";
 import { ReextractButton } from "@/components/reextract-button";
 import { TranslateButton } from "@/components/translate-button";
 import { loadExtraction } from "@/lib/db/extractions";
+import { getAnkiSettings } from "@/lib/db/settings";
 import { getTotalCost } from "@/lib/db/usage";
 import { formatUsd } from "@/lib/format";
 
 export default async function ExtractionPage({ params }: { params: Promise<{ id: string }> }) {
   await connection();
   const { id } = await params;
-  const [result, totalCost] = await Promise.all([loadExtraction(id), getTotalCost()]);
+  const [result, totalCost, ankiSettings] = await Promise.all([
+    loadExtraction(id),
+    getTotalCost(),
+    getAnkiSettings(),
+  ]);
   if (!result) notFound();
 
   return (
@@ -32,7 +37,7 @@ export default async function ExtractionPage({ params }: { params: Promise<{ id:
         </p>
       </div>
       {/* Keyed by updatedAt so a re-extraction or translation resets the local list state. */}
-      <ExtractionTabs key={result.updatedAt} result={result} />
+      <ExtractionTabs key={result.updatedAt} result={result} ankiSettings={ankiSettings} />
     </main>
   );
 }

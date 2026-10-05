@@ -9,6 +9,7 @@ import {
   saveTranslations,
   updateExtraction,
 } from "@/lib/db/extractions";
+import { AnkiSettingsSchema, saveAnkiSettings } from "@/lib/db/settings";
 import { getTotalCost } from "@/lib/db/usage";
 import { deleteEntry, getStoredStatuses, upsertEntries } from "@/lib/db/vocab";
 import { TARGET_LANGUAGE } from "@/lib/llm/client";
@@ -16,7 +17,7 @@ import { llmExtract } from "@/lib/llm/extract";
 import { llmNormalize, type NormalizedItem } from "@/lib/llm/normalize";
 import { llmTranslate } from "@/lib/llm/translate";
 import { splitSentences } from "@/lib/sentences";
-import type { ExtractedItem, LanguageCode, WordStatus } from "@/lib/types";
+import type { AnkiSettings, ExtractedItem, LanguageCode, WordStatus } from "@/lib/types";
 
 /**
  * Extracts vocabulary from a text and saves the result. A text that was extracted before
@@ -118,4 +119,8 @@ export async function unmarkItem(language: LanguageCode, lemma: string): Promise
   await deleteEntry(language, lemma);
   revalidatePath("/vocab");
   revalidatePath("/");
+}
+
+export async function updateAnkiSettings(value: AnkiSettings): Promise<void> {
+  await saveAnkiSettings(AnkiSettingsSchema.parse(value));
 }

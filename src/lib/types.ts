@@ -70,3 +70,15 @@ export interface ExtractionSummary {
   totalCount: number;
   createdAt: string;
 }
+
+/** How the Anki export builds cards. */
+export interface AnkiSettings {
+  /** fr-en: French on the front; en-fr: English on the front; both: one note, two cards. */
+  direction: "fr-en" | "en-fr" | "both";
+  /** Which card field gets the example sentence ("front" = the French field when direction is "both"). */
+  example: "off" | "front" | "back";
+  /** Add the English sentence under the example, if the text was translated. */
+  sentenceTranslation: boolean;
+  /** Show the part of speech on the back of the card. */
+  partOfSpeech: boolean;
+}

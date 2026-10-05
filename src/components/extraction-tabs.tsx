@@ -2,14 +2,20 @@
 
 import { ExtractionView } from "@/components/extraction-view";
 import { ReadView } from "@/components/read-view";
-import type { ExtractionResult } from "@/lib/types";
+import type { AnkiSettings, ExtractionResult } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { useStoredChoice } from "@/lib/use-stored-choice";
 
 const TABS = ["words", "read"] as const;
 type Tab = (typeof TABS)[number];
 
-export function ExtractionTabs({ result }: { result: ExtractionResult }) {
+export function ExtractionTabs({
+  result,
+  ankiSettings,
+}: {
+  result: ExtractionResult;
+  ankiSettings: AnkiSettings;
+}) {
   const [tab, setTab] = useStoredChoice<Tab>("extraction-tab", TABS, "words");
 
   return (
@@ -30,7 +36,7 @@ export function ExtractionTabs({ result }: { result: ExtractionResult }) {
       </div>
       {/* Both stay mounted so marking progress in the word list survives tab switches. */}
       <div className={cn(tab !== "words" && "hidden")}>
-        <ExtractionView result={result} />
+        <ExtractionView result={result} ankiSettings={ankiSettings} />
       </div>
       <div className={cn(tab !== "read" && "hidden")}>
         <ReadView paragraphs={result.paragraphs} translations={result.translations} />

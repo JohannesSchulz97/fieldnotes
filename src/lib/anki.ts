@@ -1,5 +1,5 @@
 import { findWord } from "./highlight";
-import type { ExtractedItem } from "./types";
+import type { AnkiSettings, ExtractedItem } from "./types";
 
 function escapeHtml(text: string): string {
   return text
@@ -18,17 +18,45 @@ function sentenceHtml(item: ExtractedItem): string {
   return `${escapeHtml(s.slice(0, start))}<b>${escapeHtml(s.slice(start, end))}</b>${escapeHtml(s.slice(end))}`;
 }
 
+function exampleHtml(item: ExtractedItem, translation: string | null, settings: AnkiSettings): string {
+  const english =
+    settings.sentenceTranslation && translation ? `<br><small>${escapeHtml(translation)}</small>` : "";
+  return `<br><br><i>${sentenceHtml(item)}</i>${english}`;
+}
+
 /**
- * Builds a tab-separated file for Anki's File → Import (Basic note type).
- * Front: lemma + example sentence with the word in bold. Back: translation + part of speech.
+ * Builds the HTML of a card's two fields. With direction "both" the fields are French/English
+ * and Anki's "Basic (and reversed card)" note type creates the reverse card.
  */
-export function buildAnkiFile(items: ExtractedItem[]): string {
-  const header = ["#separator:tab", "#html:true", "#notetype:Basic", "#columns:Front\tBack"];
+export function buildCard(
+  item: ExtractedItem,
+  settings: AnkiSettings,
+  sentenceTranslation: string | null
+): { front: string; back: string } {
+  const french = escapeHtml(item.lemma);
+  const english = escapeHtml(item.translation);
+  const [front, answer] = settings.direction === "en-fr" ? [english, french] : [french, english];
+  const back =
+    settings.partOfSpeech && item.partOfSpeech
+      ? `${answer}<br><small>${escapeHtml(item.partOfSpeech)}</small>`
+      : answer;
+
+  const example = settings.example === "off" ? "" : exampleHtml(item, sentenceTranslation, settings);
+  return settings.example === "front"
+    ? { front: front + example, back }
+    : { front, back: back + example };
+}
+
+/** Builds a tab-separated file for Anki's File → Import. */
+export function buildAnkiFile(
+  items: ExtractedItem[],
+  settings: AnkiSettings,
+  translationOf: (sentence: string) => string | null
+): string {
+  const notetype = settings.direction === "both" ? "Basic (and reversed card)" : "Basic";
+  const header = ["#separator:tab", "#html:true", `#notetype:${notetype}`, "#columns:Front\tBack"];
   const rows = items.map((item) => {
-    const front = `${escapeHtml(item.lemma)}<br><br><i>${sentenceHtml(item)}</i>`;
-    const back = item.partOfSpeech
-      ? `${escapeHtml(item.translation)}<br><small>${escapeHtml(item.partOfSpeech)}</small>`
-      : escapeHtml(item.translation);
+    const { front, back } = buildCard(item, settings, translationOf(item.exampleSentence));
     return `${front}\t${back}`;
   });
   return [...header, ...rows].join("\n") + "\n";
