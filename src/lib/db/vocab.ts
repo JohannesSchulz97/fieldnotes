@@ -1,16 +1,49 @@
 import "server-only";
-import { and, count, desc, eq, inArray } from "drizzle-orm";
+import { and, count, desc, eq, inArray, or, sql } from "drizzle-orm";
 import type { LanguageCode, VocabEntry, WordKind, WordSource, WordStatus } from "../types";
 import { normalizeLemma } from "../lemma";
 import { db } from ".";
 import { vocabEntries } from "./schema";
 
-export async function listVocab(source?: WordSource): Promise<VocabEntry[]> {
-  return db
-    .select()
-    .from(vocabEntries)
-    .where(source ? eq(vocabEntries.source, source) : undefined)
-    .orderBy(desc(vocabEntries.createdAt));
+export interface VocabPage {
+  entries: VocabEntry[];
+  /** Number of entries matching the filters, across all pages. */
+  total: number;
+}
+
+/** One page of entries, newest first, optionally filtered by source and a search in lemma/translation. */
+export async function listVocab({
+  source,
+  query,
+  page,
+  pageSize,
+}: {
+  source?: WordSource;
+  query?: string;
+  page: number;
+  pageSize: number;
+}): Promise<VocabPage> {
+  const pattern = query ? `%${query.replace(/[\\%_]/g, "\\$&")}%` : null;
+  const where = and(
+    source ? eq(vocabEntries.source, source) : undefined,
+    pattern
+      ? or(
+          sql`${vocabEntries.lemma} like ${pattern} escape '\\'`,
+          sql`${vocabEntries.translation} like ${pattern} escape '\\'`
+        )
+      : undefined
+  );
+  const [entries, [{ n }]] = await Promise.all([
+    db
+      .select()
+      .from(vocabEntries)
+      .where(where)
+      .orderBy(desc(vocabEntries.createdAt), vocabEntries.lemma)
+      .limit(pageSize)
+      .offset((page - 1) * pageSize),
+    db.select({ n: count() }).from(vocabEntries).where(where),
+  ]);
+  return { entries, total: n };
 }
 
 export async function countBySource(): Promise<Record<WordSource, number>> {
