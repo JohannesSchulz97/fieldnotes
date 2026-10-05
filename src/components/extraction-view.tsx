@@ -209,7 +209,7 @@ export function ExtractionView({
       {learned.length > 0 && (
         <section className="flex flex-col gap-3">
           <div className="flex items-center justify-between">
-            <SectionTitle title="Learned from this text" count={learned.length} />
+            <SectionTitle title="Exported" count={learned.length} />
             <Button
               variant="outline"
               onClick={() => exportSelected("learned")}
