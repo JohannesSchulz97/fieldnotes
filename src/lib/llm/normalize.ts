@@ -1,6 +1,7 @@
 import "server-only";
 import { zodTextFormat } from "openai/helpers/zod";
 import { z } from "zod";
+import { normalizeLemma } from "../lemma";
 import type { LanguageCode, WordKind } from "../types";
 import { getClient, LEMMA_RULES, model, reasoningEffort, trackUsage } from "./client";
 
@@ -52,7 +53,10 @@ async function normalizeChunk(lines: string[]): Promise<ChunkResult> {
   const parsed = response.output_parsed;
   if (!parsed) throw new Error("LLM returned no parseable normalization");
   const language = parsed.sourceLanguage.toLowerCase();
-  return { items: parsed.items.map((item) => ({ ...item, language })), costUsd };
+  return {
+    items: parsed.items.map((item) => ({ ...item, lemma: normalizeLemma(item.lemma), language })),
+    costUsd,
+  };
 }
 
 /**

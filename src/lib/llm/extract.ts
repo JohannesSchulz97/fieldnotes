@@ -1,6 +1,7 @@
 import "server-only";
 import { zodTextFormat } from "openai/helpers/zod";
 import { z } from "zod";
+import { normalizeLemma } from "../lemma";
 import { splitSentences } from "../sentences";
 import type { ExtractedItem, LanguageCode } from "../types";
 import { getClient, LEMMA_RULES, model, reasoningEffort, TARGET_LANGUAGE, trackUsage } from "./client";
@@ -58,7 +59,9 @@ export async function llmExtract(text: string): Promise<LlmExtraction> {
 
   // The model occasionally repeats a lemma; keep the first occurrence so lemmas stay unique.
   const seen = new Set<string>();
-  const unique = parsed.items.filter((i) => !seen.has(i.lemma) && seen.add(i.lemma));
+  const unique = parsed.items
+    .map((i) => ({ ...i, lemma: normalizeLemma(i.lemma) }))
+    .filter((i) => !seen.has(i.lemma) && seen.add(i.lemma));
   const items = unique.map(({ sentence, ...item }) => ({
     ...item,
     exampleSentence: sentences[sentence] ?? "",

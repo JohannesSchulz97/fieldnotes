@@ -1,6 +1,7 @@
 import "server-only";
 import { and, count, desc, eq, inArray } from "drizzle-orm";
 import type { LanguageCode, VocabEntry, WordKind, WordSource, WordStatus } from "../types";
+import { normalizeLemma } from "../lemma";
 import { db } from ".";
 import { vocabEntries } from "./schema";
 
@@ -89,7 +90,8 @@ export async function upsertEntries(
   source: WordSource,
   exportedAt: string | null = null
 ): Promise<void> {
-  const unique = [...new Map(entries.map((e) => [e.lemma, e])).values()];
+  const normalized = entries.map((e) => ({ ...e, lemma: normalizeLemma(e.lemma) }));
+  const unique = [...new Map(normalized.map((e) => [e.lemma, e])).values()];
   const now = new Date().toISOString();
   for (let i = 0; i < unique.length; i += BATCH_SIZE) {
     await db
