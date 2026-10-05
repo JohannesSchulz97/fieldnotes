@@ -42,6 +42,30 @@ export async function getStoredStatuses(
   return new Map(rows.map((r) => [r.lemma, r.status]));
 }
 
+export interface StoredEntry {
+  status: WordStatus;
+  createdAt: string;
+  exportedAt: string | null;
+}
+
+/** Returns status and dates of each given lemma that is already stored. */
+export async function getStoredEntries(
+  language: LanguageCode,
+  lemmas: string[]
+): Promise<Map<string, StoredEntry>> {
+  if (lemmas.length === 0) return new Map();
+  const rows = await db
+    .select({
+      lemma: vocabEntries.lemma,
+      status: vocabEntries.status,
+      createdAt: vocabEntries.createdAt,
+      exportedAt: vocabEntries.exportedAt,
+    })
+    .from(vocabEntries)
+    .where(and(eq(vocabEntries.language, language), inArray(vocabEntries.lemma, lemmas)));
+  return new Map(rows.map(({ lemma, ...entry }) => [lemma, entry]));
+}
+
 export interface EntryInput {
   lemma: string;
   partOfSpeech: string | null;

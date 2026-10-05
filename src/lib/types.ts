@@ -41,6 +41,11 @@ export interface ExtractedItem {
   form: string;
 }
 
+/** An item that was new when the text was extracted and has since been exported to Anki. */
+export interface LearnedItem extends ExtractedItem {
+  exportedAt: string;
+}
+
 /** A saved extraction, with its items split against the current vocabulary. */
 export interface ExtractionResult {
   id: string;
@@ -51,9 +56,11 @@ export interface ExtractionResult {
   translations: string[] | null;
   sourceLanguage: LanguageCode;
   targetLanguage: LanguageCode;
-  /** Items not yet in the vocabulary DB. */
+  /** Items not yet in the vocabulary DB. Ignored items appear in no list. */
   items: ExtractedItem[];
-  /** Items already stored with status "known". Ignored items appear in neither list. */
+  /** Items exported to Anki from this text (added to the vocabulary after the extraction). */
+  learnedItems: LearnedItem[];
+  /** Items known before the extraction, or marked known since. */
   knownItems: ExtractedItem[];
   /** Cost of the latest LLM run for this text in USD; null if the model has no known price. */
   costUsd: number | null;

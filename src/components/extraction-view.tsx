@@ -16,9 +16,27 @@ import { markExported, markItem, unmarkItem, updateAnkiSettings } from "@/app/ac
 import { AnkiSettingsPanel } from "@/components/anki-settings-panel";
 import { buildAnkiFile } from "@/lib/anki";
 import { findWord } from "@/lib/highlight";
-import type { AnkiSettings, ExtractedItem, ExtractionResult, WordStatus } from "@/lib/types";
+import type {
+  AnkiSettings,
+  ExtractedItem,
+  ExtractionResult,
+  LearnedItem,
+  WordStatus,
+} from "@/lib/types";
 
-/** New and known words of a saved extraction. Marking and exporting persist immediately. */
+type Selection = Set<string>;
+
+function withToggled(selection: Selection, lemma: string, checked: boolean): Selection {
+  const next = new Set(selection);
+  if (checked) next.add(lemma);
+  else next.delete(lemma);
+  return next;
+}
+
+/**
+ * Words of a saved extraction in three groups: new, learned from this text (exported to Anki),
+ * and already known (known before, or marked known). Marking and exporting persist immediately.
+ */
 export function ExtractionView({
   result,
   ankiSettings: initialAnkiSettings,
@@ -28,9 +46,11 @@ export function ExtractionView({
 }) {
   const [error, setError] = useState<string | null>(null);
   const [items, setItems] = useState(result.items);
-  const [knownItems, setKnownItems] = useState(result.knownItems);
-  const [selected, setSelected] = useState<Set<string>>(new Set());
-  const [exporting, setExporting] = useState(false);
+  const [learned, setLearned] = useState(result.learnedItems);
+  const [known, setKnown] = useState(result.knownItems);
+  const [selectedNew, setSelectedNew] = useState<Selection>(new Set());
+  const [selectedLearned, setSelectedLearned] = useState<Selection>(new Set());
+  const [exporting, setExporting] = useState<"new" | "learned" | null>(null);
   const [ankiSettings, setAnkiSettings] = useState(initialAnkiSettings);
   const [showSettings, setShowSettings] = useState(false);
 
@@ -39,29 +59,40 @@ export function ExtractionView({
   const translationOf = (sentence: string) =>
     result.translations?.[sentences.indexOf(sentence)] || null;
 
-  async function mark(item: ExtractedItem, status: WordStatus) {
-    await markItem(item, result.sourceLanguage, result.targetLanguage, status);
-    removeItem(item.lemma);
-    if (status === "known") setKnownItems((prev) => [item, ...prev]);
-  }
-
-  async function unmark(item: ExtractedItem) {
-    await unmarkItem(result.sourceLanguage, item.lemma);
-    setKnownItems((prev) => prev.filter((i) => i.lemma !== item.lemma));
-    setItems((prev) => [...prev, item]);
-  }
-
-  // Preview the first selected word, or the first new word if none is selected.
-  const previewItem = items.find((i) => selected.has(i.lemma)) ?? items[0];
+  // Preview the first selected word, else the first word that could be exported.
+  const previewItem =
+    items.find((i) => selectedNew.has(i.lemma)) ??
+    learned.find((i) => selectedLearned.has(i.lemma)) ??
+    items[0] ??
+    learned[0];
 
   function changeAnkiSettings(next: AnkiSettings) {
     setAnkiSettings(next);
     updateAnkiSettings(next).catch(() => setError("Could not save export settings"));
   }
 
-  async function handleExport() {
-    const toExport = items.filter((i) => selected.has(i.lemma));
-    setExporting(true);
+  async function mark(item: ExtractedItem, status: WordStatus) {
+    await markItem(item, result.sourceLanguage, result.targetLanguage, status);
+    setItems((prev) => prev.filter((i) => i.lemma !== item.lemma));
+    setSelectedNew((prev) => withToggled(prev, item.lemma, false));
+    if (status === "known") setKnown((prev) => [item, ...prev]);
+  }
+
+  async function unmark(item: ExtractedItem) {
+    await unmarkItem(result.sourceLanguage, item.lemma);
+    setLearned((prev) => prev.filter((i) => i.lemma !== item.lemma));
+    setKnown((prev) => prev.filter((i) => i.lemma !== item.lemma));
+    setSelectedLearned((prev) => withToggled(prev, item.lemma, false));
+    setItems((prev) => [...prev, item]);
+  }
+
+  async function exportSelected(from: "new" | "learned") {
+    const toExport: ExtractedItem[] =
+      from === "new"
+        ? items.filter((i) => selectedNew.has(i.lemma))
+        : learned.filter((i) => selectedLearned.has(i.lemma));
+    const lemmas = new Set(toExport.map((i) => i.lemma));
+    setExporting(from);
     setError(null);
     try {
       await markExported(toExport, result.sourceLanguage, result.targetLanguage);
@@ -69,48 +100,36 @@ export function ExtractionView({
         buildAnkiFile(toExport, ankiSettings, translationOf),
         `anki-${result.sourceLanguage}-${new Date().toISOString().slice(0, 10)}.txt`
       );
-      setItems((prev) => prev.filter((i) => !selected.has(i.lemma)));
-      setKnownItems((prev) => [...toExport, ...prev]);
-      setSelected(new Set());
+      const exportedAt = new Date().toISOString();
+      const exported: LearnedItem[] = toExport.map((i) => ({ ...i, exportedAt }));
+      if (from === "new") {
+        setItems((prev) => prev.filter((i) => !lemmas.has(i.lemma)));
+        setLearned((prev) => [...exported, ...prev]);
+        setSelectedNew(new Set());
+      } else {
+        setLearned((prev) => prev.map((i) => (lemmas.has(i.lemma) ? { ...i, exportedAt } : i)));
+        setSelectedLearned(new Set());
+      }
     } catch (e) {
       setError(e instanceof Error ? e.message : "Export failed");
     } finally {
-      setExporting(false);
+      setExporting(null);
     }
   }
 
-  function removeItem(lemma: string) {
-    setItems((prev) => prev.filter((i) => i.lemma !== lemma));
-    setSelected((prev) => {
-      const next = new Set(prev);
-      next.delete(lemma);
-      return next;
-    });
-  }
-
-  function toggle(lemma: string, checked: boolean) {
-    setSelected((prev) => {
-      const next = new Set(prev);
-      if (checked) next.add(lemma);
-      else next.delete(lemma);
-      return next;
-    });
-  }
-
-  const allSelected = items.length > 0 && selected.size === items.length;
+  const exampleCell = (item: ExtractedItem) => (
+    <TableCell className="max-w-xs whitespace-normal text-sm italic text-muted-foreground">
+      <Example item={item} translation={translationOf(item.exampleSentence)} />
+    </TableCell>
+  );
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-8">
       {error && <p className="text-sm text-destructive">{error}</p>}
 
       <section className="flex flex-col gap-3">
         <div className="flex items-center justify-between">
-          <h2 className="text-lg font-semibold">
-            New words{" "}
-            <span className="font-normal text-muted-foreground">
-              {items.length}
-            </span>
-          </h2>
+          <SectionTitle title="New words" count={items.length} />
           <div className="flex gap-2">
             <Button
               variant="ghost"
@@ -121,12 +140,12 @@ export function ExtractionView({
             </Button>
             <Button
               variant="outline"
-              onClick={handleExport}
-              disabled={exporting || selected.size === 0}
+              onClick={() => exportSelected("new")}
+              disabled={exporting !== null || selectedNew.size === 0}
             >
-              {exporting
+              {exporting === "new"
                 ? "Exporting…"
-                : `Export ${selected.size > 0 ? selected.size : ""} to Anki`}
+                : `Export ${selectedNew.size > 0 ? selectedNew.size : ""} to Anki`}
             </Button>
           </div>
         </div>
@@ -141,24 +160,13 @@ export function ExtractionView({
         )}
 
         {items.length === 0 ? (
-          <p className="text-sm text-muted-foreground">
-            No new words left.
-          </p>
+          <p className="text-sm text-muted-foreground">No new words left.</p>
         ) : (
           <Table>
             <TableHeader>
               <TableRow>
                 <TableHead className="w-8">
-                  <Checkbox
-                    checked={allSelected}
-                    indeterminate={selected.size > 0 && !allSelected}
-                    onCheckedChange={(checked) =>
-                      setSelected(
-                        checked ? new Set(items.map((i) => i.lemma)) : new Set()
-                      )
-                    }
-                    aria-label="Select all"
-                  />
+                  <SelectAll items={items} selected={selectedNew} onChange={setSelectedNew} />
                 </TableHead>
                 <TableHead>Lemma</TableHead>
                 <TableHead>Translation</TableHead>
@@ -171,30 +179,22 @@ export function ExtractionView({
                 <TableRow key={item.lemma}>
                   <TableCell>
                     <Checkbox
-                      checked={selected.has(item.lemma)}
-                      onCheckedChange={(checked) => toggle(item.lemma, checked)}
+                      checked={selectedNew.has(item.lemma)}
+                      onCheckedChange={(checked) =>
+                        setSelectedNew((prev) => withToggled(prev, item.lemma, checked))
+                      }
                       aria-label={`Select ${item.lemma}`}
                     />
                   </TableCell>
                   <LemmaCell item={item} />
                   <TableCell>{item.translation}</TableCell>
-                  <TableCell className="max-w-xs whitespace-normal text-sm italic text-muted-foreground">
-                    <Example item={item} translation={translationOf(item.exampleSentence)} />
-                  </TableCell>
+                  {exampleCell(item)}
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-2">
-                      <Button
-                        size="sm"
-                        variant="secondary"
-                        onClick={() => mark(item, "known")}
-                      >
+                      <Button size="sm" variant="secondary" onClick={() => mark(item, "known")}>
                         Known
                       </Button>
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => mark(item, "ignored")}
-                      >
+                      <Button size="sm" variant="ghost" onClick={() => mark(item, "ignored")}>
                         Ignore
                       </Button>
                     </div>
@@ -206,30 +206,54 @@ export function ExtractionView({
         )}
       </section>
 
-      {knownItems.length > 0 && (
+      {learned.length > 0 && (
         <section className="flex flex-col gap-3">
-          <h2 className="text-lg font-semibold">
-            Known words{" "}
-            <span className="font-normal text-muted-foreground">
-              {knownItems.length}
-            </span>
-          </h2>
+          <div className="flex items-center justify-between">
+            <SectionTitle title="Learned from this text" count={learned.length} />
+            <Button
+              variant="outline"
+              onClick={() => exportSelected("learned")}
+              disabled={exporting !== null || selectedLearned.size === 0}
+            >
+              {exporting === "learned"
+                ? "Exporting…"
+                : `Export ${selectedLearned.size > 0 ? selectedLearned.size : ""} again`}
+            </Button>
+          </div>
           <Table>
             <TableHeader>
               <TableRow>
+                <TableHead className="w-8">
+                  <SelectAll
+                    items={learned}
+                    selected={selectedLearned}
+                    onChange={setSelectedLearned}
+                  />
+                </TableHead>
                 <TableHead>Lemma</TableHead>
                 <TableHead>Translation</TableHead>
                 <TableHead>Example</TableHead>
+                <TableHead>Exported</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {knownItems.map((item) => (
-                <TableRow key={item.lemma} className="text-muted-foreground">
+              {learned.map((item) => (
+                <TableRow key={item.lemma}>
+                  <TableCell>
+                    <Checkbox
+                      checked={selectedLearned.has(item.lemma)}
+                      onCheckedChange={(checked) =>
+                        setSelectedLearned((prev) => withToggled(prev, item.lemma, checked))
+                      }
+                      aria-label={`Select ${item.lemma}`}
+                    />
+                  </TableCell>
                   <LemmaCell item={item} />
                   <TableCell>{item.translation}</TableCell>
-                  <TableCell className="max-w-xs whitespace-normal text-sm italic">
-                    <Example item={item} translation={translationOf(item.exampleSentence)} />
+                  {exampleCell(item)}
+                  <TableCell className="text-sm text-muted-foreground">
+                    {item.exportedAt.slice(0, 10)}
                   </TableCell>
                   <TableCell className="text-right">
                     <Button size="sm" variant="ghost" onClick={() => unmark(item)}>
@@ -242,7 +266,71 @@ export function ExtractionView({
           </Table>
         </section>
       )}
+
+      {known.length > 0 && (
+        <details className="group flex flex-col gap-3">
+          <summary className="cursor-pointer list-none">
+            <span className="mr-2 inline-block text-muted-foreground transition-transform group-open:rotate-90">
+              ▸
+            </span>
+            <SectionTitle title="Already known" count={known.length} inline />
+          </summary>
+          <Table className="mt-3">
+            <TableHeader>
+              <TableRow>
+                <TableHead>Lemma</TableHead>
+                <TableHead>Translation</TableHead>
+                <TableHead>Example</TableHead>
+                <TableHead className="text-right">Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {known.map((item) => (
+                <TableRow key={item.lemma} className="text-muted-foreground">
+                  <LemmaCell item={item} />
+                  <TableCell>{item.translation}</TableCell>
+                  {exampleCell(item)}
+                  <TableCell className="text-right">
+                    <Button size="sm" variant="ghost" onClick={() => unmark(item)}>
+                      Mark as new
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </details>
+      )}
     </div>
+  );
+}
+
+function SectionTitle({ title, count, inline }: { title: string; count: number; inline?: boolean }) {
+  const Tag = inline ? "span" : "h2";
+  return (
+    <Tag className="text-lg font-semibold">
+      {title} <span className="font-normal text-muted-foreground">{count}</span>
+    </Tag>
+  );
+}
+
+function SelectAll({
+  items,
+  selected,
+  onChange,
+}: {
+  items: ExtractedItem[];
+  selected: Selection;
+  onChange: (selection: Selection) => void;
+}) {
+  const all = items.length > 0 && selected.size === items.length;
+  return (
+    <Checkbox
+      checked={all}
+      indeterminate={selected.size > 0 && !all}
+      onCheckedChange={(checked) => onChange(checked ? new Set(items.map((i) => i.lemma)) : new Set())}
+      aria-label="Select all"
+    />
   );
 }
 
@@ -253,9 +341,7 @@ function LemmaCell({ item }: { item: ExtractedItem }) {
         <span className="font-medium">{item.lemma}</span>
         {item.kind === "expression" && <Badge variant="secondary">expr.</Badge>}
       </div>
-      <div className="text-xs text-muted-foreground">
-        {item.partOfSpeech}
-      </div>
+      <div className="text-xs text-muted-foreground">{item.partOfSpeech}</div>
     </TableCell>
   );
 }

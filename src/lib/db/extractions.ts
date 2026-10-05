@@ -6,7 +6,7 @@ import { splitParagraphs } from "../sentences";
 import type { ExtractionResult, ExtractionSummary } from "../types";
 import { db } from ".";
 import { extractions } from "./schema";
-import { getStoredStatuses } from "./vocab";
+import { getStoredEntries, getStoredStatuses } from "./vocab";
 
 const PREVIEW_LENGTH = 80;
 
@@ -72,10 +72,17 @@ export async function updateExtraction(id: string, result: LlmExtraction): Promi
 export async function loadExtraction(id: string): Promise<ExtractionResult | null> {
   const [row] = await db.select().from(extractions).where(eq(extractions.id, id));
   if (!row) return null;
-  const stored = await getStoredStatuses(
+  const stored = await getStoredEntries(
     row.sourceLanguage,
     row.items.map((i) => i.lemma)
   );
+  const known = row.items.filter((i) => stored.get(i.lemma)?.status === "known");
+  // Learned here = added after the extraction and exported to Anki. Words marked known count as
+  // already known: marking means the word was known all along.
+  const isLearned = (lemma: string) => {
+    const entry = stored.get(lemma)!;
+    return entry.exportedAt !== null && entry.createdAt >= row.createdAt;
+  };
   return {
     id: row.id,
     text: row.text,
@@ -84,7 +91,10 @@ export async function loadExtraction(id: string): Promise<ExtractionResult | nul
     sourceLanguage: row.sourceLanguage,
     targetLanguage: row.targetLanguage,
     items: row.items.filter((i) => !stored.has(i.lemma)),
-    knownItems: row.items.filter((i) => stored.get(i.lemma) === "known"),
+    learnedItems: known
+      .filter((i) => isLearned(i.lemma))
+      .map((i) => ({ ...i, exportedAt: stored.get(i.lemma)!.exportedAt! })),
+    knownItems: known.filter((i) => !isLearned(i.lemma)),
     costUsd: row.costUsd,
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,
