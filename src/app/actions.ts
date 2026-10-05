@@ -1,33 +1,40 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import {
+  findExtractionIdByHash,
+  getExtractionText,
+  hashText,
+  insertExtraction,
+  updateExtraction,
+} from "@/lib/db/extractions";
 import { getTotalCost } from "@/lib/db/usage";
 import { deleteEntry, getStoredStatuses, upsertEntries } from "@/lib/db/vocab";
 import { TARGET_LANGUAGE } from "@/lib/llm/client";
 import { llmExtract } from "@/lib/llm/extract";
 import { llmNormalize, type NormalizedItem } from "@/lib/llm/normalize";
-import type { ExtractedItem, ExtractionResult, LanguageCode, WordStatus } from "@/lib/types";
+import type { ExtractedItem, LanguageCode, WordStatus } from "@/lib/types";
 
-export async function extract(text: string): Promise<ExtractionResult> {
+/**
+ * Extracts vocabulary from a text and saves the result. A text that was extracted before
+ * is not sent to the LLM again; its saved extraction is returned instead.
+ */
+export async function extract(text: string): Promise<{ id: string; reused: boolean }> {
   if (!text.trim()) throw new Error("Empty text");
-  const result = await llmExtract(text);
-  const stored = await getStoredStatuses(
-    result.sourceLanguage,
-    result.items.map((i) => i.lemma)
-  );
-  const items = result.items.filter((i) => !stored.has(i.lemma));
-  const knownItems = result.items.filter((i) => stored.get(i.lemma) === "known");
-  return {
-    ...result,
-    items,
-    knownItems,
-    totalCostUsd: await getTotalCost(),
-    stats: {
-      totalLemmas: result.stats.totalLemmas,
-      knownCount: knownItems.length,
-      unknownCount: items.length,
-    },
-  };
+  const existing = await findExtractionIdByHash(hashText(text));
+  if (existing) return { id: existing, reused: true };
+  const id = await insertExtraction(text, await llmExtract(text));
+  revalidatePath("/");
+  return { id, reused: false };
+}
+
+/** Runs the LLM again on a saved extraction's text and replaces its items. */
+export async function reextract(id: string): Promise<void> {
+  const text = await getExtractionText(id);
+  if (text === null) throw new Error("Extraction not found");
+  await updateExtraction(id, await llmExtract(text));
+  revalidatePath("/");
+  revalidatePath(`/extractions/${id}`);
 }
 
 export async function markItem(
@@ -40,6 +47,7 @@ export async function markItem(
   if (!item?.lemma?.trim()) throw new Error("Missing lemma");
   await upsertEntries([item], language, translationLanguage, status, "extraction");
   revalidatePath("/vocab");
+  revalidatePath("/");
 }
 
 /** Marks exported items as known and records the export time. The file itself is built client-side. */
@@ -51,6 +59,7 @@ export async function markExported(
   if (items.length === 0 || items.some((i) => !i?.lemma?.trim())) throw new Error("Invalid items");
   await upsertEntries(items, language, translationLanguage, "known", "extraction", new Date().toISOString());
   revalidatePath("/vocab");
+  revalidatePath("/");
 }
 
 const MAX_LINES = 5000;
@@ -82,6 +91,7 @@ export async function addKnownWords(text: string): Promise<AddKnownResult> {
     await upsertEntries(group, language, TARGET_LANGUAGE, "known", "manual");
   }
   revalidatePath("/vocab");
+  revalidatePath("/");
   return {
     added,
     alreadyStored,
@@ -96,4 +106,5 @@ export async function unmarkItem(language: LanguageCode, lemma: string): Promise
   if (!language?.trim() || !lemma?.trim()) throw new Error("Missing language or lemma");
   await deleteEntry(language, lemma);
   revalidatePath("/vocab");
+  revalidatePath("/");
 }

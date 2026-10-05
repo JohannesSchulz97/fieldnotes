@@ -41,20 +41,28 @@ export interface ExtractedItem {
   form: string;
 }
 
+/** A saved extraction, with its items split against the current vocabulary. */
 export interface ExtractionResult {
+  id: string;
+  text: string;
   sourceLanguage: LanguageCode;
   targetLanguage: LanguageCode;
   /** Items not yet in the vocabulary DB. */
   items: ExtractedItem[];
   /** Items already stored with status "known". Ignored items appear in neither list. */
   knownItems: ExtractedItem[];
-  /** Cost of this extraction's LLM call in USD; null if the model has no known price. */
+  /** Cost of the latest LLM run for this text in USD; null if the model has no known price. */
   costUsd: number | null;
-  /** Total LLM cost recorded so far in USD, including this extraction. */
-  totalCostUsd: number;
-  stats: {
-    totalLemmas: number;
-    knownCount: number;
-    unknownCount: number;
-  };
+  createdAt: string;
+  updatedAt: string;
+}
+
+/** One row in the list of past extractions. */
+export interface ExtractionSummary {
+  id: string;
+  /** Start of the text, for display. */
+  preview: string;
+  newCount: number;
+  totalCount: number;
+  createdAt: string;
 }

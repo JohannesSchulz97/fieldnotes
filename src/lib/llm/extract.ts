@@ -1,7 +1,7 @@
 import "server-only";
 import { zodTextFormat } from "openai/helpers/zod";
 import { z } from "zod";
-import type { ExtractionResult } from "../types";
+import type { ExtractedItem, LanguageCode } from "../types";
 import { getClient, LEMMA_RULES, model, reasoningEffort, TARGET_LANGUAGE, trackUsage } from "./client";
 
 const Extraction = z.object({
@@ -38,7 +38,15 @@ function splitSentences(text: string): string[] {
   return [...segmenter.segment(text)].map((s) => s.segment.trim()).filter(Boolean);
 }
 
-export async function llmExtract(text: string): Promise<Omit<ExtractionResult, "totalCostUsd">> {
+export interface LlmExtraction {
+  sourceLanguage: LanguageCode;
+  targetLanguage: LanguageCode;
+  /** Every item in the text, known or not. */
+  items: ExtractedItem[];
+  costUsd: number | null;
+}
+
+export async function llmExtract(text: string): Promise<LlmExtraction> {
   const sentences = splitSentences(text);
   const response = await getClient().responses.parse({
     model,
@@ -64,12 +72,6 @@ export async function llmExtract(text: string): Promise<Omit<ExtractionResult, "
     sourceLanguage: parsed.sourceLanguage.toLowerCase(),
     targetLanguage: TARGET_LANGUAGE,
     items,
-    knownItems: [],
     costUsd,
-    stats: {
-      totalLemmas: items.length,
-      knownCount: 0,
-      unknownCount: items.length,
-    },
   };
 }

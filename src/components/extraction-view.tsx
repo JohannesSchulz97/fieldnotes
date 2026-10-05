@@ -12,55 +12,32 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Textarea } from "@/components/ui/textarea";
-import { extract, markExported, markItem, unmarkItem } from "@/app/actions";
+import { markExported, markItem, unmarkItem } from "@/app/actions";
 import { buildAnkiFile } from "@/lib/anki";
-import { formatUsd } from "@/lib/format";
 import { findWord } from "@/lib/highlight";
 import type { ExtractedItem, ExtractionResult, WordStatus } from "@/lib/types";
 
-export function Extractor() {
-  const [text, setText] = useState("");
-  const [loading, setLoading] = useState(false);
+/** New and known words of a saved extraction. Marking and exporting persist immediately. */
+export function ExtractionView({ result }: { result: ExtractionResult }) {
   const [error, setError] = useState<string | null>(null);
-  const [result, setResult] = useState<ExtractionResult | null>(null);
-  const [items, setItems] = useState<ExtractedItem[]>([]);
-  const [knownItems, setKnownItems] = useState<ExtractedItem[]>([]);
+  const [items, setItems] = useState(result.items);
+  const [knownItems, setKnownItems] = useState(result.knownItems);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [exporting, setExporting] = useState(false);
 
-  async function handleExtract() {
-    setLoading(true);
-    setError(null);
-    try {
-      const res = await extract(text);
-      setResult(res);
-      setItems(res.items);
-      setKnownItems(res.knownItems);
-      setSelected(new Set());
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Extraction failed");
-    } finally {
-      setLoading(false);
-    }
-  }
-
   async function mark(item: ExtractedItem, status: WordStatus) {
-    if (!result) return;
     await markItem(item, result.sourceLanguage, result.targetLanguage, status);
     removeItem(item.lemma);
     if (status === "known") setKnownItems((prev) => [item, ...prev]);
   }
 
   async function unmark(item: ExtractedItem) {
-    if (!result) return;
     await unmarkItem(result.sourceLanguage, item.lemma);
     setKnownItems((prev) => prev.filter((i) => i.lemma !== item.lemma));
     setItems((prev) => [...prev, item]);
   }
 
   async function handleExport() {
-    if (!result) return;
     const toExport = items.filter((i) => selected.has(i.lemma));
     setExporting(true);
     setError(null);
@@ -102,116 +79,94 @@ export function Extractor() {
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex flex-col gap-3">
-        <Textarea
-          value={text}
-          onChange={(e) => setText(e.target.value)}
-          placeholder="Paste a French text…"
-          className="min-h-48"
-        />
-        <Button
-          onClick={handleExtract}
-          disabled={loading || text.trim() === ""}
-          className="self-start"
-        >
-          {loading ? "Extracting…" : "Extract vocabulary"}
-        </Button>
-        {error && <p className="text-sm text-destructive">{error}</p>}
-        {result && (
-          <p className="text-xs text-muted-foreground">
-            Cost {formatUsd(result.costUsd)} · total spent {formatUsd(result.totalCostUsd)}
+      {error && <p className="text-sm text-destructive">{error}</p>}
+
+      <section className="flex flex-col gap-3">
+        <div className="flex items-center justify-between">
+          <h2 className="text-lg font-semibold">
+            New words{" "}
+            <span className="font-normal text-muted-foreground">
+              {items.length}
+            </span>
+          </h2>
+          <Button
+            variant="outline"
+            onClick={handleExport}
+            disabled={exporting || selected.size === 0}
+          >
+            {exporting
+              ? "Exporting…"
+              : `Export ${selected.size > 0 ? selected.size : ""} to Anki`}
+          </Button>
+        </div>
+
+        {items.length === 0 ? (
+          <p className="text-sm text-muted-foreground">
+            No new words left.
           </p>
-        )}
-      </div>
-
-      {result && (
-        <section className="flex flex-col gap-3">
-          <div className="flex items-center justify-between">
-            <h2 className="text-lg font-semibold">
-              New words{" "}
-              <span className="font-normal text-muted-foreground">
-                {items.length}
-              </span>
-            </h2>
-            <Button
-              variant="outline"
-              onClick={handleExport}
-              disabled={exporting || selected.size === 0}
-            >
-              {exporting
-                ? "Exporting…"
-                : `Export ${selected.size > 0 ? selected.size : ""} to Anki`}
-            </Button>
-          </div>
-
-          {items.length === 0 ? (
-            <p className="text-sm text-muted-foreground">
-              No new words left.
-            </p>
-          ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="w-8">
+        ) : (
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead className="w-8">
+                  <Checkbox
+                    checked={allSelected}
+                    indeterminate={selected.size > 0 && !allSelected}
+                    onCheckedChange={(checked) =>
+                      setSelected(
+                        checked ? new Set(items.map((i) => i.lemma)) : new Set()
+                      )
+                    }
+                    aria-label="Select all"
+                  />
+                </TableHead>
+                <TableHead>Lemma</TableHead>
+                <TableHead>Translation</TableHead>
+                <TableHead>Example</TableHead>
+                <TableHead className="text-right">Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {items.map((item) => (
+                <TableRow key={item.lemma}>
+                  <TableCell>
                     <Checkbox
-                      checked={allSelected}
-                      indeterminate={selected.size > 0 && !allSelected}
-                      onCheckedChange={(checked) =>
-                        setSelected(
-                          checked ? new Set(items.map((i) => i.lemma)) : new Set()
-                        )
-                      }
-                      aria-label="Select all"
+                      checked={selected.has(item.lemma)}
+                      onCheckedChange={(checked) => toggle(item.lemma, checked)}
+                      aria-label={`Select ${item.lemma}`}
                     />
-                  </TableHead>
-                  <TableHead>Lemma</TableHead>
-                  <TableHead>Translation</TableHead>
-                  <TableHead>Example</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
+                  </TableCell>
+                  <LemmaCell item={item} />
+                  <TableCell>{item.translation}</TableCell>
+                  <TableCell className="max-w-xs whitespace-normal text-sm italic text-muted-foreground">
+                    <Highlighted text={item.exampleSentence} part={item.form} />
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <div className="flex justify-end gap-2">
+                      <Button
+                        size="sm"
+                        variant="secondary"
+                        onClick={() => mark(item, "known")}
+                      >
+                        Known
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => mark(item, "ignored")}
+                      >
+                        Ignore
+                      </Button>
+                    </div>
+                  </TableCell>
                 </TableRow>
-              </TableHeader>
-              <TableBody>
-                {items.map((item) => (
-                  <TableRow key={item.lemma}>
-                    <TableCell>
-                      <Checkbox
-                        checked={selected.has(item.lemma)}
-                        onCheckedChange={(checked) => toggle(item.lemma, checked)}
-                        aria-label={`Select ${item.lemma}`}
-                      />
-                    </TableCell>
-                    <LemmaCell item={item} />
-                    <TableCell>{item.translation}</TableCell>
-                    <TableCell className="max-w-xs whitespace-normal text-sm italic text-muted-foreground">
-                      <Highlighted text={item.exampleSentence} part={item.form} />
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex justify-end gap-2">
-                        <Button
-                          size="sm"
-                          variant="secondary"
-                          onClick={() => mark(item, "known")}
-                        >
-                          Known
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={() => mark(item, "ignored")}
-                        >
-                          Ignore
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          )}
-        </section>
-      )}
+              ))}
+            </TableBody>
+          </Table>
+        )}
+      </section>
 
-      {result && knownItems.length > 0 && (
+      {knownItems.length > 0 && (
         <section className="flex flex-col gap-3">
           <h2 className="text-lg font-semibold">
             Known words{" "}
@@ -280,7 +235,6 @@ function Highlighted({ text, part }: { text: string; part: string }) {
     </>
   );
 }
-
 
 function download(content: string, filename: string) {
   const url = URL.createObjectURL(new Blob([content], { type: "text/plain;charset=utf-8" }));

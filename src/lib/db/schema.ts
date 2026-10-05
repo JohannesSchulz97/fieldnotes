@@ -1,4 +1,5 @@
 import { integer, real, sqliteTable, text, uniqueIndex } from "drizzle-orm/sqlite-core";
+import type { ExtractedItem } from "../types";
 
 export const vocabEntries = sqliteTable(
   "vocab_entries",
@@ -35,3 +36,22 @@ export const llmUsage = sqliteTable("llm_usage", {
   costUsd: real("cost_usd"),
   createdAt: text("created_at").notNull(),
 });
+
+/** A pasted text and the model's full item list. The new/known split is computed on load. */
+export const extractions = sqliteTable(
+  "extractions",
+  {
+    id: text("id").primaryKey(),
+    /** SHA-256 of the trimmed text; the same text is never extracted twice unless re-extracted. */
+    textHash: text("text_hash").notNull(),
+    text: text("text").notNull(),
+    sourceLanguage: text("source_language").notNull(),
+    targetLanguage: text("target_language").notNull(),
+    items: text("items", { mode: "json" }).$type<ExtractedItem[]>().notNull(),
+    /** Cost of the latest LLM run for this text. */
+    costUsd: real("cost_usd"),
+    createdAt: text("created_at").notNull(),
+    updatedAt: text("updated_at").notNull(),
+  },
+  (t) => [uniqueIndex("extractions_text_hash_idx").on(t.textHash)]
+);

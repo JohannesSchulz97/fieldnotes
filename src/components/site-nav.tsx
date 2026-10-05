@@ -22,7 +22,8 @@ export function SiteNav() {
             href={href}
             className={cn(
               "text-sm text-muted-foreground hover:text-foreground",
-              pathname === href && "font-medium text-foreground"
+              (pathname === href || (href === "/" && pathname.startsWith("/extractions"))) &&
+                "font-medium text-foreground"
             )}
           >
             {label}
