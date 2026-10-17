@@ -1,0 +1,1 @@
+ALTER TABLE `vocab_entries` ADD `source` text DEFAULT 'extraction' NOT NULL;

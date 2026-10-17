@@ -1,0 +1,48 @@
+{
+  "version": "7",
+  "dialect": "sqlite",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "6",
+      "when": 1791037800499,
+      "tag": "0000_lame_mister_sinister",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1791130726675,
+      "tag": "0001_reflective_mandroid",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1791183964535,
+      "tag": "0002_far_gamora",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "6",
+      "when": 1791184270636,
+      "tag": "0003_charming_salo",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "6",
+      "when": 1791187117913,
+      "tag": "0004_nappy_shape",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "6",
+      "when": 1791187548126,
+      "tag": "0005_sudden_hiroim",
+      "breakpoints": true
+    }
+  ]
+}
