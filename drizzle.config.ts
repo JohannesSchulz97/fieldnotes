@@ -6,5 +6,6 @@ export default defineConfig({
   out: "./drizzle",
   dbCredentials: {
     url: process.env.DATABASE_URL ?? "file:./data/vocab.db",
+    authToken: process.env.DATABASE_AUTH_TOKEN,
   },
 });
