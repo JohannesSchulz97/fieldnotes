@@ -14,7 +14,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "VocabExtractor",
+  title: "Fieldnotes",
   description: "Extract unknown vocabulary from texts",
 };
 
