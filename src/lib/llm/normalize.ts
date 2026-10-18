@@ -30,7 +30,7 @@ const Normalization = z.object({
 
 const INSTRUCTIONS = `You convert a learner's list of known vocabulary entries into dictionary lemmas.
 
-Each input line is one entry. Lines may contain noise besides the word or expression: gender markers ("m.", "(f)"), a translation, notes, HTML tags, Anki cloze markup like "{{c1::...}}". Use such hints to pick the right meaning, but output only the lemma. Entries may be inflected forms; convert them to the lemma (e.g. "assise" → "s'asseoir", "chevaux" → "le cheval").
+Each input line is one entry. Lines may contain noise besides the word or expression: gender markers ("m.", "(f)"), a translation, notes, HTML tags, Anki cloze markup like "{{c1::...}}". Use such hints to pick the right meaning, but output only the lemma. Entries may be inflected forms; convert them to the lemma (e.g. "assise" → "s'asseoir", "chevaux" → "un cheval").
 
 ${LEMMA_RULES}
 

@@ -34,8 +34,10 @@ export interface ExtractedItem {
   lemma: string;
   partOfSpeech: string | null;
   kind: WordKind;
-  /** Context-aware translation. */
+  /** Common translation(s) in general use, separated by ", ". This is what goes on flashcards. */
   translation: string;
+  /** The sense used in the text, if the translation does not cover it. Shown in the UI only, never exported. */
+  contextNote?: string | null;
   exampleSentence: string;
   /** The item exactly as it appears in exampleSentence, e.g. "assise" for "s'asseoir". */
   form: string;
