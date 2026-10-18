@@ -2,7 +2,7 @@ import "server-only";
 import { createHash } from "node:crypto";
 import { desc, eq } from "drizzle-orm";
 import type { LlmExtraction } from "../llm/extract";
-import { splitParagraphs } from "../sentences";
+import { splitParagraphs, splitSentences } from "../sentences";
 import type { ExtractionResult, ExtractionSummary } from "../types";
 import { db } from ".";
 import { extractions } from "./schema";
@@ -28,6 +28,28 @@ export async function getExtractionText(id: string): Promise<string | null> {
     .from(extractions)
     .where(eq(extractions.id, id));
   return row?.text ?? null;
+}
+
+/** The text's sentences (numbered as in the reading view) with their translations, if any. */
+export async function getExtractionSentences(id: string): Promise<{
+  sentences: string[];
+  translations: string[] | null;
+  sourceLanguage: string;
+} | null> {
+  const [row] = await db
+    .select({
+      text: extractions.text,
+      translations: extractions.translations,
+      sourceLanguage: extractions.sourceLanguage,
+    })
+    .from(extractions)
+    .where(eq(extractions.id, id));
+  if (!row) return null;
+  return {
+    sentences: splitSentences(row.text),
+    translations: row.translations,
+    sourceLanguage: row.sourceLanguage,
+  };
 }
 
 export async function insertExtraction(text: string, result: LlmExtraction): Promise<string> {

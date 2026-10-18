@@ -3,21 +3,36 @@
 import { revalidatePath } from "next/cache";
 import {
   findExtractionIdByHash,
+  getExtractionSentences,
   getExtractionText,
   hashText,
   insertExtraction,
   saveTranslations,
   updateExtraction,
 } from "@/lib/db/extractions";
+import {
+  deleteGrammarItem as dbDeleteGrammarItem,
+  listGrammarNames,
+  saveGrammarItem,
+  setGrammarStatus as dbSetGrammarStatus,
+} from "@/lib/db/grammar";
 import { AnkiSettingsSchema, saveAnkiSettings } from "@/lib/db/settings";
 import { getTotalCost } from "@/lib/db/usage";
 import { deleteEntry, getStoredStatuses, upsertEntries } from "@/lib/db/vocab";
 import { TARGET_LANGUAGE } from "@/lib/llm/client";
 import { llmExtract } from "@/lib/llm/extract";
+import { GrammarAnalysisSchema, llmAnalyzeGrammar } from "@/lib/llm/grammar";
 import { llmNormalize, type NormalizedItem } from "@/lib/llm/normalize";
 import { llmTranslate } from "@/lib/llm/translate";
 import { splitSentences } from "@/lib/sentences";
-import type { AnkiSettings, ExtractedItem, LanguageCode, WordStatus } from "@/lib/types";
+import type {
+  AnkiSettings,
+  ExtractedItem,
+  GrammarAnalysis,
+  GrammarStatus,
+  LanguageCode,
+  WordStatus,
+} from "@/lib/types";
 
 /**
  * Extracts vocabulary from a text and saves the result. A text that was extracted before
@@ -123,4 +138,67 @@ export async function unmarkItem(language: LanguageCode, lemma: string): Promise
 
 export async function updateAnkiSettings(value: AnkiSettings): Promise<void> {
   await saveAnkiSettings(AnkiSettingsSchema.parse(value));
+}
+
+const MAX_SPAN_LENGTH = 300;
+/** Sentences before and after the selected one that the LLM sees for meaning. */
+const CONTEXT_SENTENCES = 2;
+
+/** Loads the selected sentence from the DB, so the client only sends a reference and the span. */
+async function loadSelection(extractionId: string, sentence: number, span: string) {
+  const trimmed = span?.trim().replace(/\s+/g, " ") ?? "";
+  if (!trimmed || trimmed.length > MAX_SPAN_LENGTH) throw new Error("Invalid selection");
+  const data = await getExtractionSentences(extractionId);
+  if (!data) throw new Error("Extraction not found");
+  const text = data.sentences[sentence];
+  if (!Number.isInteger(sentence) || text === undefined) throw new Error("Sentence not found");
+  if (!text.replace(/\s+/g, " ").includes(trimmed)) throw new Error("Selection not in sentence");
+  return { ...data, span: trimmed, text };
+}
+
+/** Explains the grammar of a span selected in one sentence. Nothing is stored until it is saved. */
+export async function analyzeGrammar(
+  extractionId: string,
+  sentence: number,
+  span: string
+): Promise<GrammarAnalysis> {
+  const s = await loadSelection(extractionId, sentence, span);
+  return llmAnalyzeGrammar({
+    language: s.sourceLanguage,
+    span: s.span,
+    sentence: s.text,
+    context: s.sentences
+      .slice(Math.max(0, sentence - CONTEXT_SENTENCES), sentence + CONTEXT_SENTENCES + 1)
+      .join(" "),
+    knownNames: await listGrammarNames(s.sourceLanguage),
+  });
+}
+
+/** Saves an analysis to the grammar list, with the selected sentence as its first example. */
+export async function saveGrammarAnalysis(
+  extractionId: string,
+  sentence: number,
+  span: string,
+  analysis: GrammarAnalysis
+): Promise<void> {
+  const s = await loadSelection(extractionId, sentence, span);
+  await saveGrammarItem(s.sourceLanguage, TARGET_LANGUAGE, GrammarAnalysisSchema.parse(analysis), {
+    sentence: s.text,
+    form: s.span,
+    translation: s.translations?.[sentence] || null,
+    extractionId,
+  });
+  revalidatePath("/grammar");
+}
+
+export async function setGrammarStatus(id: string, status: GrammarStatus): Promise<void> {
+  if (status !== "to_work_on" && status !== "learned") throw new Error("Invalid status");
+  await dbSetGrammarStatus(id, status);
+  revalidatePath("/grammar");
+}
+
+export async function deleteGrammarItem(id: string): Promise<void> {
+  if (!id?.trim()) throw new Error("Missing id");
+  await dbDeleteGrammarItem(id);
+  revalidatePath("/grammar");
 }

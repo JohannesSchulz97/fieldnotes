@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils";
 const links = [
   { href: "/", label: "Extract" },
   { href: "/vocab", label: "Vocabulary" },
+  { href: "/grammar", label: "Grammar" },
 ];
 
 export function SiteNav() {

@@ -80,6 +80,52 @@ export interface ExtractionSummary {
   createdAt: string;
 }
 
+/** to_work_on = still practicing; learned = no longer needs attention. */
+export type GrammarStatus = "to_work_on" | "learned";
+
+/** source = the sentence it was selected in; generated = a short example written by the LLM. */
+export type GrammarExampleOrigin = "source" | "generated";
+
+/** A short example of a construct; form is the part that shows it, copied exactly from sentence. */
+export interface GrammarExampleInput {
+  sentence: string;
+  form: string;
+  translation: string;
+}
+
+/** The LLM's analysis of a selected span. Not stored until the user saves it. */
+export interface GrammarAnalysis {
+  /** Canonical name of the main construct, reused across texts so items merge. */
+  name: string;
+  /** General explanation of the construct, independent of the selected text. */
+  explanation: string;
+  /** How the construct works in the selected span. */
+  note: string;
+  examples: GrammarExampleInput[];
+}
+
+export interface GrammarExample {
+  id: string;
+  origin: GrammarExampleOrigin;
+  sentence: string;
+  form: string;
+  translation: string | null;
+  note: string | null;
+  extractionId: string | null;
+}
+
+/** A saved grammar item with its examples (source examples first). Identity: (language, name). */
+export interface GrammarItem {
+  id: string;
+  language: LanguageCode;
+  name: string;
+  explanation: string;
+  status: GrammarStatus;
+  examples: GrammarExample[];
+  createdAt: string;
+  updatedAt: string;
+}
+
 /** How the Anki export builds cards. */
 export interface AnkiSettings {
   /** fr-en: French on the front; en-fr: English on the front; both: one note, two cards. */

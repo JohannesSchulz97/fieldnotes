@@ -39,7 +39,11 @@ export function ExtractionTabs({
         <ExtractionView result={result} ankiSettings={ankiSettings} />
       </div>
       <div className={cn(tab !== "read" && "hidden")}>
-        <ReadView paragraphs={result.paragraphs} translations={result.translations} />
+        <ReadView
+          extractionId={result.id}
+          paragraphs={result.paragraphs}
+          translations={result.translations}
+        />
       </div>
     </div>
   );
