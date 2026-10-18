@@ -187,7 +187,12 @@ export function ExtractionView({
                     />
                   </TableCell>
                   <LemmaCell item={item} />
-                  <TableCell>{item.translation}</TableCell>
+                  <TableCell>
+                    {item.translation}
+                    {item.contextNote && (
+                      <span className="block text-xs text-muted-foreground">In text: {item.contextNote}</span>
+                    )}
+                  </TableCell>
                   {exampleCell(item)}
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-2">

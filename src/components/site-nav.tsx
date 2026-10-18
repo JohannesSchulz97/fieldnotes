@@ -15,7 +15,7 @@ export function SiteNav() {
   return (
     <header className="border-b">
       <nav className="mx-auto flex h-14 max-w-5xl items-center gap-6 px-4">
-        <span className="font-semibold">VocabExtractor</span>
+        <span className="font-semibold">Fieldnotes</span>
         {links.map(({ href, label }) => (
           <Link
             key={href}
