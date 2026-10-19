@@ -6,9 +6,15 @@ import { useState } from "react";
 import { CreateExercises } from "@/components/create-exercises";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { deleteExerciseSet, setGrammarStatus, submitExerciseAnswer } from "@/app/actions";
+import { type WordStudy, WordText } from "@/components/exercise-words";
+import {
+  deleteExerciseSet,
+  setGrammarStatus,
+  studyExerciseWord,
+  submitExerciseAnswer,
+} from "@/app/actions";
 import { type Grade, LEARNED_SUGGESTION_SCORE } from "@/lib/exercises";
-import type { Exercise, ExerciseSet } from "@/lib/types";
+import type { Exercise, ExerciseSet, ExerciseWord, WordStudyStatus } from "@/lib/types";
 
 interface Result {
   answer: string;
@@ -16,28 +22,15 @@ interface Result {
 }
 
 /** The sentence with the expected answer in bold. */
-function Solution({ exercise }: { exercise: Exercise }) {
+function Solution({ exercise, study }: { exercise: Exercise; study: WordStudy }) {
   return (
     <span>
-      {exercise.before}
-      <strong className="font-semibold">{exercise.answer}</strong>
-      {exercise.after}
+      <WordText text={exercise.before} words={exercise.words} study={study} />
+      <strong className="font-semibold">
+        <WordText text={exercise.answer} words={exercise.words} study={study} />
+      </strong>
+      <WordText text={exercise.after} words={exercise.words} study={study} />
     </span>
-  );
-}
-
-function UnknownWords({ exercise }: { exercise: Exercise }) {
-  if (exercise.unknownWords.length === 0) return null;
-  return (
-    <p className="text-xs text-muted-foreground">
-      Not in your vocabulary:{" "}
-      {exercise.unknownWords.map((w, i) => (
-        <span key={w.lemma}>
-          {i > 0 && ", "}
-          <span className="italic">{w.lemma}</span> ({w.translation})
-        </span>
-      ))}
-    </p>
   );
 }
 
@@ -73,9 +66,23 @@ export function ExercisePlayer({ set }: { set: ExerciseSet }) {
   const [error, setError] = useState<string | null>(null);
   const [itemStatus, setItemStatus] = useState(set.item.status);
   const [confirmDelete, setConfirmDelete] = useState(false);
+  const [wordStatus, setWordStatus] = useState(set.wordStatus);
+  const [sourceId, setSourceId] = useState(set.exercisesSourceId);
 
   const exercise = exercises[index] as Exercise | undefined;
   const result = exercise ? results[exercise.id] : undefined;
+
+  /** Word lookups and the study action for the words of one exercise. */
+  function studyFor(e: Exercise): WordStudy {
+    return {
+      status: (lemma) => wordStatus[lemma] ?? ("unknown" satisfies WordStudyStatus),
+      study: async (word: ExerciseWord) => {
+        setSourceId(await studyExerciseWord(e.id, word.lemma));
+        setWordStatus((s) => ({ ...s, [word.lemma]: "studying" }));
+      },
+      sourceHref: sourceId ? `/extractions/${sourceId}` : null,
+    };
+  }
 
   async function check() {
     if (!exercise || !input.trim()) return;
@@ -151,7 +158,7 @@ export function ExercisePlayer({ set }: { set: ExerciseSet }) {
                   <X className="mt-0.5 size-4 shrink-0 text-destructive" aria-label="Wrong" />
                 )}
                 <div className="flex flex-col">
-                  <Solution exercise={e} />
+                  <Solution exercise={e} study={studyFor(e)} />
                   {r && r.grade !== "correct" && (
                     <span className="text-xs text-muted-foreground">Your answer: {r.answer}</span>
                   )}
@@ -209,14 +216,13 @@ export function ExercisePlayer({ set }: { set: ExerciseSet }) {
             )}
           </p>
           <p className="text-lg">
-            <Solution exercise={exercise} />
+            <Solution exercise={exercise} study={studyFor(exercise)} />
           </p>
           {exercise.alternatives.length > 0 && (
             <p className="text-sm text-muted-foreground">Also correct: {exercise.alternatives.join(", ")}</p>
           )}
           <p className="text-sm text-muted-foreground">{exercise.translation}</p>
           <p className="text-sm">{exercise.reason}</p>
-          <UnknownWords exercise={exercise} />
           <Button autoFocus className="self-start" onClick={next}>
             {index + 1 < exercises.length ? "Next" : "See results"}
           </Button>
@@ -230,7 +236,7 @@ export function ExercisePlayer({ set }: { set: ExerciseSet }) {
           }}
         >
           <p className="text-lg leading-loose">
-            {exercise.before}
+            <WordText text={exercise.before} words={exercise.words} study={studyFor(exercise)} />
             <Input
               key={exercise.id}
               autoFocus
@@ -244,10 +250,13 @@ export function ExercisePlayer({ set }: { set: ExerciseSet }) {
               className="mx-1 inline-flex h-8 align-baseline text-lg md:text-lg"
               style={{ width: `${Math.max(8, input.length + 2)}ch` }}
             />
+            {/* Not hoverable: the answer word's translation would give the answer away. */}
             <span className="text-muted-foreground">({exercise.cue})</span>
-            {exercise.after}
+            <WordText text={exercise.after} words={exercise.words} study={studyFor(exercise)} />
           </p>
-          <UnknownWords exercise={exercise} />
+          {exercise.words.length > 0 && (
+            <p className="text-xs text-muted-foreground">Hover or tap a word for its translation.</p>
+          )}
           <Button type="submit" className="self-start" disabled={pending || !input.trim()}>
             {pending ? "Checking…" : "Check"}
           </Button>

@@ -5,11 +5,14 @@ import type {
   Exercise,
   ExerciseSet,
   ExerciseSetSummary,
+  ExerciseWord,
   LanguageCode,
-  UnknownWord,
+  WordStudyStatus,
 } from "../types";
 import { db } from ".";
+import { getExercisesSource } from "./extractions";
 import { exerciseAttempts, exercises, exerciseSets, grammarItems } from "./schema";
+import { getStoredStatuses } from "./vocab";
 
 export interface ExerciseRecord {
   before: string;
@@ -19,7 +22,7 @@ export interface ExerciseRecord {
   cue: string;
   translation: string;
   reason: string;
-  unknownWords: UnknownWord[];
+  words: ExerciseWord[];
 }
 
 /** Saves a generated set with its exercises in the given order. */
@@ -112,9 +115,18 @@ export async function getExerciseSet(id: string): Promise<ExerciseSet | null> {
     .from(exercises)
     .where(eq(exercises.setId, id))
     .orderBy(asc(exercises.position));
-  const attempts = await latestAttempts(rows.map((r) => r.id));
+  const lemmas = [...new Set(rows.flatMap((r) => r.words.map((w) => w.lemma)))];
+  const [attempts, stored, source] = await Promise.all([
+    latestAttempts(rows.map((r) => r.id)),
+    getStoredStatuses(set.language, lemmas),
+    getExercisesSource(set.language),
+  ]);
+  const statusOf = (lemma: string): WordStudyStatus =>
+    stored.has(lemma) ? "known" : source?.lemmas.has(lemma) ? "studying" : "unknown";
   return {
     ...set,
+    wordStatus: Object.fromEntries(lemmas.map((l) => [l, statusOf(l)])),
+    exercisesSourceId: source?.id ?? null,
     exercises: rows.map(
       (r): Exercise => ({
         id: r.id,
@@ -125,10 +137,38 @@ export async function getExerciseSet(id: string): Promise<ExerciseSet | null> {
         cue: r.cue,
         translation: r.translation,
         reason: r.reason,
-        unknownWords: r.unknownWords,
+        words: r.words,
         lastAttempt: attempts.get(r.id) ?? null,
       })
     ),
+  };
+}
+
+/** An exercise's full sentence, translation and words, with its set's language. */
+export async function getExerciseSentence(exerciseId: string): Promise<{
+  language: LanguageCode;
+  sentence: string;
+  translation: string;
+  words: ExerciseWord[];
+} | null> {
+  const [row] = await db
+    .select({
+      language: exerciseSets.language,
+      before: exercises.before,
+      answer: exercises.answer,
+      after: exercises.after,
+      translation: exercises.translation,
+      words: exercises.words,
+    })
+    .from(exercises)
+    .innerJoin(exerciseSets, eq(exerciseSets.id, exercises.setId))
+    .where(eq(exercises.id, exerciseId));
+  if (!row) return null;
+  return {
+    language: row.language,
+    sentence: row.before + row.answer + row.after,
+    translation: row.translation,
+    words: row.words,
   };
 }
 

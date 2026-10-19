@@ -1,6 +1,6 @@
 import { integer, real, sqliteTable, text, uniqueIndex } from "drizzle-orm/sqlite-core";
 import { CEFR_LEVELS, GRAMMAR_CATEGORY_VALUES } from "../grammar";
-import type { ExtractedItem, UnknownWord } from "../types";
+import type { ExerciseWord, ExtractedItem } from "../types";
 
 export const vocabEntries = sqliteTable(
   "vocab_entries",
@@ -47,7 +47,12 @@ export const extractions = sqliteTable(
   "extractions",
   {
     id: text("id").primaryKey(),
-    /** SHA-256 of the trimmed text; the same text is never extracted twice unless re-extracted. */
+    /** "exercises": the one source per language that collects words added from exercises. */
+    kind: text("kind", { enum: ["text", "exercises"] }).notNull().default("text"),
+    /**
+     * SHA-256 of the trimmed text; the same text is never extracted twice unless re-extracted.
+     * For the exercises source, a fixed hash per language instead (see exercisesSourceHash).
+     */
     textHash: text("text_hash").notNull(),
     text: text("text").notNull(),
     /** Optional name of the source, chosen by the user. */
@@ -142,8 +147,8 @@ export const exercises = sqliteTable("exercises", {
   translation: text("translation").notNull(),
   /** Why this form is needed here, in one line. */
   reason: text("reason").notNull(),
-  /** Words of the sentence that are not in the learner's vocabulary. */
-  unknownWords: text("unknown_words", { mode: "json" }).$type<UnknownWord[]>().notNull(),
+  /** The content words of the sentence with their lemma and translation. */
+  words: text("words", { mode: "json" }).$type<ExerciseWord[]>().notNull().default([]),
 });
 
 /** One answer to an exercise. The latest attempt per exercise counts for the set's score. */

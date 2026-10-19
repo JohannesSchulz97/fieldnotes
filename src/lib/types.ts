@@ -59,9 +59,13 @@ export interface LearnedItem extends ExtractedItem {
   exportedAt: string;
 }
 
+/** text = a pasted text; exercises = the per-language collection of words picked up in exercises. */
+export type SourceKind = "text" | "exercises";
+
 /** A saved extraction, with its items split against the current vocabulary. */
 export interface ExtractionResult {
   id: string;
+  kind: SourceKind;
   text: string;
   title: string | null;
   sourceUrl: string | null;
@@ -165,11 +169,19 @@ export interface GrammarItem {
   updatedAt: string;
 }
 
-/** A word of an exercise sentence that is not in the learner's vocabulary. */
-export interface UnknownWord {
+/** A content word of an exercise sentence. */
+export interface ExerciseWord {
+  /** The word exactly as it appears in the sentence. */
+  form: string;
   lemma: string;
   translation: string;
 }
+
+/**
+ * known = in the vocabulary (known or ignored); studying = in the Exercises source, to be exported;
+ * unknown = neither.
+ */
+export type WordStudyStatus = "known" | "studying" | "unknown";
 
 /** A fill-in-the-blank exercise: before + answer + after is the full sentence. */
 export interface Exercise {
@@ -184,7 +196,7 @@ export interface Exercise {
   translation: string;
   /** Why this form is needed here. */
   reason: string;
-  unknownWords: UnknownWord[];
+  words: ExerciseWord[];
   /** The latest answer, if the exercise was answered. */
   lastAttempt: { answer: string; correct: boolean } | null;
 }
@@ -209,6 +221,10 @@ export interface ExerciseSet {
   level: CefrLevel;
   item: { id: string; name: string; explanation: string; status: GrammarStatus };
   exercises: Exercise[];
+  /** Status of every lemma in the exercises' words. */
+  wordStatus: Record<string, WordStudyStatus>;
+  /** The language's exercises source, once a word was added to it. */
+  exercisesSourceId: string | null;
   createdAt: string;
 }
 

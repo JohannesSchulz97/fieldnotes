@@ -1,10 +1,10 @@
 import "server-only";
 import { createHash } from "node:crypto";
-import { desc, eq } from "drizzle-orm";
+import { and, desc, eq } from "drizzle-orm";
 import type { LlmExtraction } from "../llm/extract";
 import { splitParagraphs, splitSentences } from "../sentences";
 import type { SourceDetails } from "../source";
-import type { ExtractionResult, ExtractionSummary, LanguageCode } from "../types";
+import type { ExtractedItem, ExtractionResult, ExtractionSummary, LanguageCode } from "../types";
 import { db } from ".";
 import { extractions } from "./schema";
 import { getStoredEntries, getStoredStatuses } from "./vocab";
@@ -126,6 +126,7 @@ export async function loadExtraction(id: string): Promise<ExtractionResult | nul
   };
   return {
     id: row.id,
+    kind: row.kind,
     text: row.text,
     title: row.title,
     sourceUrl: row.sourceUrl,
@@ -169,4 +170,84 @@ export async function listExtractions(language: LanguageCode): Promise<Extractio
       };
     })
   );
+}
+
+const EXERCISES_SOURCE_TITLE = "Exercises";
+
+/** Fixed text hash of a language's exercises source, so it never matches a pasted text. */
+function exercisesSourceHash(language: LanguageCode): string {
+  return hashText(`exercises:${language}`);
+}
+
+async function findExercisesSource(language: LanguageCode) {
+  const [row] = await db
+    .select()
+    .from(extractions)
+    .where(and(eq(extractions.kind, "exercises"), eq(extractions.sourceLanguage, language)));
+  return row ?? null;
+}
+
+/** Id and item lemmas of a language's exercises source, or null if it does not exist yet. */
+export async function getExercisesSource(
+  language: LanguageCode
+): Promise<{ id: string; lemmas: Set<string> } | null> {
+  const row = await findExercisesSource(language);
+  return row ? { id: row.id, lemmas: new Set(row.items.map((i) => i.lemma)) } : null;
+}
+
+/**
+ * Adds a word to the language's exercises source, creating the source on first use. The item's
+ * example sentence is added to the source's text (once), with its translation. Returns the
+ * source's id.
+ */
+export async function addToExercisesSource(
+  language: LanguageCode,
+  targetLanguage: LanguageCode,
+  item: ExtractedItem,
+  sentenceTranslation: string
+): Promise<string> {
+  const now = new Date().toISOString();
+  const row = await findExercisesSource(language);
+  // A sentence may split into several; the translation goes with the first part.
+  const translationsFor = (sentence: string) =>
+    splitSentences(sentence).map((_, i) => (i === 0 ? sentenceTranslation : ""));
+
+  if (!row) {
+    const id = crypto.randomUUID();
+    await db.insert(extractions).values({
+      id,
+      kind: "exercises",
+      textHash: exercisesSourceHash(language),
+      text: item.exampleSentence,
+      title: EXERCISES_SOURCE_TITLE,
+      sourceUrl: null,
+      sourceLanguage: language,
+      targetLanguage,
+      items: [item],
+      translations: translationsFor(item.exampleSentence),
+      costUsd: null,
+      createdAt: now,
+      updatedAt: now,
+    });
+    return id;
+  }
+
+  const sentences = splitSentences(row.text);
+  const hasSentence = splitSentences(item.exampleSentence).every((s) => sentences.includes(s));
+  const items = row.items.some((i) => i.lemma === item.lemma) ? row.items : [...row.items, item];
+  await db
+    .update(extractions)
+    .set({
+      items,
+      ...(!hasSentence && {
+        text: `${row.text}\n\n${item.exampleSentence}`,
+        translations: [
+          ...sentences.map((_, i) => row.translations?.[i] ?? ""),
+          ...translationsFor(item.exampleSentence),
+        ],
+      }),
+      updatedAt: now,
+    })
+    .where(eq(extractions.id, row.id));
+  return row.id;
 }

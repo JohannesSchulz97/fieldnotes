@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { cookies } from "next/headers";
 import { z } from "zod";
 import {
+  addToExercisesSource,
   findExtractionByHash,
   getExtractionSentences,
   getExtractionText,
@@ -26,6 +27,7 @@ import {
 import {
   createExerciseSet as dbCreateExerciseSet,
   deleteExerciseSet as dbDeleteExerciseSet,
+  getExerciseSentence,
   getExpectedAnswers,
   recordAttempt,
 } from "@/lib/db/exercises";
@@ -420,6 +422,44 @@ export async function submitExerciseAnswer(exerciseId: string, answer: string): 
   await recordAttempt(exerciseId, answer.trim(), grade === "correct");
   revalidatePath("/exercises");
   return grade;
+}
+
+/**
+ * Puts a word of an exercise on the study list: removes it from the vocabulary if it was there
+ * (the learner doesn't know it after all) and adds it with its sentence to the language's
+ * exercises source, from where it is exported like any new word. Returns the source's id.
+ */
+export async function studyExerciseWord(exerciseId: string, lemma: string): Promise<string> {
+  const exercise = await getExerciseSentence(exerciseId);
+  if (!exercise) throw new Error("Exercise not found");
+  const word = exercise.words.find((w) => w.lemma === lemma);
+  if (!word) throw new Error("Word not in exercise");
+
+  // Same lemma rules as extraction, for gender, part of speech and a dictionary translation.
+  const { items } = await llmNormalize(exercise.language, [`${word.lemma} (${word.translation})`]);
+  const normalized = items[0];
+  const item: ExtractedItem = {
+    lemma: word.lemma,
+    partOfSpeech: normalized?.partOfSpeech ?? null,
+    kind: normalized?.kind ?? (word.lemma.includes(" ") ? "expression" : "word"),
+    gender: normalized?.gender ?? null,
+    pluralOnly: normalized?.pluralOnly ?? false,
+    translation: normalized?.translation || word.translation,
+    contextNote: null,
+    exampleSentence: exercise.sentence,
+    form: word.form,
+  };
+  await deleteEntry(exercise.language, word.lemma);
+  const sourceId = await addToExercisesSource(
+    exercise.language,
+    getNativeLanguage(),
+    item,
+    exercise.translation
+  );
+  revalidatePath("/");
+  revalidatePath("/vocab");
+  revalidatePath(`/extractions/${sourceId}`);
+  return sourceId;
 }
 
 export async function deleteExerciseSet(id: string): Promise<void> {
