@@ -12,6 +12,7 @@
 import { eq } from "drizzle-orm";
 import { db } from "../src/lib/db";
 import { extractions, vocabEntries } from "../src/lib/db/schema";
+import { llmNormalize } from "../src/lib/llm/normalize";
 import type { ExtractedItem, Gender } from "../src/lib/types";
 
 const apply = process.argv.includes("--apply");
@@ -77,6 +78,7 @@ for (const v of vocab) {
     const fill = keeper.partOfSpeech === "noun";
     console.log(`MERGE       ${v.lemma} -> ${p.bare} (${fill ? "noun" : keeper.partOfSpeech ?? "?"} row kept)`);
     merged++;
+    keeperOf.delete(v.lemma);
     if (apply) {
       if (fill) {
         await db
@@ -109,23 +111,71 @@ for (const v of vocab) {
 }
 
 let itemsUpdated = 0;
+const plannedItems = new Map<string, ExtractedItem[]>();
 for (const row of extractionRows) {
   if (row.sourceLanguage !== "fr") continue;
   const seen = new Set<string>();
-  const items: ExtractedItem[] = row.items
-    .map((item) => {
-      const p = item.partOfSpeech === "noun" ? parse(item.lemma) : null;
-      if (!p) return item;
-      itemsUpdated++;
-      const gender = p.gender ?? (p.pluralOnly ? null : (genderOf.get(p.bare) ?? null));
-      return { ...item, lemma: p.bare, gender, pluralOnly: p.pluralOnly };
-    })
-    .filter((item) => !seen.has(item.lemma) && seen.add(item.lemma));
-  if (apply) await db.update(extractions).set({ items }).where(eq(extractions.id, row.id));
+  plannedItems.set(
+    row.id,
+    row.items
+      .map((item) => {
+        const p = item.partOfSpeech === "noun" ? parse(item.lemma) : null;
+        if (!p) return item;
+        itemsUpdated++;
+        const gender = p.gender ?? (p.pluralOnly ? null : (genderOf.get(p.bare) ?? null));
+        return { ...item, lemma: p.bare, gender, pluralOnly: p.pluralOnly };
+      })
+      .filter((item) => !seen.has(item.lemma) && seen.add(item.lemma))
+  );
 }
 
+// Backfill: nouns stored without any article never had a gender. Ask the model once per lemma.
+const needGender = new Map<string, string>();
+for (const row of keeperOf.values()) {
+  if (row.language === "fr" && row.partOfSpeech === "noun" && !row.gender && !row.pluralOnly) {
+    needGender.set(row.lemma, row.translation ?? "");
+  }
+}
+for (const items of plannedItems.values()) {
+  for (const i of items) {
+    if (i.partOfSpeech === "noun" && !i.gender && !i.pluralOnly) needGender.set(i.lemma, i.translation);
+  }
+}
+const backfilled = new Map<string, Gender>();
+if (needGender.size > 0) {
+  const lines = [...needGender].map(([lemma, translation]) => (translation ? `${lemma} (${translation})` : lemma));
+  const { items } = await llmNormalize(lines);
+  for (const i of items) {
+    if (i.partOfSpeech === "noun" && i.gender && needGender.has(i.lemma)) backfilled.set(i.lemma, i.gender);
+  }
+  for (const lemma of needGender.keys()) {
+    if (!backfilled.has(lemma)) console.log(`NO GENDER   ${lemma} (model gave none)`);
+  }
+}
+
+let backfilledRows = 0;
+for (const row of keeperOf.values()) {
+  const gender = backfilled.get(row.lemma);
+  if (!gender || row.language !== "fr" || row.partOfSpeech !== "noun" || row.gender || row.pluralOnly) continue;
+  backfilledRows++;
+  if (apply) {
+    await db.update(vocabEntries).set({ gender, updatedAt: new Date().toISOString() }).where(eq(vocabEntries.id, row.id));
+  }
+}
+for (const [id, items] of plannedItems) {
+  const filled = items.map((i) => {
+    const gender = backfilled.get(i.lemma);
+    return gender && i.partOfSpeech === "noun" && !i.gender && !i.pluralOnly ? { ...i, gender } : i;
+  });
+  if (apply) await db.update(extractions).set({ items: filled }).where(eq(extractions.id, id));
+}
+
+// Plural-only nouns have no single gender.
+if (apply) await db.update(vocabEntries).set({ gender: null }).where(eq(vocabEntries.pluralOnly, true));
+
 console.log(
-  `\n${apply ? "Updated" : "Would update"} ${vocabUpdated} vocab entries (${merged} merged duplicates) and ${itemsUpdated} extraction items` +
-    (unresolved ? ` (${unresolved} nouns without gender)` : "") +
+  `\n${apply ? "Updated" : "Would update"} ${vocabUpdated} vocab entries (${merged} merged duplicates), ` +
+    `${itemsUpdated} extraction items, and backfilled gender on ${backfilledRows} entries` +
+    (unresolved ? ` (${unresolved} article-less nouns had no gender before backfill)` : "") +
     "."
 );

@@ -13,9 +13,14 @@ type Formatter = (item: LemmaDisplay) => string;
 
 /** Common French words with an aspirated h, which block elision ("le héros", not "l'héros"). */
 const ASPIRATED_H = new Set([
-  "hache", "haie", "haine", "hall", "hamac", "hamster", "hanche", "handicap", "hangar", "haricot",
-  "harcèlement", "hasard", "hâte", "hauteur", "havre", "héros", "hibou", "hockey", "homard", "honte",
-  "hublot", "huit", "hurlement", "hérisson",
+  "hâbleur", "hache", "hachis", "hagard", "haie", "haillon", "haine", "halage", "hall",
+  "halle", "halo", "halte", "haltère", "hamac", "hamburger", "hameau", "hamster", "hanche",
+  "handball", "handicap", "hangar", "hanneton", "hardes", "harem",
+  "hareng", "hargne", "haricot", "harnais", "harpe", "harpon", "hasard", "hâte", "hausse", "haut",
+  "hauteur", "havre", "hayon", "hérisson", "héron", "héros", "hêtre", "hibou",
+  "hic", "hockey", "hollandais", "homard", "honte", "hoquet", "horde", "hors-d'œuvre",
+  "hotte", "houle", "houppe", "housse", "houx", "hublot", "huche", "huée", "huit",
+  "hutte", "hyène"
 ]);
 
 function frenchFormatter({ lemma, partOfSpeech, gender, pluralOnly }: LemmaDisplay): string {
