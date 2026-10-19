@@ -24,6 +24,12 @@ if ! command -v sqlite3 >/dev/null; then
   exit 1
 fi
 
+# A process with the old file open (e.g. `next dev`) can no longer write once it is replaced.
+if [[ -f "$target" ]] && command -v lsof >/dev/null && lsof "$target" >/dev/null 2>&1; then
+  echo "$target is open in another process (probably the dev server). Stop it first, then pull again." >&2
+  exit 1
+fi
+
 tmp="$(mktemp -d)"
 trap 'rm -rf "$tmp"' EXIT
 
