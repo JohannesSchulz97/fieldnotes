@@ -9,9 +9,18 @@ import { getAnkiSettings } from "@/lib/db/settings";
 import { getTotalCost } from "@/lib/db/usage";
 import { formatUsd } from "@/lib/format";
 
-export default async function ExtractionPage({ params }: { params: Promise<{ id: string }> }) {
+export default async function ExtractionPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ id: string }>;
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+}) {
   await connection();
   const { id } = await params;
+  const { sentence } = await searchParams;
+  const focusSentence =
+    typeof sentence === "string" && /^\d+$/.test(sentence) ? Number(sentence) : null;
   const [result, totalCost, ankiSettings] = await Promise.all([
     loadExtraction(id),
     getTotalCost(),
@@ -37,7 +46,12 @@ export default async function ExtractionPage({ params }: { params: Promise<{ id:
         </p>
       </div>
       {/* Keyed by updatedAt so a re-extraction or translation resets the local list state. */}
-      <ExtractionTabs key={result.updatedAt} result={result} ankiSettings={ankiSettings} />
+      <ExtractionTabs
+        key={result.updatedAt}
+        result={result}
+        ankiSettings={ankiSettings}
+        focusSentence={focusSentence}
+      />
     </main>
   );
 }
