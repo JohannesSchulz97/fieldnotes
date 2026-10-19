@@ -3,13 +3,13 @@ import { zodTextFormat } from "openai/helpers/zod";
 import { z } from "zod";
 import { normalizeLemma } from "../lemma";
 import type { Gender, LanguageCode, WordKind } from "../types";
-import { getClient, LEMMA_RULES, model, reasoningEffort, trackUsage } from "./client";
+import { getClient, model, reasoningEffort, trackUsage } from "./client";
+import { normalizeInstructions } from "./prompts";
 
 const CHUNK_SIZE = 150;
 const CONCURRENCY = 4;
 
 export interface NormalizedItem {
-  language: LanguageCode;
   lemma: string;
   partOfSpeech: string | null;
   kind: WordKind;
@@ -19,7 +19,6 @@ export interface NormalizedItem {
 }
 
 const Normalization = z.object({
-  sourceLanguage: z.string().describe("ISO 639-1 code of the entries' language"),
   items: z.array(
     z.object({
       lemma: z.string(),
@@ -32,48 +31,42 @@ const Normalization = z.object({
   ),
 });
 
-const INSTRUCTIONS = `You convert a learner's list of known vocabulary entries into dictionary lemmas.
-
-Each input line is one entry. Lines may contain noise besides the word or expression: gender markers ("m.", "(f)"), a translation, notes, HTML tags, Anki cloze markup like "{{c1::...}}". Use such hints to pick the right meaning, but output only the lemma. Entries may be inflected forms; convert them to the lemma (e.g. "assise" → "s'asseoir", "chevaux" → "cheval").
-
-${LEMMA_RULES}
-
-Output one item per line that contains vocabulary, in input order. Keep expressions as one item; do not split them into words. Skip lines without vocabulary (empty, only a translation, proper nouns).`;
-
 interface ChunkResult {
   items: NormalizedItem[];
   costUsd: number | null;
 }
 
-async function normalizeChunk(lines: string[]): Promise<ChunkResult> {
+async function normalizeChunk(language: LanguageCode, lines: string[]): Promise<ChunkResult> {
   const response = await getClient().responses.parse({
     model,
     reasoning: { effort: reasoningEffort },
-    instructions: INSTRUCTIONS,
+    instructions: normalizeInstructions(language),
     input: lines.join("\n"),
     text: { format: zodTextFormat(Normalization, "normalization") },
   });
   const costUsd = await trackUsage("normalization", response.usage);
   const parsed = response.output_parsed;
   if (!parsed) throw new Error("LLM returned no parseable normalization");
-  const language = parsed.sourceLanguage.toLowerCase();
   return {
-    items: parsed.items.map((item) => ({ ...item, lemma: normalizeLemma(item.lemma), language })),
+    items: parsed.items.map((item) => ({ ...item, lemma: normalizeLemma(item.lemma) })),
     costUsd,
   };
 }
 
 /**
- * Normalizes free-form entries (one per line) into lemmas, in chunks of CHUNK_SIZE lines.
+ * Normalizes free-form entries (one per line) of a language into lemmas, in chunks of CHUNK_SIZE lines.
  * costUsd is the summed cost, or null if any chunk had an unknown price.
  */
-export async function llmNormalize(lines: string[]): Promise<{ items: NormalizedItem[]; costUsd: number | null }> {
+export async function llmNormalize(
+  language: LanguageCode,
+  lines: string[]
+): Promise<{ items: NormalizedItem[]; costUsd: number | null }> {
   const chunks: string[][] = [];
   for (let i = 0; i < lines.length; i += CHUNK_SIZE) chunks.push(lines.slice(i, i + CHUNK_SIZE));
 
   const results: ChunkResult[] = [];
   for (let i = 0; i < chunks.length; i += CONCURRENCY) {
-    results.push(...(await Promise.all(chunks.slice(i, i + CONCURRENCY).map(normalizeChunk))));
+    results.push(...(await Promise.all(chunks.slice(i, i + CONCURRENCY).map((chunk) => normalizeChunk(language, chunk)))));
   }
   const costs = results.map((r) => r.costUsd);
   return {

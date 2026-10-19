@@ -1,10 +1,12 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { connection } from "next/server";
+import { ActiveLanguageSync } from "@/components/active-language-sync";
 import { ExtractionTabs } from "@/components/extraction-tabs";
 import { SourceDetails } from "@/components/source-details";
 import { ReextractButton } from "@/components/reextract-button";
 import { TranslateButton } from "@/components/translate-button";
+import { getActiveLanguage } from "@/lib/active-language";
 import { loadExtraction } from "@/lib/db/extractions";
 import { getAnkiSettings } from "@/lib/db/settings";
 import { getTotalCost } from "@/lib/db/usage";
@@ -22,15 +24,17 @@ export default async function ExtractionPage({
   const { sentence } = await searchParams;
   const focusSentence =
     typeof sentence === "string" && /^\d+$/.test(sentence) ? Number(sentence) : null;
-  const [result, totalCost, ankiSettings] = await Promise.all([
+  const [result, totalCost, ankiSettings, activeLanguage] = await Promise.all([
     loadExtraction(id),
     getTotalCost(),
     getAnkiSettings(),
+    getActiveLanguage(),
   ]);
   if (!result) notFound();
 
   return (
     <main className="mx-auto flex w-full max-w-5xl flex-col gap-6 px-4 py-8">
+      <ActiveLanguageSync language={result.sourceLanguage} active={activeLanguage} />
       <div className="flex flex-col gap-2">
         <Link href="/" className="text-sm text-muted-foreground hover:text-foreground">
           ← All sources

@@ -11,6 +11,7 @@ import Link from "next/link";
 import { connection } from "next/server";
 import { BulkAdd } from "@/components/bulk-add";
 import { UnmarkButton } from "@/components/unmark-button";
+import { getActiveLanguage } from "@/lib/active-language";
 import { getTotalCost } from "@/lib/db/usage";
 import { countBySource, listVocab } from "@/lib/db/vocab";
 import { formatUsd } from "@/lib/format";
@@ -37,9 +38,10 @@ export default async function VocabPage({
   const source = SOURCES.find((s) => s.value === params.source)?.value;
   const query = typeof params.q === "string" ? params.q.trim() : "";
   const page = Math.max(1, Number(params.page) || 1);
+  const language = await getActiveLanguage();
   const [{ entries, total }, counts, totalCost] = await Promise.all([
-    listVocab({ source, query: query || undefined, page, pageSize: PAGE_SIZE }),
-    countBySource(),
+    listVocab({ language, source, query: query || undefined, page, pageSize: PAGE_SIZE }),
+    countBySource(language),
     getTotalCost(),
   ]);
   const pageCount = Math.max(1, Math.ceil(total / PAGE_SIZE));
@@ -111,7 +113,7 @@ export default async function VocabPage({
               <TableCell colSpan={7} className="text-muted-foreground">
                 {query
                   ? "No matching words."
-                  : "No words yet. Add known words above, or mark words on the Extract page."}
+                  : "No words yet. Add known words above, or mark words on a source."}
               </TableCell>
             </TableRow>
           )}

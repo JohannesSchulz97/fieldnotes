@@ -2,6 +2,7 @@
 
 import { Checkbox } from "@/components/ui/checkbox";
 import { buildCard } from "@/lib/anki";
+import { getNativeLanguage, languageName } from "@/lib/languages";
 import type { AnkiSettings, ExtractedItem } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
@@ -54,6 +55,8 @@ export function AnkiSettingsPanel({
   const set = <K extends keyof AnkiSettings>(key: K, value: AnkiSettings[K]) =>
     onChange({ ...settings, [key]: value });
   // HTML from buildCard is escaped there, so it is safe to render.
+  const learning = languageName(language);
+  const native = languageName(getNativeLanguage());
   const card = previewItem && buildCard(language, previewItem, settings, previewTranslation);
 
   return (
@@ -63,8 +66,8 @@ export function AnkiSettingsPanel({
         value={settings.direction}
         onChange={(v) => set("direction", v)}
         options={[
-          { value: "fr-en", label: "French → English" },
-          { value: "en-fr", label: "English → French" },
+          { value: "learning-native", label: `${learning} → ${native}` },
+          { value: "native-learning", label: `${native} → ${learning}` },
           { value: "both", label: "Both" },
         ]}
       />
@@ -98,7 +101,7 @@ export function AnkiSettingsPanel({
       {settings.direction === "both" && (
         <p className="pl-28 text-xs text-muted-foreground">
           One note per word; Anki creates the reverse card. &quot;On front&quot; puts the example
-          on the French side.
+          on the {learning} side.
         </p>
       )}
       {card && (

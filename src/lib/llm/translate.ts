@@ -1,20 +1,21 @@
 import "server-only";
 import { zodTextFormat } from "openai/helpers/zod";
 import { z } from "zod";
-import { getClient, model, reasoningEffort, TARGET_LANGUAGE, trackUsage } from "./client";
+import { getNativeLanguage } from "../languages";
+import { getClient, model, reasoningEffort, trackUsage } from "./client";
 
 const Translation = z.object({
   sentences: z.array(z.object({ sentence: z.number().int(), translation: z.string() })),
 });
 
-const INSTRUCTIONS = `Translate each numbered sentence into natural, faithful ${TARGET_LANGUAGE}. The input is given as "[n] sentence". Return one translation per input sentence with its number, using the surrounding sentences as context.`;
+const INSTRUCTIONS = () => `Translate each numbered sentence into natural, faithful ${getNativeLanguage()}. The input is given as "[n] sentence". Return one translation per input sentence with its number, using the surrounding sentences as context.`;
 
 /** Translates sentences one by one; the result is aligned with the input (missing ones are ""). */
 export async function llmTranslate(sentences: string[]): Promise<string[]> {
   const response = await getClient().responses.parse({
     model,
     reasoning: { effort: reasoningEffort },
-    instructions: INSTRUCTIONS,
+    instructions: INSTRUCTIONS(),
     input: sentences.map((s, i) => `[${i}] ${s}`).join("\n"),
     text: { format: zodTextFormat(Translation, "translation") },
   });

@@ -1,17 +1,20 @@
 import Link from "next/link";
 import { connection } from "next/server";
 import { ExtractForm } from "@/components/extract-form";
+import { getActiveLanguage } from "@/lib/active-language";
 import { listExtractions } from "@/lib/db/extractions";
+import { languageName } from "@/lib/languages";
 import { linkHost } from "@/lib/source";
 
 export default async function Home() {
   await connection();
-  const past = await listExtractions();
+  const language = await getActiveLanguage();
+  const past = await listExtractions(language);
 
   return (
     <main className="mx-auto w-full max-w-5xl px-4 py-8">
       <h1 className="mb-6 text-2xl font-semibold">Sources</h1>
-      <ExtractForm />
+      <ExtractForm languageName={languageName(language)} />
 
       {past.length > 0 && (
         <section className="mt-10 flex flex-col gap-2">

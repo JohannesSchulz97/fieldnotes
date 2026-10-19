@@ -144,7 +144,7 @@ for (const items of plannedItems.values()) {
 const backfilled = new Map<string, Gender>();
 if (needGender.size > 0) {
   const lines = [...needGender].map(([lemma, translation]) => (translation ? `${lemma} (${translation})` : lemma));
-  const { items } = await llmNormalize(lines);
+  const { items } = await llmNormalize("fr", lines);
   for (const i of items) {
     if (i.partOfSpeech === "noun" && i.gender && needGender.has(i.lemma)) backfilled.set(i.lemma, i.gender);
   }

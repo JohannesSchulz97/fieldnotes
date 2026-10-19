@@ -14,10 +14,12 @@ import { grammarExamples, grammarItems } from "./schema";
 
 /** Saved items with their examples, newest first, filtered by any of the given fields. */
 export async function listGrammarItems({
+  language,
   status,
   category,
   ids,
 }: {
+  language?: LanguageCode;
   status?: GrammarStatus;
   category?: GrammarCategory;
   ids?: string[];
@@ -38,6 +40,7 @@ export async function listGrammarItems({
     .from(grammarItems)
     .where(
       and(
+        language ? eq(grammarItems.language, language) : undefined,
         status ? eq(grammarItems.status, status) : undefined,
         category ? eq(grammarItems.category, category) : undefined,
         ids ? inArray(grammarItems.id, ids) : undefined
@@ -65,10 +68,11 @@ export async function listGrammarItems({
   return items.map((item) => ({ ...item, examples: byItem.get(item.id) ?? [] }));
 }
 
-export async function countByStatus(): Promise<Record<GrammarStatus, number>> {
+export async function countByStatus(language: LanguageCode): Promise<Record<GrammarStatus, number>> {
   const rows = await db
     .select({ status: grammarItems.status, n: count() })
     .from(grammarItems)
+    .where(eq(grammarItems.language, language))
     .groupBy(grammarItems.status);
   const counts: Record<GrammarStatus, number> = { to_work_on: 0, learned: 0 };
   for (const r of rows) counts[r.status] = r.n;
@@ -76,10 +80,11 @@ export async function countByStatus(): Promise<Record<GrammarStatus, number>> {
 }
 
 /** Number of items per category; categories without items are missing. */
-export async function countByCategory(): Promise<Map<GrammarCategory, number>> {
+export async function countByCategory(language: LanguageCode): Promise<Map<GrammarCategory, number>> {
   const rows = await db
     .select({ category: grammarItems.category, n: count() })
     .from(grammarItems)
+    .where(eq(grammarItems.language, language))
     .groupBy(grammarItems.category);
   return new Map(rows.map((r) => [r.category, r.n]));
 }

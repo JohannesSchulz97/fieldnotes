@@ -55,7 +55,7 @@ export function ExtractionView({
   const [ankiSettings, setAnkiSettings] = useState(initialAnkiSettings);
   const [showSettings, setShowSettings] = useState(false);
 
-  // English for each example sentence, once the text has been translated.
+  // Translation of each example sentence, once the text has been translated.
   const sentences = result.paragraphs.flat();
   const translationOf = (sentence: string) =>
     result.translations?.[sentences.indexOf(sentence)] || null;

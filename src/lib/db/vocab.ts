@@ -11,13 +11,15 @@ export interface VocabPage {
   total: number;
 }
 
-/** One page of entries, newest first, optionally filtered by source and a search in lemma/translation. */
+/** One page of a language's entries, newest first, optionally filtered by source and a search in lemma/translation. */
 export async function listVocab({
+  language,
   source,
   query,
   page,
   pageSize,
 }: {
+  language: LanguageCode;
   source?: WordSource;
   query?: string;
   page: number;
@@ -25,6 +27,7 @@ export async function listVocab({
 }): Promise<VocabPage> {
   const pattern = query ? `%${query.replace(/[\\%_]/g, "\\$&")}%` : null;
   const where = and(
+    eq(vocabEntries.language, language),
     source ? eq(vocabEntries.source, source) : undefined,
     pattern
       ? or(
@@ -46,10 +49,11 @@ export async function listVocab({
   return { entries, total: n };
 }
 
-export async function countBySource(): Promise<Record<WordSource, number>> {
+export async function countBySource(language: LanguageCode): Promise<Record<WordSource, number>> {
   const rows = await db
     .select({ source: vocabEntries.source, n: count() })
     .from(vocabEntries)
+    .where(eq(vocabEntries.language, language))
     .groupBy(vocabEntries.source);
   const counts: Record<WordSource, number> = { extraction: 0, manual: 0, anki: 0, basic: 0 };
   for (const r of rows) counts[r.source] = r.n;

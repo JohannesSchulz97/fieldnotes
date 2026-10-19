@@ -3,6 +3,7 @@ import { connection } from "next/server";
 import { Badge } from "@/components/ui/badge";
 import { GrammarExampleLine, GrammarTags, sentenceHref } from "@/components/grammar-example";
 import { GrammarItemActions } from "@/components/grammar-item-actions";
+import { getActiveLanguage } from "@/lib/active-language";
 import { countByCategory, countByStatus, listGrammarItems } from "@/lib/db/grammar";
 import { GRAMMAR_CATEGORIES } from "@/lib/grammar";
 import type { GrammarCategory, GrammarStatus } from "@/lib/types";
@@ -22,10 +23,11 @@ export default async function GrammarPage({
   const params = await searchParams;
   const status = STATUSES.find((s) => s.value === params.status)?.value;
   const category = GRAMMAR_CATEGORIES.find((c) => c.value === params.category)?.value;
+  const language = await getActiveLanguage();
   const [items, statusCounts, categoryCounts] = await Promise.all([
-    listGrammarItems({ status, category }),
-    countByStatus(),
-    countByCategory(),
+    listGrammarItems({ language, status, category }),
+    countByStatus(language),
+    countByCategory(language),
   ]);
 
   /** Link to /grammar with the current filters, overridden by the given values. */

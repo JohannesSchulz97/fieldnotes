@@ -55,7 +55,7 @@ export const extractions = sqliteTable(
     sourceLanguage: text("source_language").notNull(),
     targetLanguage: text("target_language").notNull(),
     items: text("items", { mode: "json" }).$type<ExtractedItem[]>().notNull(),
-    /** English translation per sentence, aligned with splitSentences(text); null until translated. */
+    /** Translation per sentence (into targetLanguage), aligned with splitSentences(text); null until translated. */
     translations: text("translations", { mode: "json" }).$type<string[]>(),
     /** Cost of the latest LLM run for this text. */
     costUsd: real("cost_usd"),

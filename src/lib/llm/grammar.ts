@@ -8,16 +8,12 @@ import type {
   GrammarExplanation,
   LanguageCode,
 } from "../types";
-import { getClient, model, reasoningEffort, TARGET_LANGUAGE, trackUsage } from "./client";
+import { getNativeLanguage } from "../languages";
+import { getClient, model, reasoningEffort, trackUsage } from "./client";
+import { namingProtocol } from "./prompts";
 
 /** Value of `match` for a construct that is not one of the saved names. */
 export const NEW_CONSTRUCT = "new";
-
-const NAMING_PROTOCOL = `Naming protocol for constructs:
-- Format: "<usual grammatical term in the text's language> (<pattern>)", in lowercase except where the language requires capitals, e.g. "gérondif (en + participe présent)", "subjonctif (après conjonction de concession)", "ne … que (restriction)".
-- Scope: one form with its meaning, at the level of a section in a grammar book. Generalize trigger words to their class ("bien que" → conjonction de concession) unless the construct only exists with that word.
-- The pattern uses grammatical categories (infinitif, participe passé, que + subjonctif), never words that only occur in this text.
-- Name the general construct, never this instance, so the same construct gets the same name in every text.`;
 
 const CATEGORY_GUIDE = `Categories: tense_aspect (tenses, aspect), mood (subjunctive, conditional, imperative), non_finite (infinitive, participles, gerund), voice (passive, causative, reflexive voice), pronouns (personal, relative, adverbial, demonstrative), determiners (articles, partitives, possessives, quantifiers), agreement (gender, number, participle agreement), prepositions, negation, questions, clauses (subordination, conjunctions, conditionals, reported speech), comparison (comparatives, superlatives), word_order (inversion, emphasis, clefts, placement), other.`;
 
@@ -36,7 +32,7 @@ function identifySchema(savedNames: string[]) {
   });
 }
 
-function identifyInstructions(language: LanguageCode, savedNames: string[]): string {
+export function identifyInstructions(language: LanguageCode, savedNames: string[]): string {
   return `You help a learner understand the grammar of a text in the language with ISO 639-1 code "${language}". The learner selected part of one sentence. List the grammatical constructs in the selection that are worth learning, most relevant first, at most 4. Skip trivial ones (plain articles, regular agreement, basic word order) unless nothing else is there. Plain vocabulary, idioms and fixed expressions are not grammatical constructs.
 
 For each construct:
@@ -49,9 +45,9 @@ For each construct:
 - category: the grammar area. ${CATEGORY_GUIDE}
 - level: the CEFR level (A1-C2) at which learners of this language usually study the construct.
 - form: the words of the selection that show the construct, copied character for character.
-- gist: what the construct does here, in at most 12 words of ${TARGET_LANGUAGE}.
+- gist: what the construct does here, in at most 12 words of ${getNativeLanguage()}.
 
-${NAMING_PROTOCOL}`;
+${namingProtocol(language)}`;
 }
 
 export interface LlmConstruct {
@@ -111,6 +107,12 @@ export const GrammarExplanationSchema = z.object({
     .max(5),
 });
 
+export function explainInstructions(language: LanguageCode): string {
+  return `You explain a grammatical construct of the language with ISO 639-1 code "${language}" to a learner, in ${getNativeLanguage()}.
+- explanation: how the construct is formed and what it expresses, in 1-2 short sentences. General, not about the given sentence.
+- examples: 2 short, everyday sentences (at most 10 words) in the text's language, each using the construct as its clear focus, with no other difficult grammar or rare words. form: the part that shows the construct, copied character for character. translation: natural ${getNativeLanguage()}.`;
+}
+
 /** Explains a construct in general terms, with two short examples. */
 export async function llmExplainGrammar({
   language,
@@ -126,9 +128,7 @@ export async function llmExplainGrammar({
   const response = await getClient().responses.parse({
     model,
     reasoning: { effort: reasoningEffort },
-    instructions: `You explain a grammatical construct of the language with ISO 639-1 code "${language}" to a learner, in ${TARGET_LANGUAGE}.
-- explanation: how the construct is formed and what it expresses, in 1-2 short sentences. General, not about the given sentence.
-- examples: 2 short, everyday sentences (at most 10 words) in the text's language, each using the construct as its clear focus, with no other difficult grammar or rare words. form: the part that shows the construct, copied character for character. translation: natural ${TARGET_LANGUAGE}.`,
+    instructions: explainInstructions(language),
     input: `Construct: ${name}\n\nSeen as "${form}" in: ${sentence}`,
     text: { format: zodTextFormat(Explanation, "grammar_explanation") },
   });
