@@ -1,5 +1,6 @@
+import { formatLemma } from "./format-lemma";
 import { findWord } from "./highlight";
-import type { AnkiSettings, ExtractedItem } from "./types";
+import type { AnkiSettings, ExtractedItem, LanguageCode } from "./types";
 
 function escapeHtml(text: string): string {
   return text
@@ -29,11 +30,12 @@ function exampleHtml(item: ExtractedItem, translation: string | null, settings: 
  * and Anki's "Basic (and reversed card)" note type creates the reverse card.
  */
 export function buildCard(
+  language: LanguageCode,
   item: ExtractedItem,
   settings: AnkiSettings,
   sentenceTranslation: string | null
 ): { front: string; back: string } {
-  const french = escapeHtml(item.lemma);
+  const french = escapeHtml(formatLemma(language, item));
   const english = escapeHtml(item.translation);
   const [front, answer] = settings.direction === "en-fr" ? [english, french] : [french, english];
   const back =
@@ -49,6 +51,7 @@ export function buildCard(
 
 /** Builds a tab-separated file for Anki's File → Import. */
 export function buildAnkiFile(
+  language: LanguageCode,
   items: ExtractedItem[],
   settings: AnkiSettings,
   translationOf: (sentence: string) => string | null
@@ -56,7 +59,7 @@ export function buildAnkiFile(
   const notetype = settings.direction === "both" ? "Basic (and reversed card)" : "Basic";
   const header = ["#separator:tab", "#html:true", `#notetype:${notetype}`, "#columns:Front\tBack"];
   const rows = items.map((item) => {
-    const { front, back } = buildCard(item, settings, translationOf(item.exampleSentence));
+    const { front, back } = buildCard(language, item, settings, translationOf(item.exampleSentence));
     return `${front}\t${back}`;
   });
   return [...header, ...rows].join("\n") + "\n";

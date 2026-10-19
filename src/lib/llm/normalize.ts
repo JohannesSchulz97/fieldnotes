@@ -2,7 +2,7 @@ import "server-only";
 import { zodTextFormat } from "openai/helpers/zod";
 import { z } from "zod";
 import { normalizeLemma } from "../lemma";
-import type { LanguageCode, WordKind } from "../types";
+import type { Gender, LanguageCode, WordKind } from "../types";
 import { getClient, LEMMA_RULES, model, reasoningEffort, trackUsage } from "./client";
 
 const CHUNK_SIZE = 150;
@@ -13,6 +13,8 @@ export interface NormalizedItem {
   lemma: string;
   partOfSpeech: string | null;
   kind: WordKind;
+  gender: Gender | null;
+  pluralOnly: boolean;
   translation: string;
 }
 
@@ -23,6 +25,8 @@ const Normalization = z.object({
       lemma: z.string(),
       partOfSpeech: z.string().nullable(),
       kind: z.enum(["word", "expression"]),
+      gender: z.enum(["m", "f"]).nullable(),
+      pluralOnly: z.boolean(),
       translation: z.string(),
     })
   ),
@@ -30,7 +34,7 @@ const Normalization = z.object({
 
 const INSTRUCTIONS = `You convert a learner's list of known vocabulary entries into dictionary lemmas.
 
-Each input line is one entry. Lines may contain noise besides the word or expression: gender markers ("m.", "(f)"), a translation, notes, HTML tags, Anki cloze markup like "{{c1::...}}". Use such hints to pick the right meaning, but output only the lemma. Entries may be inflected forms; convert them to the lemma (e.g. "assise" → "s'asseoir", "chevaux" → "un cheval").
+Each input line is one entry. Lines may contain noise besides the word or expression: gender markers ("m.", "(f)"), a translation, notes, HTML tags, Anki cloze markup like "{{c1::...}}". Use such hints to pick the right meaning, but output only the lemma. Entries may be inflected forms; convert them to the lemma (e.g. "assise" → "s'asseoir", "chevaux" → "cheval").
 
 ${LEMMA_RULES}
 

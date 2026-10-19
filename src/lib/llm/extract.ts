@@ -13,6 +13,8 @@ const Extraction = z.object({
       lemma: z.string(),
       partOfSpeech: z.string().nullable(),
       kind: z.enum(["word", "expression"]),
+      gender: z.enum(["m", "f"]).nullable(),
+      pluralOnly: z.boolean(),
       translation: z.string(),
       contextNote: z.string().nullable(),
       sentence: z.number().int(),
@@ -31,7 +33,7 @@ Procedure:
 3. Identify expressions. List the words of non-expression combinations individually.
 4. Every remaining word is its own item, including function words (articles, pronouns, prepositions, conjunctions). Words that are part of an expression are also listed individually if they appear outside that expression elsewhere in the text.
 
-Each lemma exactly once. A noun's lemma always includes its indefinite article ("un arbre", "une voiture"), even though the article is split off from the word in step 1. Additional fields:
+Each lemma exactly once. Additional fields:
 - translation: the common translation(s) in general use, not just the one that fits this text.
 - contextNote: only if the meaning used in the text is not covered by the translation, that meaning in a few words (e.g. "to go" for the reflexive "se rendre à"); otherwise null.
 - sentence: the number of the sentence where the item first appears. The input text is given as numbered sentences "[n] ...".

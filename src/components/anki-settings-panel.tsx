@@ -41,18 +41,20 @@ function Choice<T extends string>({
 export function AnkiSettingsPanel({
   settings,
   onChange,
+  language,
   previewItem,
   previewTranslation,
 }: {
   settings: AnkiSettings;
   onChange: (settings: AnkiSettings) => void;
+  language: string;
   previewItem: ExtractedItem | undefined;
   previewTranslation: string | null;
 }) {
   const set = <K extends keyof AnkiSettings>(key: K, value: AnkiSettings[K]) =>
     onChange({ ...settings, [key]: value });
   // HTML from buildCard is escaped there, so it is safe to render.
-  const card = previewItem && buildCard(previewItem, settings, previewTranslation);
+  const card = previewItem && buildCard(language, previewItem, settings, previewTranslation);
 
   return (
     <div className="flex flex-col gap-3 rounded-lg border p-4">

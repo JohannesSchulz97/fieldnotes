@@ -1,6 +1,6 @@
 import "server-only";
 import { and, count, desc, eq, inArray, or, sql } from "drizzle-orm";
-import type { LanguageCode, VocabEntry, WordKind, WordSource, WordStatus } from "../types";
+import type { Gender, LanguageCode, VocabEntry, WordKind, WordSource, WordStatus } from "../types";
 import { normalizeLemma } from "../lemma";
 import { db } from ".";
 import { vocabEntries } from "./schema";
@@ -104,11 +104,13 @@ export interface EntryInput {
   lemma: string;
   partOfSpeech: string | null;
   kind: WordKind;
+  gender?: Gender | null;
+  pluralOnly?: boolean;
   translation: string | null;
   exampleSentence?: string | null;
 }
 
-/** SQLite caps bound parameters per statement; 12 columns × 500 rows stays well below it. */
+/** SQLite caps bound parameters per statement; 14 columns × 500 rows stays well below it. */
 const BATCH_SIZE = 500;
 
 /**
@@ -136,6 +138,8 @@ export async function upsertEntries(
           lemma: e.lemma,
           partOfSpeech: e.partOfSpeech,
           kind: e.kind,
+          gender: e.gender ?? null,
+          pluralOnly: e.pluralOnly ?? false,
           status,
           source,
           translation: e.translation,
