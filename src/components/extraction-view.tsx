@@ -14,9 +14,9 @@ import {
 } from "@/components/ui/table";
 import { markExported, markItem, unmarkItem, updateAnkiSettings } from "@/app/actions";
 import { AnkiSettingsPanel } from "@/components/anki-settings-panel";
+import { Highlighted } from "@/components/highlighted";
 import { buildAnkiFile } from "@/lib/anki";
 import { formatLemma } from "@/lib/format-lemma";
-import { findWord } from "@/lib/highlight";
 import type {
   AnkiSettings,
   ExtractedItem,
@@ -120,7 +120,11 @@ export function ExtractionView({
 
   const exampleCell = (item: ExtractedItem) => (
     <TableCell className="max-w-xs whitespace-normal text-sm italic text-muted-foreground">
-      <Example item={item} translation={translationOf(item.exampleSentence)} />
+      <Example
+        item={item}
+        sentence={sentences.indexOf(item.exampleSentence)}
+        translation={translationOf(item.exampleSentence)}
+      />
     </TableCell>
   );
 
@@ -353,27 +357,22 @@ function LemmaCell({ item, language }: { item: ExtractedItem; language: string }
   );
 }
 
-function Example({ item, translation }: { item: ExtractedItem; translation: string | null }) {
+/** sentence is the example's number in the text (-1 if not found); it makes the example selectable for grammar analysis. */
+function Example({
+  item,
+  sentence,
+  translation,
+}: {
+  item: ExtractedItem;
+  sentence: number;
+  translation: string | null;
+}) {
   return (
     <>
-      <Highlighted text={item.exampleSentence} part={item.form} />
+      <span data-sentence={sentence >= 0 ? sentence : undefined}>
+        <Highlighted text={item.exampleSentence} part={item.form} />
+      </span>
       {translation && <div className="mt-1 text-xs not-italic">{translation}</div>}
-    </>
-  );
-}
-
-/** Bolds the first whole-word, case-insensitive match of part in text; plain text if not found. */
-function Highlighted({ text, part }: { text: string; part: string }) {
-  const match = part ? findWord(text, part) : null;
-  if (!match) return text;
-  const [start, end] = match;
-  return (
-    <>
-      {text.slice(0, start)}
-      <strong className="font-semibold not-italic text-foreground">
-        {text.slice(start, end)}
-      </strong>
-      {text.slice(end)}
     </>
   );
 }

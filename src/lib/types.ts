@@ -1,3 +1,5 @@
+import type { CEFR_LEVELS, GRAMMAR_CATEGORY_VALUES } from "./grammar";
+
 /** ISO 639-1 language code, e.g. "fr", "en". */
 export type LanguageCode = string;
 
@@ -87,6 +89,76 @@ export interface ExtractionSummary {
   newCount: number;
   totalCount: number;
   createdAt: string;
+}
+
+/** to_work_on = still practicing; learned = no longer needs attention. */
+export type GrammarStatus = "to_work_on" | "learned";
+
+/** source = the sentence it was selected in; generated = a short example written by the LLM. */
+export type GrammarExampleOrigin = "source" | "generated";
+
+/** Language-independent grammar area, see GRAMMAR_CATEGORIES. */
+export type GrammarCategory = (typeof GRAMMAR_CATEGORY_VALUES)[number];
+
+/** CEFR level, A1 to C2. For grammar items it is the LLM's estimate. */
+export type CefrLevel = (typeof CEFR_LEVELS)[number];
+
+/** A short example of a construct; form is the part that shows it, copied exactly from sentence. */
+export interface GrammarExampleInput {
+  sentence: string;
+  form: string;
+  translation: string;
+}
+
+/** A construct found in a selection. item is set when it matches a saved grammar item. */
+export interface IdentifiedConstruct {
+  name: string;
+  category: GrammarCategory;
+  level: CefrLevel;
+  /** The words of the selection that show the construct. */
+  form: string;
+  /** One line on what the construct does here. */
+  gist: string;
+  item: GrammarItem | null;
+}
+
+/** The constructs in a selection, plus all saved items of its language (to attach to manually). */
+export interface GrammarIdentification {
+  constructs: IdentifiedConstruct[];
+  savedItems: { id: string; name: string }[];
+}
+
+/** The LLM's explanation of a new construct. Not stored until the user saves it. */
+export interface GrammarExplanation {
+  explanation: string;
+  /** Short generated examples; the selected sentence is added as another example on save. */
+  examples: GrammarExampleInput[];
+}
+
+export interface GrammarExample {
+  id: string;
+  origin: GrammarExampleOrigin;
+  sentence: string;
+  form: string;
+  translation: string | null;
+  /** For source examples: where the sentence was selected. */
+  extractionId: string | null;
+  sentenceIndex: number | null;
+}
+
+/** A saved grammar item with its examples (source examples first). Identity: (language, name). */
+export interface GrammarItem {
+  id: string;
+  language: LanguageCode;
+  name: string;
+  category: GrammarCategory;
+  /** Estimated by the LLM; a rough guide, sources differ by a level at the boundaries. */
+  level: CefrLevel;
+  explanation: string;
+  status: GrammarStatus;
+  examples: GrammarExample[];
+  createdAt: string;
+  updatedAt: string;
 }
 
 /** How the Anki export builds cards. */
