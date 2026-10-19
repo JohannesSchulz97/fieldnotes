@@ -1,7 +1,10 @@
 import "server-only";
-import { asc, count, desc, eq, inArray, sql } from "drizzle-orm";
+import { and, asc, count, desc, eq, inArray, sql } from "drizzle-orm";
+import { normalizeGrammarName } from "../grammar";
 import type {
-  GrammarAnalysis,
+  CefrLevel,
+  GrammarCategory,
+  GrammarExampleOrigin,
   GrammarItem,
   GrammarStatus,
   LanguageCode,
@@ -9,20 +12,37 @@ import type {
 import { db } from ".";
 import { grammarExamples, grammarItems } from "./schema";
 
-/** All saved items, newest first, optionally filtered by status. */
-export async function listGrammarItems(status?: GrammarStatus): Promise<GrammarItem[]> {
+/** Saved items with their examples, newest first, filtered by any of the given fields. */
+export async function listGrammarItems({
+  status,
+  category,
+  ids,
+}: {
+  status?: GrammarStatus;
+  category?: GrammarCategory;
+  ids?: string[];
+} = {}): Promise<GrammarItem[]> {
+  if (ids?.length === 0) return [];
   const items = await db
     .select({
       id: grammarItems.id,
       language: grammarItems.language,
       name: grammarItems.name,
+      category: grammarItems.category,
+      level: grammarItems.level,
       explanation: grammarItems.explanation,
       status: grammarItems.status,
       createdAt: grammarItems.createdAt,
       updatedAt: grammarItems.updatedAt,
     })
     .from(grammarItems)
-    .where(status ? eq(grammarItems.status, status) : undefined)
+    .where(
+      and(
+        status ? eq(grammarItems.status, status) : undefined,
+        category ? eq(grammarItems.category, category) : undefined,
+        ids ? inArray(grammarItems.id, ids) : undefined
+      )
+    )
     .orderBy(desc(grammarItems.createdAt));
   if (items.length === 0) return [];
   const examples = await db
@@ -33,8 +53,8 @@ export async function listGrammarItems(status?: GrammarStatus): Promise<GrammarI
       sentence: grammarExamples.sentence,
       form: grammarExamples.form,
       translation: grammarExamples.translation,
-      note: grammarExamples.note,
       extractionId: grammarExamples.extractionId,
+      sentenceIndex: grammarExamples.sentenceIndex,
     })
     .from(grammarExamples)
     .where(inArray(grammarExamples.grammarItemId, items.map((i) => i.id)))
@@ -55,32 +75,52 @@ export async function countByStatus(): Promise<Record<GrammarStatus, number>> {
   return counts;
 }
 
-/** Names of saved items, so the LLM can reuse one when it sees the same construct again. */
-export async function listGrammarNames(language: LanguageCode): Promise<string[]> {
+/** Number of items per category; categories without items are missing. */
+export async function countByCategory(): Promise<Map<GrammarCategory, number>> {
   const rows = await db
-    .select({ name: grammarItems.name })
+    .select({ category: grammarItems.category, n: count() })
+    .from(grammarItems)
+    .groupBy(grammarItems.category);
+  return new Map(rows.map((r) => [r.category, r.n]));
+}
+
+/** Id and name of every saved item in a language, for matching new constructs against. */
+export async function listGrammarNames(
+  language: LanguageCode
+): Promise<{ id: string; name: string }[]> {
+  return db
+    .select({ id: grammarItems.id, name: grammarItems.name })
     .from(grammarItems)
     .where(eq(grammarItems.language, language))
     .orderBy(asc(grammarItems.name));
-  return rows.map((r) => r.name);
 }
 
-export interface SourceExample {
+export async function getGrammarItemLanguage(id: string): Promise<LanguageCode | null> {
+  const [row] = await db
+    .select({ language: grammarItems.language })
+    .from(grammarItems)
+    .where(eq(grammarItems.id, id));
+  return row?.language ?? null;
+}
+
+export interface ExampleRecord {
+  origin: GrammarExampleOrigin;
   sentence: string;
   form: string;
   translation: string | null;
-  extractionId: string;
+  extractionId: string | null;
+  sentenceIndex: number | null;
 }
 
 /**
- * Saves an analysis. An item with the same (language, name) keeps its explanation, goes back to
- * "to work on" and gains the new examples; examples it already has are skipped.
+ * Saves a new item with its examples. If an item with the same (language, name) exists, it keeps
+ * its data and only gains the examples.
  */
-export async function saveGrammarItem(
+export async function createGrammarItem(
   language: LanguageCode,
   explanationLanguage: LanguageCode,
-  analysis: GrammarAnalysis,
-  source: SourceExample
+  item: { name: string; category: GrammarCategory; level: CefrLevel; explanation: string },
+  examples: ExampleRecord[]
 ): Promise<string> {
   const now = new Date().toISOString();
   const [{ id }] = await db
@@ -88,8 +128,8 @@ export async function saveGrammarItem(
     .values({
       id: crypto.randomUUID(),
       language,
-      name: analysis.name.trim(),
-      explanation: analysis.explanation,
+      ...item,
+      name: normalizeGrammarName(item.name),
       explanationLanguage,
       status: "to_work_on",
       createdAt: now,
@@ -97,23 +137,28 @@ export async function saveGrammarItem(
     })
     .onConflictDoUpdate({
       target: [grammarItems.language, grammarItems.name],
-      set: { status: "to_work_on", updatedAt: now },
+      set: { updatedAt: now },
     })
     .returning({ id: grammarItems.id });
-
-  await db
-    .insert(grammarExamples)
-    .values([
-      { ...source, origin: "source" as const, note: analysis.note },
-      ...analysis.examples.map((e) => ({
-        ...e,
-        origin: "generated" as const,
-        note: null,
-        extractionId: null,
-      })),
-    ].map((e) => ({ ...e, id: crypto.randomUUID(), grammarItemId: id, createdAt: now })))
-    .onConflictDoNothing();
+  await addGrammarExamples(id, examples);
   return id;
+}
+
+/** Adds examples to an item (skipping sentences it already has) and puts it back to "to work on". */
+export async function addGrammarExamples(id: string, examples: ExampleRecord[]): Promise<void> {
+  const now = new Date().toISOString();
+  await db.batch([
+    db
+      .insert(grammarExamples)
+      .values(
+        examples.map((e) => ({ ...e, id: crypto.randomUUID(), grammarItemId: id, createdAt: now }))
+      )
+      .onConflictDoNothing(),
+    db
+      .update(grammarItems)
+      .set({ status: "to_work_on", updatedAt: now })
+      .where(eq(grammarItems.id, id)),
+  ]);
 }
 
 export async function setGrammarStatus(id: string, status: GrammarStatus): Promise<void> {

@@ -119,7 +119,11 @@ export function ExtractionView({
 
   const exampleCell = (item: ExtractedItem) => (
     <TableCell className="max-w-xs whitespace-normal text-sm italic text-muted-foreground">
-      <Example item={item} translation={translationOf(item.exampleSentence)} />
+      <Example
+        item={item}
+        sentence={sentences.indexOf(item.exampleSentence)}
+        translation={translationOf(item.exampleSentence)}
+      />
     </TableCell>
   );
 
@@ -351,10 +355,21 @@ function LemmaCell({ item }: { item: ExtractedItem }) {
   );
 }
 
-function Example({ item, translation }: { item: ExtractedItem; translation: string | null }) {
+/** sentence is the example's number in the text (-1 if not found); it makes the example selectable for grammar analysis. */
+function Example({
+  item,
+  sentence,
+  translation,
+}: {
+  item: ExtractedItem;
+  sentence: number;
+  translation: string | null;
+}) {
   return (
     <>
-      <Highlighted text={item.exampleSentence} part={item.form} />
+      <span data-sentence={sentence >= 0 ? sentence : undefined}>
+        <Highlighted text={item.exampleSentence} part={item.form} />
+      </span>
       {translation && <div className="mt-1 text-xs not-italic">{translation}</div>}
     </>
   );

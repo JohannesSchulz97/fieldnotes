@@ -1,4 +1,5 @@
 import { integer, real, sqliteTable, text, uniqueIndex } from "drizzle-orm/sqlite-core";
+import { CEFR_LEVELS, GRAMMAR_CATEGORY_VALUES } from "../grammar";
 import type { ExtractedItem } from "../types";
 
 export const vocabEntries = sqliteTable(
@@ -66,6 +67,9 @@ export const grammarItems = sqliteTable(
     language: text("language").notNull(),
     /** Canonical name as the LLM gives it, e.g. "gérondif (en + participe présent)". */
     name: text("name").notNull(),
+    category: text("category", { enum: GRAMMAR_CATEGORY_VALUES }).notNull(),
+    /** CEFR level as estimated by the LLM. */
+    level: text("level", { enum: CEFR_LEVELS }).notNull(),
     explanation: text("explanation").notNull(),
     explanationLanguage: text("explanation_language").notNull(),
     status: text("status", { enum: ["to_work_on", "learned"] }).notNull().default("to_work_on"),
@@ -88,10 +92,9 @@ export const grammarExamples = sqliteTable(
     /** The part of the sentence that shows the construct, copied exactly. */
     form: text("form").notNull(),
     translation: text("translation"),
-    /** For source examples: how the construct works in this sentence. */
-    note: text("note"),
-    /** For source examples: the extraction the sentence was selected in. */
+    /** For source examples: the extraction and sentence number (as in splitSentences) it was selected in. */
     extractionId: text("extraction_id"),
+    sentenceIndex: integer("sentence_index"),
     createdAt: text("created_at").notNull(),
   },
   (t) => [uniqueIndex("grammar_examples_item_sentence_idx").on(t.grammarItemId, t.sentence)]

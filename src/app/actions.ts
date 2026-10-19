@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { z } from "zod";
 import {
   findExtractionIdByHash,
   getExtractionSentences,
@@ -11,9 +12,13 @@ import {
   updateExtraction,
 } from "@/lib/db/extractions";
 import {
+  addGrammarExamples,
+  createGrammarItem,
   deleteGrammarItem as dbDeleteGrammarItem,
+  type ExampleRecord,
+  getGrammarItemLanguage,
+  listGrammarItems,
   listGrammarNames,
-  saveGrammarItem,
   setGrammarStatus as dbSetGrammarStatus,
 } from "@/lib/db/grammar";
 import { AnkiSettingsSchema, saveAnkiSettings } from "@/lib/db/settings";
@@ -21,14 +26,27 @@ import { getTotalCost } from "@/lib/db/usage";
 import { deleteEntry, getStoredStatuses, upsertEntries } from "@/lib/db/vocab";
 import { TARGET_LANGUAGE } from "@/lib/llm/client";
 import { llmExtract } from "@/lib/llm/extract";
-import { GrammarAnalysisSchema, llmAnalyzeGrammar } from "@/lib/llm/grammar";
+import {
+  CEFR_LEVELS,
+  GRAMMAR_CATEGORY_VALUES,
+  grammarNameKey,
+  normalizeGrammarName,
+} from "@/lib/grammar";
+import {
+  GrammarExplanationSchema,
+  type LlmConstruct,
+  llmExplainGrammar,
+  llmIdentifyGrammar,
+  NEW_CONSTRUCT,
+} from "@/lib/llm/grammar";
 import { llmNormalize, type NormalizedItem } from "@/lib/llm/normalize";
 import { llmTranslate } from "@/lib/llm/translate";
 import { splitSentences } from "@/lib/sentences";
 import type {
   AnkiSettings,
   ExtractedItem,
-  GrammarAnalysis,
+  GrammarExplanation,
+  GrammarIdentification,
   GrammarStatus,
   LanguageCode,
   WordStatus,
@@ -156,38 +174,130 @@ async function loadSelection(extractionId: string, sentence: number, span: strin
   return { ...data, span: trimmed, text };
 }
 
-/** Explains the grammar of a span selected in one sentence. Nothing is stored until it is saved. */
-export async function analyzeGrammar(
+/** The selected sentence as a source example; form falls back to the span if not in the sentence. */
+function sourceExample(
+  s: Awaited<ReturnType<typeof loadSelection>>,
+  extractionId: string,
+  sentence: number,
+  form: string
+): ExampleRecord {
+  return {
+    origin: "source",
+    sentence: s.text,
+    form: form && s.text.includes(form) ? form : s.span,
+    translation: s.translations?.[sentence] || null,
+    extractionId,
+    sentenceIndex: sentence,
+  };
+}
+
+/**
+ * Lists the grammatical constructs in a span selected in one sentence. Constructs that match a
+ * saved item come with that item, so they need no further LLM call.
+ */
+export async function identifyGrammar(
   extractionId: string,
   sentence: number,
   span: string
-): Promise<GrammarAnalysis> {
+): Promise<GrammarIdentification> {
   const s = await loadSelection(extractionId, sentence, span);
-  return llmAnalyzeGrammar({
+  const saved = await listGrammarNames(s.sourceLanguage);
+  const constructs = await llmIdentifyGrammar({
     language: s.sourceLanguage,
     span: s.span,
     sentence: s.text,
     context: s.sentences
       .slice(Math.max(0, sentence - CONTEXT_SENTENCES), sentence + CONTEXT_SENTENCES + 1)
       .join(" "),
-    knownNames: await listGrammarNames(s.sourceLanguage),
+    savedNames: saved.map((i) => i.name),
   });
+
+  // A "new" construct whose name only differs in spelling details still counts as saved.
+  const byKey = new Map(saved.map((i) => [grammarNameKey(i.name), i.id]));
+  const itemIdOf = (c: LlmConstruct) =>
+    byKey.get(grammarNameKey(c.match === NEW_CONSTRUCT ? c.name : c.match)) ?? null;
+  const ids = constructs.map(itemIdOf);
+  const items = new Map(
+    (await listGrammarItems({ ids: ids.filter((id) => id !== null) })).map((i) => [i.id, i])
+  );
+  return {
+    constructs: constructs.map((c, i) => {
+      const item = items.get(ids[i]!) ?? null;
+      return {
+        name: item?.name ?? normalizeGrammarName(c.name),
+        category: item?.category ?? c.category,
+        level: item?.level ?? c.level,
+        form: c.form,
+        gist: c.gist,
+        item,
+      };
+    }),
+    savedItems: saved,
+  };
 }
 
-/** Saves an analysis to the grammar list, with the selected sentence as its first example. */
-export async function saveGrammarAnalysis(
+const ConstructSchema = z.object({
+  name: z.string().trim().min(1).max(200),
+  category: z.enum(GRAMMAR_CATEGORY_VALUES),
+  level: z.enum(CEFR_LEVELS),
+  form: z.string().max(MAX_SPAN_LENGTH),
+});
+
+type ConstructInput = z.infer<typeof ConstructSchema>;
+
+/** Explains a new construct found in a selection. Nothing is stored until it is saved. */
+export async function explainGrammar(
   extractionId: string,
   sentence: number,
   span: string,
-  analysis: GrammarAnalysis
+  construct: ConstructInput
+): Promise<GrammarExplanation> {
+  const s = await loadSelection(extractionId, sentence, span);
+  const { name, form } = ConstructSchema.parse(construct);
+  return llmExplainGrammar({ language: s.sourceLanguage, name, form, sentence: s.text });
+}
+
+/** Saves a new construct with the selected sentence and the generated sentences as examples. */
+export async function saveGrammarItem(
+  extractionId: string,
+  sentence: number,
+  span: string,
+  construct: ConstructInput,
+  explanation: GrammarExplanation
 ): Promise<void> {
   const s = await loadSelection(extractionId, sentence, span);
-  await saveGrammarItem(s.sourceLanguage, TARGET_LANGUAGE, GrammarAnalysisSchema.parse(analysis), {
-    sentence: s.text,
-    form: s.span,
-    translation: s.translations?.[sentence] || null,
-    extractionId,
-  });
+  const c = ConstructSchema.parse(construct);
+  const e = GrammarExplanationSchema.parse(explanation);
+  await createGrammarItem(
+    s.sourceLanguage,
+    TARGET_LANGUAGE,
+    { name: c.name, category: c.category, level: c.level, explanation: e.explanation },
+    [
+      sourceExample(s, extractionId, sentence, c.form),
+      ...e.examples.map((x) => ({
+        ...x,
+        origin: "generated" as const,
+        extractionId: null,
+        sentenceIndex: null,
+      })),
+    ]
+  );
+  revalidatePath("/grammar");
+}
+
+/** Adds the selected sentence as an example to a saved item. */
+export async function addGrammarExample(
+  itemId: string,
+  extractionId: string,
+  sentence: number,
+  span: string,
+  form: string
+): Promise<void> {
+  const s = await loadSelection(extractionId, sentence, span);
+  const language = await getGrammarItemLanguage(itemId);
+  if (language === null) throw new Error("Grammar item not found");
+  if (language !== s.sourceLanguage) throw new Error("Grammar item is in another language");
+  await addGrammarExamples(itemId, [sourceExample(s, extractionId, sentence, form)]);
   revalidatePath("/grammar");
 }
 

@@ -5,8 +5,8 @@ CREATE TABLE `grammar_examples` (
 	`sentence` text NOT NULL,
 	`form` text NOT NULL,
 	`translation` text,
-	`note` text,
 	`extraction_id` text,
+	`sentence_index` integer,
 	`created_at` text NOT NULL,
 	FOREIGN KEY (`grammar_item_id`) REFERENCES `grammar_items`(`id`) ON UPDATE no action ON DELETE cascade
 );
@@ -16,6 +16,8 @@ CREATE TABLE `grammar_items` (
 	`id` text PRIMARY KEY NOT NULL,
 	`language` text NOT NULL,
 	`name` text NOT NULL,
+	`category` text NOT NULL,
+	`level` text NOT NULL,
 	`explanation` text NOT NULL,
 	`explanation_language` text NOT NULL,
 	`status` text DEFAULT 'to_work_on' NOT NULL,
