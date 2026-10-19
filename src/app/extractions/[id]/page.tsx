@@ -47,14 +47,19 @@ export default async function ExtractionPage({
             sourceUrl={result.sourceUrl}
             fallbackTitle={`Source ${result.createdAt.slice(0, 10)}`}
           />
-          <div className="flex shrink-0 gap-2">
-            {!result.translations && <TranslateButton id={result.id} />}
-            <ReextractButton id={result.id} />
-          </div>
+          {/* The exercises source is assembled from exercises: translated already, nothing to re-extract. */}
+          {result.kind === "text" && (
+            <div className="flex shrink-0 gap-2">
+              {!result.translations && <TranslateButton id={result.id} />}
+              <ReextractButton id={result.id} />
+            </div>
+          )}
         </div>
-        <p className="text-xs text-muted-foreground">
-          Cost {formatUsd(result.costUsd)} · total spent {formatUsd(totalCost)}
-        </p>
+        {result.kind === "text" && (
+          <p className="text-xs text-muted-foreground">
+            Cost {formatUsd(result.costUsd)} · total spent {formatUsd(totalCost)}
+          </p>
+        )}
       </div>
       {/* Keyed by updatedAt so a re-extraction or translation resets the local list state. */}
       <ExtractionTabs

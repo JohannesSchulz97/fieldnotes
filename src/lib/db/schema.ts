@@ -1,6 +1,6 @@
 import { integer, real, sqliteTable, text, uniqueIndex } from "drizzle-orm/sqlite-core";
 import { CEFR_LEVELS, GRAMMAR_CATEGORY_VALUES } from "../grammar";
-import type { ExtractedItem } from "../types";
+import type { ExerciseWord, ExtractedItem } from "../types";
 
 export const vocabEntries = sqliteTable(
   "vocab_entries",
@@ -30,7 +30,9 @@ export const vocabEntries = sqliteTable(
 /** One row per OpenAI call, for cost tracking. */
 export const llmUsage = sqliteTable("llm_usage", {
   id: text("id").primaryKey(),
-  kind: text("kind", { enum: ["extraction", "normalization", "translation", "grammar"] }).notNull(),
+  kind: text("kind", {
+    enum: ["extraction", "normalization", "translation", "grammar", "exercises"],
+  }).notNull(),
   model: text("model").notNull(),
   inputTokens: integer("input_tokens").notNull(),
   cachedInputTokens: integer("cached_input_tokens").notNull(),
@@ -45,7 +47,12 @@ export const extractions = sqliteTable(
   "extractions",
   {
     id: text("id").primaryKey(),
-    /** SHA-256 of the trimmed text; the same text is never extracted twice unless re-extracted. */
+    /** "exercises": the one source per language that collects words added from exercises. */
+    kind: text("kind", { enum: ["text", "exercises"] }).notNull().default("text"),
+    /**
+     * SHA-256 of the trimmed text; the same text is never extracted twice unless re-extracted.
+     * For the exercises source, a fixed hash per language instead (see exercisesSourceHash).
+     */
     textHash: text("text_hash").notNull(),
     text: text("text").notNull(),
     /** Optional name of the source, chosen by the user. */
@@ -105,6 +112,55 @@ export const grammarExamples = sqliteTable(
   },
   (t) => [uniqueIndex("grammar_examples_item_sentence_idx").on(t.grammarItemId, t.sentence)]
 );
+
+/** A set of exercises generated for one grammar item. */
+export const exerciseSets = sqliteTable("exercise_sets", {
+  id: text("id").primaryKey(),
+  grammarItemId: text("grammar_item_id")
+    .notNull()
+    .references(() => grammarItems.id, { onDelete: "cascade" }),
+  language: text("language").notNull(),
+  /** The CEFR level the exercises were written for. */
+  level: text("level", { enum: CEFR_LEVELS }).notNull(),
+  /** Cost of generating the set. */
+  costUsd: real("cost_usd"),
+  createdAt: text("created_at").notNull(),
+});
+
+/**
+ * A fill-in-the-blank exercise: before + answer + after is the full sentence, and the learner
+ * types the answer from the cue.
+ */
+export const exercises = sqliteTable("exercises", {
+  id: text("id").primaryKey(),
+  setId: text("set_id")
+    .notNull()
+    .references(() => exerciseSets.id, { onDelete: "cascade" }),
+  position: integer("position").notNull(),
+  before: text("before").notNull(),
+  answer: text("answer").notNull(),
+  after: text("after").notNull(),
+  /** Other answers that are also correct. */
+  alternatives: text("alternatives", { mode: "json" }).$type<string[]>().notNull(),
+  /** Hint shown next to the blank, usually the base form, e.g. "pleuvoir". */
+  cue: text("cue").notNull(),
+  translation: text("translation").notNull(),
+  /** Why this form is needed here, in one line. */
+  reason: text("reason").notNull(),
+  /** The content words of the sentence with their lemma and translation. */
+  words: text("words", { mode: "json" }).$type<ExerciseWord[]>().notNull().default([]),
+});
+
+/** One answer to an exercise. The latest attempt per exercise counts for the set's score. */
+export const exerciseAttempts = sqliteTable("exercise_attempts", {
+  id: text("id").primaryKey(),
+  exerciseId: text("exercise_id")
+    .notNull()
+    .references(() => exercises.id, { onDelete: "cascade" }),
+  answer: text("answer").notNull(),
+  correct: integer("correct", { mode: "boolean" }).notNull(),
+  createdAt: text("created_at").notNull(),
+});
 
 /** App settings as JSON values under a fixed key, e.g. "anki". */
 export const settings = sqliteTable("settings", {

@@ -12,6 +12,15 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 
 Currently a single-user app. Planned hosting: Vercel + hosted Turso (libSQL), protected by Cloudflare Access, on a subdomain of johannesschulz.dev. Multi-user accounts with paid AI usage are only a possible future; do not build for it now, but avoid choices that make it hard.
 
+# Database workflow
+
+The hosted Turso database is the source of truth. `data/vocab.db` is a throwaway local copy.
+
+- Run `npm run db:pull` (with the dev server stopped) before working locally, and before any DB inspection or testing, so you work on current data. Each worktree has its own `data/`, so pull in each new worktree.
+- Never treat local data as real: local writes are overwritten by the next pull.
+- To check what is actually stored, query the hosted DB read-only (`turso db shell fieldnotes "<select>"`) or pull first.
+- Schema changes: `npm run db:generate`, then `npm run db:migrate` (local). Applying to hosted (`npm run db:migrate:remote`) changes real data: ask first.
+
 # Language-generic vision
 
 Currently French (source) to English (target), but the app is meant to become language-generic. Treat French as the first instance of a general design, not as the design.

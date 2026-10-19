@@ -64,6 +64,20 @@
       "when": 1792398656972,
       "tag": "0008_silky_penance",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "6",
+      "when": 1792411360830,
+      "tag": "0009_exercises",
+      "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "6",
+      "when": 1792420007418,
+      "tag": "0010_exercise_words",
+      "breakpoints": true
     }
   ]
 }
