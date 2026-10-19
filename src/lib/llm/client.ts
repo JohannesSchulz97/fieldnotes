@@ -50,7 +50,9 @@ export const LEMMA_RULES = `Guiding principle: an item is vocabulary only if it 
 
 Expressions: a multi-word unit is an expression only if it is idiomatic or lexicalized — its meaning is not simply the sum of its parts, or it is a fixed phrase dictionaries list as a sub-entry (e.g. "se rendre compte", "avoir besoin de", "tout à fait", "au fur et à mesure"). Ordinary combinations like "le dernier train", "jusqu'à minuit", "hier soir" are NOT expressions.
 
-Lemma format: dictionary form, lowercase. Infinitive for verbs (reflexive verbs with "se", elided before a vowel: "s'asseoir"); masculine singular for adjectives; nouns with their indefinite article, which shows the gender even before a vowel (e.g. "un quai", "un arbre", "une envie"; plural-only nouns with "des"); expressions in their citation form.
+Lemma format: dictionary form, lowercase. Infinitive for verbs (reflexive verbs with "se", elided before a vowel: "s'asseoir"); masculine singular for adjectives; nouns in the singular without any article (e.g. "quai", "arbre", "envie"; plural-only nouns in the plural, e.g. "gens"); expressions in their citation form, without a leading article.
 - kind: "expression" for expressions, otherwise "word".
+- gender: for nouns (also noun expressions), "m" or "f"; null for everything else.
+- pluralOnly: true only for nouns that exist only in the plural (e.g. "gens"); otherwise false.
 - partOfSpeech: e.g. "noun", "verb", "adjective", "adverb", "pronoun", "preposition", "conjunction", "determiner"; null for expressions if unclear.
 - translation: the most common ${TARGET_LANGUAGE} translation of the lemma in general use, independent of any particular text. One translation is usually enough; add more only when the lemma has truly different common meanings, never synonyms of the same meaning. Separate several with ", " (at most three).`;

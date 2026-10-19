@@ -16,6 +16,7 @@ import { markExported, markItem, unmarkItem, updateAnkiSettings } from "@/app/ac
 import { AnkiSettingsPanel } from "@/components/anki-settings-panel";
 import { Highlighted } from "@/components/highlighted";
 import { buildAnkiFile } from "@/lib/anki";
+import { formatLemma } from "@/lib/format-lemma";
 import type {
   AnkiSettings,
   ExtractedItem,
@@ -97,7 +98,7 @@ export function ExtractionView({
     try {
       await markExported(toExport, result.sourceLanguage, result.targetLanguage);
       download(
-        buildAnkiFile(toExport, ankiSettings, translationOf),
+        buildAnkiFile(result.sourceLanguage, toExport, ankiSettings, translationOf),
         `anki-${result.sourceLanguage}-${new Date().toISOString().slice(0, 10)}.txt`
       );
       const exportedAt = new Date().toISOString();
@@ -158,6 +159,7 @@ export function ExtractionView({
           <AnkiSettingsPanel
             settings={ankiSettings}
             onChange={changeAnkiSettings}
+            language={result.sourceLanguage}
             previewItem={previewItem}
             previewTranslation={previewItem ? translationOf(previewItem.exampleSentence) : null}
           />
@@ -190,7 +192,7 @@ export function ExtractionView({
                       aria-label={`Select ${item.lemma}`}
                     />
                   </TableCell>
-                  <LemmaCell item={item} />
+                  <LemmaCell item={item} language={result.sourceLanguage} />
                   <TableCell>
                     {item.translation}
                     {item.contextNote && (
@@ -258,7 +260,7 @@ export function ExtractionView({
                       aria-label={`Select ${item.lemma}`}
                     />
                   </TableCell>
-                  <LemmaCell item={item} />
+                  <LemmaCell item={item} language={result.sourceLanguage} />
                   <TableCell>{item.translation}</TableCell>
                   {exampleCell(item)}
                   <TableCell className="text-sm text-muted-foreground">
@@ -296,7 +298,7 @@ export function ExtractionView({
             <TableBody>
               {known.map((item) => (
                 <TableRow key={item.lemma} className="text-muted-foreground">
-                  <LemmaCell item={item} />
+                  <LemmaCell item={item} language={result.sourceLanguage} />
                   <TableCell>{item.translation}</TableCell>
                   {exampleCell(item)}
                   <TableCell className="text-right">
@@ -343,11 +345,11 @@ function SelectAll({
   );
 }
 
-function LemmaCell({ item }: { item: ExtractedItem }) {
+function LemmaCell({ item, language }: { item: ExtractedItem; language: string }) {
   return (
     <TableCell>
       <div className="flex items-center gap-2">
-        <span className="font-medium">{item.lemma}</span>
+        <span className="font-medium">{formatLemma(language, item)}</span>
         {item.kind === "expression" && <Badge variant="secondary">expr.</Badge>}
       </div>
       <div className="text-xs text-muted-foreground">{item.partOfSpeech}</div>

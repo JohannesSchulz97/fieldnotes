@@ -12,6 +12,9 @@ export type WordSource = "extraction" | "manual" | "anki" | "basic";
 /** "expression" = multi-word unit, e.g. "se rendre compte". */
 export type WordKind = "word" | "expression";
 
+/** Grammatical gender of a noun. Null for non-nouns and languages without gender. */
+export type Gender = "m" | "f";
+
 /** A stored vocabulary entry. Identity: (language, lemma). */
 export interface VocabEntry {
   id: string;
@@ -20,6 +23,9 @@ export interface VocabEntry {
   /** Informational only, not part of identity. */
   partOfSpeech: string | null;
   kind: WordKind;
+  /** Nouns only: the lemma is bare ("quai"); gender and plural-only drive how it is displayed. */
+  gender: Gender | null;
+  pluralOnly: boolean;
   status: WordStatus;
   source: WordSource;
   translation: string | null;
@@ -36,6 +42,9 @@ export interface ExtractedItem {
   lemma: string;
   partOfSpeech: string | null;
   kind: WordKind;
+  /** Nouns only; see VocabEntry. Absent on items extracted before gender was stored. */
+  gender?: Gender | null;
+  pluralOnly?: boolean;
   /** Common translation(s) in general use, separated by ", ". This is what goes on flashcards. */
   translation: string;
   /** The sense used in the text, if the translation does not cover it. Shown in the UI only, never exported. */

@@ -12,6 +12,15 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 
 Currently a single-user app. Planned hosting: Vercel + hosted Turso (libSQL), protected by Cloudflare Access, on a subdomain of johannesschulz.dev. Multi-user accounts with paid AI usage are only a possible future; do not build for it now, but avoid choices that make it hard.
 
+# Language-generic vision
+
+Currently French (source) to English (target), but the app is meant to become language-generic. Treat French as the first instance of a general design, not as the design.
+
+- Store linguistic facts as data, not as formatting: e.g. a noun's grammatical gender is its own field and the lemma stays bare. How a word is shown (articles, gender markers, elision) is a per-language display rule, kept in one place, not baked into stored lemmas or prompts.
+- Lemma strings are match keys across extraction, normalization and stored vocab. They must be deterministic: never let the model make a presentational choice that ends up inside a lemma.
+- Do not hard-code French in prompts, schema or UI where it is cheap to parameterize (language codes, article systems, gender sets, e.g. m/f/n/common or none).
+- Features should degrade for languages without the concept (no gender, no articles).
+
 ## Habits that keep migration cheap
 
 - Keep all DB access in `src/lib/db/*` so adding `user_id` scoping touches few places.

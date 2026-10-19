@@ -14,6 +14,7 @@ import { UnmarkButton } from "@/components/unmark-button";
 import { getTotalCost } from "@/lib/db/usage";
 import { countBySource, listVocab } from "@/lib/db/vocab";
 import { formatUsd } from "@/lib/format";
+import { formatLemma } from "@/lib/format-lemma";
 import { cn } from "@/lib/utils";
 import type { WordSource } from "@/lib/types";
 
@@ -118,7 +119,7 @@ export default async function VocabPage({
             <TableRow key={entry.id}>
               <TableCell>
                 <div className="flex items-center gap-2">
-                  <span className="font-medium">{entry.lemma}</span>
+                  <span className="font-medium">{formatLemma(entry.language, entry)}</span>
                   {entry.kind === "expression" && (
                     <Badge variant="secondary">expr.</Badge>
                   )}
