@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { connection } from "next/server";
 import { Badge } from "@/components/ui/badge";
+import { CreateExercises } from "@/components/create-exercises";
 import { GrammarExampleLine, GrammarTags, sentenceHref } from "@/components/grammar-example";
 import { GrammarItemActions } from "@/components/grammar-item-actions";
 import { getActiveLanguage } from "@/lib/active-language";
@@ -103,7 +104,10 @@ export default async function GrammarPage({
                   </div>
                   <p className="max-w-3xl text-sm">{item.explanation}</p>
                 </div>
-                <GrammarItemActions id={item.id} status={item.status} />
+                <div className="flex shrink-0 flex-col items-end gap-2">
+                  <GrammarItemActions id={item.id} status={item.status} />
+                  <CreateExercises grammarItemId={item.id} />
+                </div>
               </div>
               <ul className="flex max-w-3xl flex-col gap-2 text-sm">
                 {item.examples.map((e) => (

@@ -10,7 +10,8 @@ import type {
   LanguageCode,
 } from "../types";
 import { db } from ".";
-import { grammarExamples, grammarItems } from "./schema";
+import { deleteExerciseSetsStatements } from "./exercises";
+import { exerciseSets, grammarExamples, grammarItems } from "./schema";
 
 /** Saved items with their examples, newest first, filtered by any of the given fields. */
 export async function listGrammarItems({
@@ -173,9 +174,10 @@ export async function setGrammarStatus(id: string, status: GrammarStatus): Promi
     .where(eq(grammarItems.id, id));
 }
 
-/** Deletes an item and its examples (explicitly, as SQLite may not enforce the cascade). */
+/** Deletes an item with its examples and exercise sets (explicitly, as SQLite may not enforce the cascade). */
 export async function deleteGrammarItem(id: string): Promise<void> {
   await db.batch([
+    ...deleteExerciseSetsStatements(eq(exerciseSets.grammarItemId, id)),
     db.delete(grammarExamples).where(eq(grammarExamples.grammarItemId, id)),
     db.delete(grammarItems).where(eq(grammarItems.id, id)),
   ]);

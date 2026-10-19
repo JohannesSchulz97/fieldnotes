@@ -165,6 +165,53 @@ export interface GrammarItem {
   updatedAt: string;
 }
 
+/** A word of an exercise sentence that is not in the learner's vocabulary. */
+export interface UnknownWord {
+  lemma: string;
+  translation: string;
+}
+
+/** A fill-in-the-blank exercise: before + answer + after is the full sentence. */
+export interface Exercise {
+  id: string;
+  before: string;
+  answer: string;
+  after: string;
+  /** Other answers that are also correct. */
+  alternatives: string[];
+  /** Hint shown next to the blank, usually the base form. */
+  cue: string;
+  translation: string;
+  /** Why this form is needed here. */
+  reason: string;
+  unknownWords: UnknownWord[];
+  /** The latest answer, if the exercise was answered. */
+  lastAttempt: { answer: string; correct: boolean } | null;
+}
+
+/** One row in the list of exercise sets. */
+export interface ExerciseSetSummary {
+  id: string;
+  grammarItemId: string;
+  grammarItemName: string;
+  level: CefrLevel;
+  total: number;
+  /** Exercises with an attempt, and of those, the ones whose latest attempt is correct. */
+  answered: number;
+  correct: number;
+  createdAt: string;
+}
+
+/** An exercise set with its exercises in order and the construct it practises. */
+export interface ExerciseSet {
+  id: string;
+  language: LanguageCode;
+  level: CefrLevel;
+  item: { id: string; name: string; explanation: string; status: GrammarStatus };
+  exercises: Exercise[];
+  createdAt: string;
+}
+
 /** How the Anki export builds cards. */
 export interface AnkiSettings {
   /** learning-native: the learned language on the front; native-learning: the native language on the front; both: one note, two cards. */

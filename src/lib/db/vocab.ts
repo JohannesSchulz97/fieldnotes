@@ -67,6 +67,16 @@ export async function deleteEntry(language: LanguageCode, lemma: string): Promis
     .where(and(eq(vocabEntries.language, language), eq(vocabEntries.lemma, lemma)));
 }
 
+/** Every known lemma of a language (from any source), alphabetically. */
+export async function listKnownLemmas(language: LanguageCode): Promise<string[]> {
+  const rows = await db
+    .select({ lemma: vocabEntries.lemma })
+    .from(vocabEntries)
+    .where(and(eq(vocabEntries.language, language), eq(vocabEntries.status, "known")))
+    .orderBy(vocabEntries.lemma);
+  return rows.map((r) => r.lemma);
+}
+
 /** Returns the status of each given lemma that is already stored. */
 export async function getStoredStatuses(
   language: LanguageCode,

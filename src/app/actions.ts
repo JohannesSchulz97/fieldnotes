@@ -23,6 +23,12 @@ import {
   listGrammarNames,
   setGrammarStatus as dbSetGrammarStatus,
 } from "@/lib/db/grammar";
+import {
+  createExerciseSet as dbCreateExerciseSet,
+  deleteExerciseSet as dbDeleteExerciseSet,
+  getExpectedAnswers,
+  recordAttempt,
+} from "@/lib/db/exercises";
 import { getActiveLanguage, LANGUAGE_COOKIE } from "@/lib/active-language";
 import {
   addLearningLanguage,
@@ -31,7 +37,9 @@ import {
   saveAnkiSettings,
 } from "@/lib/db/settings";
 import { getTotalCost } from "@/lib/db/usage";
-import { deleteEntry, getStoredStatuses, upsertEntries } from "@/lib/db/vocab";
+import { deleteEntry, getStoredStatuses, listKnownLemmas, upsertEntries } from "@/lib/db/vocab";
+import { EXERCISE_COUNTS, type Grade, gradeAnswer } from "@/lib/exercises";
+import { llmGenerateExercises } from "@/lib/llm/exercises";
 import { llmExtract } from "@/lib/llm/extract";
 import {
   CEFR_LEVELS,
@@ -369,10 +377,53 @@ export async function setGrammarStatus(id: string, status: GrammarStatus): Promi
   if (status !== "to_work_on" && status !== "learned") throw new Error("Invalid status");
   await dbSetGrammarStatus(id, status);
   revalidatePath("/grammar");
+  revalidatePath("/exercises", "layout");
 }
 
 export async function deleteGrammarItem(id: string): Promise<void> {
   if (!id?.trim()) throw new Error("Missing id");
   await dbDeleteGrammarItem(id);
   revalidatePath("/grammar");
+  revalidatePath("/exercises", "layout");
+}
+
+/** Generates a set of fill-in-the-blank exercises for a grammar item, using known vocabulary. */
+export async function createExercises(grammarItemId: string, count: number): Promise<string> {
+  if (!EXERCISE_COUNTS.includes(count as (typeof EXERCISE_COUNTS)[number])) {
+    throw new Error("Invalid number of exercises");
+  }
+  const [item] = await listGrammarItems({ ids: [grammarItemId] });
+  if (!item) throw new Error("Grammar item not found");
+  const knownLemmas = await listKnownLemmas(item.language);
+  const { exercises, costUsd } = await llmGenerateExercises({
+    item,
+    level: item.level,
+    count,
+    knownLemmas,
+  });
+  const id = await dbCreateExerciseSet(
+    { grammarItemId: item.id, language: item.language, level: item.level, costUsd },
+    exercises
+  );
+  revalidatePath("/exercises");
+  return id;
+}
+
+const MAX_ANSWER_LENGTH = 200;
+
+/** Grades an answer, records it as the exercise's latest attempt and returns the grade. */
+export async function submitExerciseAnswer(exerciseId: string, answer: string): Promise<Grade> {
+  if (typeof answer !== "string" || answer.length > MAX_ANSWER_LENGTH) throw new Error("Invalid answer");
+  const expected = await getExpectedAnswers(exerciseId);
+  if (!expected) throw new Error("Exercise not found");
+  const grade = gradeAnswer(answer, expected);
+  await recordAttempt(exerciseId, answer.trim(), grade === "correct");
+  revalidatePath("/exercises");
+  return grade;
+}
+
+export async function deleteExerciseSet(id: string): Promise<void> {
+  if (!id?.trim()) throw new Error("Missing id");
+  await dbDeleteExerciseSet(id);
+  revalidatePath("/exercises");
 }

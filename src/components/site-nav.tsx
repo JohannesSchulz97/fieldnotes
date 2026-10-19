@@ -9,6 +9,7 @@ const links = [
   { href: "/", label: "Sources" },
   { href: "/vocab", label: "Vocabulary" },
   { href: "/grammar", label: "Grammar" },
+  { href: "/exercises", label: "Exercises" },
 ];
 
 export function SiteNav({ active, learning }: { active: string; learning: string[] }) {
@@ -24,7 +25,9 @@ export function SiteNav({ active, learning }: { active: string; learning: string
             href={href}
             className={cn(
               "text-sm text-muted-foreground hover:text-foreground",
-              (pathname === href || (href === "/" && pathname.startsWith("/extractions"))) &&
+              (pathname === href ||
+                (href === "/" && pathname.startsWith("/extractions")) ||
+                (href === "/exercises" && pathname.startsWith("/exercises/"))) &&
                 "font-medium text-foreground"
             )}
           >
