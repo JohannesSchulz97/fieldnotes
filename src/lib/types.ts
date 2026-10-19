@@ -9,7 +9,7 @@ export type WordStatus = "known" | "ignored";
 /** Where an entry came from. Informational only; all sources count the same for matching. */
 export type WordSource = "extraction" | "manual" | "anki" | "basic";
 
-/** "expression" = multi-word unit, e.g. "se rendre compte". */
+/** "expression" = multi-word unit, e.g. French "se rendre compte". */
 export type WordKind = "word" | "expression";
 
 /** Grammatical gender of a noun. Null for non-nouns and languages without gender. */
@@ -67,7 +67,7 @@ export interface ExtractionResult {
   sourceUrl: string | null;
   /** The text split into paragraphs of sentences; sentence numbers count across paragraphs. */
   paragraphs: string[][];
-  /** English translation per sentence (same numbering); null until translated. */
+  /** Translation into the target language per sentence (same numbering); null until translated. */
   translations: string[] | null;
   sourceLanguage: LanguageCode;
   targetLanguage: LanguageCode;
@@ -167,11 +167,11 @@ export interface GrammarItem {
 
 /** How the Anki export builds cards. */
 export interface AnkiSettings {
-  /** fr-en: French on the front; en-fr: English on the front; both: one note, two cards. */
-  direction: "fr-en" | "en-fr" | "both";
-  /** Which card field gets the example sentence ("front" = the French field when direction is "both"). */
+  /** learning-native: the learned language on the front; native-learning: the native language on the front; both: one note, two cards. */
+  direction: "learning-native" | "native-learning" | "both";
+  /** Which card field gets the example sentence ("front" = the learned-language field when direction is "both"). */
   example: "off" | "front" | "back";
-  /** Add the English sentence under the example, if the text was translated. */
+  /** Add the translated sentence under the example, if the text was translated. */
   sentenceTranslation: boolean;
   /** Show the part of speech on the back of the card. */
   partOfSpeech: boolean;

@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { SiteNav } from "@/components/site-nav";
+import { getActiveLanguage } from "@/lib/active-language";
+import { getLearningLanguages } from "@/lib/db/settings";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -18,14 +20,15 @@ export const metadata: Metadata = {
   description: "Extract unknown vocabulary from texts",
 };
 
-export default function RootLayout({ children }: LayoutProps<"/">) {
+export default async function RootLayout({ children }: LayoutProps<"/">) {
+  const [active, learning] = await Promise.all([getActiveLanguage(), getLearningLanguages()]);
   return (
     <html
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
-        <SiteNav />
+        <SiteNav active={active} learning={learning} />
         {children}
       </body>
     </html>

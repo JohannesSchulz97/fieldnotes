@@ -44,7 +44,7 @@ for (const row of rows) {
 }
 
 if (elided.length > 0) {
-  const { items } = await llmNormalize(elided.map((r) => (r.translation ? `${r.lemma} (${r.translation})` : r.lemma)));
+  const { items } = await llmNormalize("fr", elided.map((r) => (r.translation ? `${r.lemma} (${r.translation})` : r.lemma)));
   const byBare = new Map(items.map((i) => [stripIndefinite(i.lemma), i.lemma]));
   for (const row of elided) {
     const next = byBare.get(row.lemma.slice(2));

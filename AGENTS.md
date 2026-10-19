@@ -16,6 +16,12 @@ Currently a single-user app. Planned hosting: Vercel + hosted Turso (libSQL), pr
 
 Currently French (source) to English (target), but the app is meant to become language-generic. Treat French as the first instance of a general design, not as the design.
 
+Where the language-specific parts live:
+- `src/lib/languages.ts`: the learnable languages, the native language (`getNativeLanguage()`), and a `LanguageProfile` per language with optional prompt examples and rules. A language without a profile runs on the generic prompts.
+- `src/lib/llm/prompts.ts`: builds the extract, normalize and grammar-naming prompts from the generic rules plus the profile. The French output must stay unchanged when the generic text is edited.
+- `src/lib/format-lemma.ts`: per-language display of lemmas.
+- Active language: a cookie, read with `getActiveLanguage()`. Vocabulary, grammar and sources are always queried for one language; never add an unscoped list query.
+
 - Store linguistic facts as data, not as formatting: e.g. a noun's grammatical gender is its own field and the lemma stays bare. How a word is shown (articles, gender markers, elision) is a per-language display rule, kept in one place, not baked into stored lemmas or prompts.
 - Lemma strings are match keys across extraction, normalization and stored vocab. They must be deterministic: never let the model make a presentational choice that ends up inside a lemma.
 - Do not hard-code French in prompts, schema or UI where it is cheap to parameterize (language codes, article systems, gender sets, e.g. m/f/n/common or none).

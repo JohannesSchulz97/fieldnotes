@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { LanguageSwitcher } from "@/components/language-switcher";
 import { cn } from "@/lib/utils";
 
 const links = [
@@ -10,7 +11,7 @@ const links = [
   { href: "/grammar", label: "Grammar" },
 ];
 
-export function SiteNav() {
+export function SiteNav({ active, learning }: { active: string; learning: string[] }) {
   const pathname = usePathname();
 
   return (
@@ -30,6 +31,7 @@ export function SiteNav() {
             {label}
           </Link>
         ))}
+        <LanguageSwitcher active={active} learning={learning} />
       </nav>
     </header>
   );

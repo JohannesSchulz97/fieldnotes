@@ -20,14 +20,14 @@ function sentenceHtml(item: ExtractedItem): string {
 }
 
 function exampleHtml(item: ExtractedItem, translation: string | null, settings: AnkiSettings): string {
-  const english =
+  const translated =
     settings.sentenceTranslation && translation ? `<br><small>${escapeHtml(translation)}</small>` : "";
-  return `<br><br><i>${sentenceHtml(item)}</i>${english}`;
+  return `<br><br><i>${sentenceHtml(item)}</i>${translated}`;
 }
 
 /**
- * Builds the HTML of a card's two fields. With direction "both" the fields are French/English
- * and Anki's "Basic (and reversed card)" note type creates the reverse card.
+ * Builds the HTML of a card's two fields. With direction "both" the fields are learned/native
+ * language and Anki's "Basic (and reversed card)" note type creates the reverse card.
  */
 export function buildCard(
   language: LanguageCode,
@@ -35,9 +35,10 @@ export function buildCard(
   settings: AnkiSettings,
   sentenceTranslation: string | null
 ): { front: string; back: string } {
-  const french = escapeHtml(formatLemma(language, item));
-  const english = escapeHtml(item.translation);
-  const [front, answer] = settings.direction === "en-fr" ? [english, french] : [french, english];
+  const learned = escapeHtml(formatLemma(language, item));
+  const native = escapeHtml(item.translation);
+  const [front, answer] =
+    settings.direction === "native-learning" ? [native, learned] : [learned, native];
   const back =
     settings.partOfSpeech && item.partOfSpeech
       ? `${answer}<br><small>${escapeHtml(item.partOfSpeech)}</small>`

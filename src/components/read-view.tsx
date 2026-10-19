@@ -4,10 +4,10 @@ import { Fragment, useEffect, useRef, useState } from "react";
 import { cn } from "@/lib/utils";
 import { useStoredChoice } from "@/lib/use-stored-choice";
 
-const MODES = ["french", "interlinear", "side-by-side"] as const;
+const MODES = ["original", "interlinear", "side-by-side"] as const;
 type Mode = (typeof MODES)[number];
 const MODE_LABELS: Record<Mode, string> = {
-  french: "French",
+  original: "Original",
   interlinear: "Interlinear",
   "side-by-side": "Side by side",
 };
@@ -31,7 +31,7 @@ export function ReadView({
   focusSentence: number | null;
   active: boolean;
 }) {
-  const [mode, setMode] = useStoredChoice<Mode>("read-mode", MODES, "french");
+  const [mode, setMode] = useStoredChoice<Mode>("read-mode", MODES, "original");
   const [revealed, setRevealed] = useState<Set<number>>(new Set());
   const [highlighted, setHighlighted] = useState<number | null>(null);
   const viewRef = useRef<HTMLDivElement>(null);
@@ -44,7 +44,7 @@ export function ReadView({
     acc.push(p.map((text, i) => ({ n: start + i, text })));
     return acc;
   }, []);
-  const effectiveMode = translations ? mode : "french";
+  const effectiveMode = translations ? mode : "original";
 
   useEffect(() => {
     if (focusSentence === null || !active || focusedRef.current === focusSentence) return;
@@ -73,8 +73,8 @@ export function ReadView({
 
   const hint = [
     !translations
-      ? "Translate the text to see English sentences."
-      : effectiveMode === "french"
+      ? "Translate the text to see translated sentences."
+      : effectiveMode === "original"
         ? "Click a sentence to see its translation."
         : "",
     effectiveMode !== "interlinear" ? "Select words to analyse their grammar." : "",
@@ -91,7 +91,7 @@ export function ReadView({
             <button
               key={m}
               onClick={() => setMode(m)}
-              disabled={!translations && m !== "french"}
+              disabled={!translations && m !== "original"}
               className={cn(
                 "rounded-md px-3 py-1 text-sm text-muted-foreground transition-colors hover:text-foreground disabled:pointer-events-none disabled:opacity-40",
                 effectiveMode === m && "bg-muted font-medium text-foreground"
@@ -103,7 +103,7 @@ export function ReadView({
         </div>
       </div>
 
-      {effectiveMode === "french" && (
+      {effectiveMode === "original" && (
         <div className="flex max-w-3xl flex-col gap-4 leading-relaxed">
           {numbered.map((p, i) => (
             <p key={i}>

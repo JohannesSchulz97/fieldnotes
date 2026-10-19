@@ -1,13 +1,15 @@
 import "server-only";
 import { zodTextFormat } from "openai/helpers/zod";
 import { z } from "zod";
+import { getNativeLanguage } from "../languages";
 import { normalizeLemma } from "../lemma";
 import { splitSentences } from "../sentences";
 import type { ExtractedItem, LanguageCode } from "../types";
-import { getClient, LEMMA_RULES, model, reasoningEffort, TARGET_LANGUAGE, trackUsage } from "./client";
+import { getClient, model, reasoningEffort, trackUsage } from "./client";
+import { extractInstructions } from "./prompts";
 
 const Extraction = z.object({
-  sourceLanguage: z.string().describe("ISO 639-1 code of the text's language"),
+  sourceLanguage: z.string().describe("ISO 639-1 code of the language the text is actually written in"),
   items: z.array(
     z.object({
       lemma: z.string(),
@@ -23,36 +25,26 @@ const Extraction = z.object({
   ),
 });
 
-const INSTRUCTIONS = `You extract vocabulary from a text for a language learner.
-
-${LEMMA_RULES}
-
-Procedure:
-1. Split the text into words. Separate elided and contracted forms into their component words: "qu'elle" → "que" + "elle", "l'arbre" → "le" + "arbre", "du" → "de" + "le", "au" → "à" + "le", "jusqu'à" → "jusque" + "à".
-2. Drop every token that is not vocabulary, and words not in the text's main language. A capitalized word mid-sentence is almost always a proper noun.
-3. Identify expressions. List the words of non-expression combinations individually.
-4. Every remaining word is its own item, including function words (articles, pronouns, prepositions, conjunctions). Words that are part of an expression are also listed individually if they appear outside that expression elsewhere in the text.
-
-Each lemma exactly once. Additional fields:
-- translation: the common translation(s) in general use, not just the one that fits this text.
-- contextNote: only if the meaning used in the text is not covered by the translation, that meaning in a few words (e.g. "to go" for the reflexive "se rendre à"); otherwise null.
-- sentence: the number of the sentence where the item first appears. The input text is given as numbered sentences "[n] ...".
-- form: the item exactly as it appears in that sentence, copied character for character (e.g. "assise" for "s'asseoir", "s'est rendu compte" for "se rendre compte").`;
-
 export interface LlmExtraction {
   sourceLanguage: LanguageCode;
   targetLanguage: LanguageCode;
+  /** The language the model recognized the text as; differs from sourceLanguage on a mismatch. */
+  detectedLanguage: LanguageCode;
   /** Every item in the text, known or not. */
   items: ExtractedItem[];
   costUsd: number | null;
 }
 
-export async function llmExtract(text: string): Promise<LlmExtraction> {
+/**
+ * Extracts the vocabulary of a text in the given language. detectedLanguage is what the model
+ * recognized the text to be, so callers can warn when it differs.
+ */
+export async function llmExtract(text: string, language: LanguageCode): Promise<LlmExtraction> {
   const sentences = splitSentences(text);
   const response = await getClient().responses.parse({
     model,
     reasoning: { effort: reasoningEffort },
-    instructions: INSTRUCTIONS,
+    instructions: extractInstructions(language),
     input: sentences.map((s, i) => `[${i}] ${s}`).join("\n"),
     text: { format: zodTextFormat(Extraction, "extraction") },
   });
@@ -72,8 +64,9 @@ export async function llmExtract(text: string): Promise<LlmExtraction> {
   }));
 
   return {
-    sourceLanguage: parsed.sourceLanguage.toLowerCase(),
-    targetLanguage: TARGET_LANGUAGE,
+    sourceLanguage: language,
+    targetLanguage: getNativeLanguage(),
+    detectedLanguage: parsed.sourceLanguage.toLowerCase(),
     items,
     costUsd,
   };

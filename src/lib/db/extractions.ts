@@ -4,7 +4,7 @@ import { desc, eq } from "drizzle-orm";
 import type { LlmExtraction } from "../llm/extract";
 import { splitParagraphs, splitSentences } from "../sentences";
 import type { SourceDetails } from "../source";
-import type { ExtractionResult, ExtractionSummary } from "../types";
+import type { ExtractionResult, ExtractionSummary, LanguageCode } from "../types";
 import { db } from ".";
 import { extractions } from "./schema";
 import { getStoredEntries, getStoredStatuses } from "./vocab";
@@ -15,20 +15,24 @@ export function hashText(text: string): string {
   return createHash("sha256").update(text.trim()).digest("hex");
 }
 
-export async function findExtractionIdByHash(textHash: string): Promise<string | null> {
+export async function findExtractionByHash(
+  textHash: string
+): Promise<{ id: string; sourceLanguage: LanguageCode } | null> {
   const [row] = await db
-    .select({ id: extractions.id })
+    .select({ id: extractions.id, sourceLanguage: extractions.sourceLanguage })
     .from(extractions)
     .where(eq(extractions.textHash, textHash));
-  return row?.id ?? null;
+  return row ?? null;
 }
 
-export async function getExtractionText(id: string): Promise<string | null> {
+export async function getExtractionText(
+  id: string
+): Promise<{ text: string; sourceLanguage: LanguageCode } | null> {
   const [row] = await db
-    .select({ text: extractions.text })
+    .select({ text: extractions.text, sourceLanguage: extractions.sourceLanguage })
     .from(extractions)
     .where(eq(extractions.id, id));
-  return row?.text ?? null;
+  return row ?? null;
 }
 
 /** The text's sentences (numbered as in the reading view) with their translations, if any. */
@@ -140,8 +144,13 @@ export async function loadExtraction(id: string): Promise<ExtractionResult | nul
   };
 }
 
-export async function listExtractions(): Promise<ExtractionSummary[]> {
-  const rows = await db.select().from(extractions).orderBy(desc(extractions.createdAt));
+/** The sources of one language, newest first. */
+export async function listExtractions(language: LanguageCode): Promise<ExtractionSummary[]> {
+  const rows = await db
+    .select()
+    .from(extractions)
+    .where(eq(extractions.sourceLanguage, language))
+    .orderBy(desc(extractions.createdAt));
   return Promise.all(
     rows.map(async (row) => {
       const stored = await getStoredStatuses(

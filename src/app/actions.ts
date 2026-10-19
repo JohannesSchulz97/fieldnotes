@@ -1,9 +1,10 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { cookies } from "next/headers";
 import { z } from "zod";
 import {
-  findExtractionIdByHash,
+  findExtractionByHash,
   getExtractionSentences,
   getExtractionText,
   hashText,
@@ -22,10 +23,15 @@ import {
   listGrammarNames,
   setGrammarStatus as dbSetGrammarStatus,
 } from "@/lib/db/grammar";
-import { AnkiSettingsSchema, saveAnkiSettings } from "@/lib/db/settings";
+import { getActiveLanguage, LANGUAGE_COOKIE } from "@/lib/active-language";
+import {
+  addLearningLanguage,
+  AnkiSettingsSchema,
+  getLearningLanguages,
+  saveAnkiSettings,
+} from "@/lib/db/settings";
 import { getTotalCost } from "@/lib/db/usage";
 import { deleteEntry, getStoredStatuses, upsertEntries } from "@/lib/db/vocab";
-import { TARGET_LANGUAGE } from "@/lib/llm/client";
 import { llmExtract } from "@/lib/llm/extract";
 import {
   CEFR_LEVELS,
@@ -40,7 +46,8 @@ import {
   llmIdentifyGrammar,
   NEW_CONSTRUCT,
 } from "@/lib/llm/grammar";
-import { llmNormalize, type NormalizedItem } from "@/lib/llm/normalize";
+import { getNativeLanguage, isLearnable, languageName } from "@/lib/languages";
+import { llmNormalize } from "@/lib/llm/normalize";
 import { llmTranslate } from "@/lib/llm/translate";
 import { splitSentences } from "@/lib/sentences";
 import { parseSourceDetails } from "@/lib/source";
@@ -54,30 +61,55 @@ import type {
   WordStatus,
 } from "@/lib/types";
 
+export type ExtractOutcome =
+  | { status: "done"; id: string; reused: boolean }
+  /** The text is in another language than the active one; nothing was saved. */
+  | { status: "mismatch"; detected: LanguageCode; detectedName: string; activeName: string };
+
 /**
- * Extracts vocabulary from a text and saves the result. A text that was extracted before
- * is not sent to the LLM again; its saved extraction is returned instead.
+ * Extracts vocabulary from a text in the active language and saves the result. A text that was
+ * extracted before is not sent to the LLM again; its saved extraction is returned instead.
+ * If the text looks like another language, nothing is saved unless force is set.
  */
 export async function extract(
   text: string,
   title?: string,
-  link?: string
-): Promise<{ id: string; reused: boolean }> {
+  link?: string,
+  force = false
+): Promise<ExtractOutcome> {
   if (!text.trim()) throw new Error("Empty text");
   const details = parseSourceDetails(title, link);
-  const existing = await findExtractionIdByHash(hashText(text));
+  const language = await getActiveLanguage();
+  const existing = await findExtractionByHash(hashText(text));
   if (existing) {
+    if (existing.sourceLanguage !== language && !force) {
+      return {
+        status: "mismatch",
+        detected: existing.sourceLanguage,
+        detectedName: languageName(existing.sourceLanguage),
+        activeName: languageName(language),
+      };
+    }
     // Filling in a title or link when pasting a known text updates that source.
     if (details.title || details.sourceUrl) {
-      await updateSourceDetails(existing, details);
+      await updateSourceDetails(existing.id, details);
       revalidatePath("/");
-      revalidatePath(`/extractions/${existing}`);
+      revalidatePath(`/extractions/${existing.id}`);
     }
-    return { id: existing, reused: true };
+    return { status: "done", id: existing.id, reused: true };
   }
-  const id = await insertExtraction(text, await llmExtract(text), details);
+  const result = await llmExtract(text, language);
+  if (result.detectedLanguage !== language && !force) {
+    return {
+      status: "mismatch",
+      detected: result.detectedLanguage,
+      detectedName: languageName(result.detectedLanguage),
+      activeName: languageName(language),
+    };
+  }
+  const id = await insertExtraction(text, result, details);
   revalidatePath("/");
-  return { id, reused: false };
+  return { status: "done", id, reused: false };
 }
 
 /** Sets or clears the title and link of a saved source. */
@@ -89,17 +121,17 @@ export async function updateSource(id: string, title: string, link: string): Pro
 
 /** Translates a saved extraction's text sentence by sentence and stores the result. */
 export async function translateExtraction(id: string): Promise<void> {
-  const text = await getExtractionText(id);
-  if (text === null) throw new Error("Extraction not found");
-  await saveTranslations(id, await llmTranslate(splitSentences(text)));
+  const source = await getExtractionText(id);
+  if (source === null) throw new Error("Extraction not found");
+  await saveTranslations(id, await llmTranslate(splitSentences(source.text)));
   revalidatePath(`/extractions/${id}`);
 }
 
 /** Runs the LLM again on a saved extraction's text and replaces its items. */
 export async function reextract(id: string): Promise<void> {
-  const text = await getExtractionText(id);
-  if (text === null) throw new Error("Extraction not found");
-  await updateExtraction(id, await llmExtract(text));
+  const source = await getExtractionText(id);
+  if (source === null) throw new Error("Extraction not found");
+  await updateExtraction(id, await llmExtract(source.text, source.sourceLanguage));
   revalidatePath("/");
   revalidatePath(`/extractions/${id}`);
 }
@@ -139,24 +171,20 @@ export interface AddKnownResult {
   totalCostUsd: number;
 }
 
-/** Normalizes pasted entries (one per line) to lemmas via the LLM and stores them as known. */
+/** Normalizes pasted entries (one per line) to lemmas of the active language via the LLM and stores them as known. */
 export async function addKnownWords(text: string): Promise<AddKnownResult> {
   const lines = text.split("\n").map((l) => l.trim()).filter(Boolean);
   if (lines.length === 0) throw new Error("Nothing to add");
   if (lines.length > MAX_LINES) throw new Error(`Too many lines (max ${MAX_LINES})`);
 
-  const { items, costUsd } = await llmNormalize(lines);
-  const byLanguage = Map.groupBy(items, (i: NormalizedItem) => i.language);
+  const language = await getActiveLanguage();
+  const { items, costUsd } = await llmNormalize(language, lines);
 
-  let added = 0;
-  let alreadyStored = 0;
-  for (const [language, group] of byLanguage) {
-    const lemmas = [...new Set(group.map((i) => i.lemma))];
-    const stored = await getStoredStatuses(language, lemmas);
-    alreadyStored += stored.size;
-    added += lemmas.length - stored.size;
-    await upsertEntries(group, language, TARGET_LANGUAGE, "known", "manual");
-  }
+  const lemmas = [...new Set(items.map((i) => i.lemma))];
+  const stored = await getStoredStatuses(language, lemmas);
+  const alreadyStored = stored.size;
+  const added = lemmas.length - stored.size;
+  await upsertEntries(items, language, getNativeLanguage(), "known", "manual");
   revalidatePath("/vocab");
   revalidatePath("/");
   return {
@@ -174,6 +202,20 @@ export async function unmarkItem(language: LanguageCode, lemma: string): Promise
   await deleteEntry(language, lemma);
   revalidatePath("/vocab");
   revalidatePath("/");
+}
+
+/** Makes a learning language the active one, for the whole app. */
+export async function setActiveLanguage(language: LanguageCode): Promise<void> {
+  if (!(await getLearningLanguages()).includes(language)) throw new Error("Not a learning language");
+  (await cookies()).set(LANGUAGE_COOKIE, language, { maxAge: 60 * 60 * 24 * 365, sameSite: "lax" });
+  revalidatePath("/", "layout");
+}
+
+/** Adds a language to the learning languages and switches to it. */
+export async function addLanguage(language: LanguageCode): Promise<void> {
+  if (!isLearnable(language)) throw new Error("Unsupported language");
+  await addLearningLanguage(language);
+  await setActiveLanguage(language);
 }
 
 export async function updateAnkiSettings(value: AnkiSettings): Promise<void> {
@@ -292,7 +334,7 @@ export async function saveGrammarItem(
   const e = GrammarExplanationSchema.parse(explanation);
   await createGrammarItem(
     s.sourceLanguage,
-    TARGET_LANGUAGE,
+    getNativeLanguage(),
     { name: c.name, category: c.category, level: c.level, explanation: e.explanation },
     [
       sourceExample(s, extractionId, sentence, c.form),

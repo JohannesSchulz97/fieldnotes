@@ -37,7 +37,7 @@ export function BulkAdd() {
       <Textarea
         value={text}
         onChange={(e) => setText(e.target.value)}
-        placeholder={"One word or expression per line, any form:\nquai\nassise\nse rendre compte"}
+        placeholder="One word or expression per line, any form"
         className="min-h-32"
       />
       <div className="flex items-center gap-3">
