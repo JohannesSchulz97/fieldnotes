@@ -63,6 +63,8 @@ export interface LearnedItem extends ExtractedItem {
 export interface ExtractionResult {
   id: string;
   text: string;
+  title: string | null;
+  sourceUrl: string | null;
   /** The text split into paragraphs of sentences; sentence numbers count across paragraphs. */
   paragraphs: string[][];
   /** English translation per sentence (same numbering); null until translated. */
@@ -84,6 +86,8 @@ export interface ExtractionResult {
 /** One row in the list of past extractions. */
 export interface ExtractionSummary {
   id: string;
+  title: string | null;
+  sourceUrl: string | null;
   /** Start of the text, for display. */
   preview: string;
   newCount: number;

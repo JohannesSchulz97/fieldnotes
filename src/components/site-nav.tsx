@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 
 const links = [
-  { href: "/", label: "Extract" },
+  { href: "/", label: "Sources" },
   { href: "/vocab", label: "Vocabulary" },
   { href: "/grammar", label: "Grammar" },
 ];
