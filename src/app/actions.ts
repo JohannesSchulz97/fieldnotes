@@ -10,6 +10,7 @@ import {
   insertExtraction,
   saveTranslations,
   updateExtraction,
+  updateSourceDetails,
 } from "@/lib/db/extractions";
 import {
   addGrammarExamples,
@@ -42,6 +43,7 @@ import {
 import { llmNormalize, type NormalizedItem } from "@/lib/llm/normalize";
 import { llmTranslate } from "@/lib/llm/translate";
 import { splitSentences } from "@/lib/sentences";
+import { parseSourceDetails } from "@/lib/source";
 import type {
   AnkiSettings,
   ExtractedItem,
@@ -56,13 +58,33 @@ import type {
  * Extracts vocabulary from a text and saves the result. A text that was extracted before
  * is not sent to the LLM again; its saved extraction is returned instead.
  */
-export async function extract(text: string): Promise<{ id: string; reused: boolean }> {
+export async function extract(
+  text: string,
+  title?: string,
+  link?: string
+): Promise<{ id: string; reused: boolean }> {
   if (!text.trim()) throw new Error("Empty text");
+  const details = parseSourceDetails(title, link);
   const existing = await findExtractionIdByHash(hashText(text));
-  if (existing) return { id: existing, reused: true };
-  const id = await insertExtraction(text, await llmExtract(text));
+  if (existing) {
+    // Filling in a title or link when pasting a known text updates that source.
+    if (details.title || details.sourceUrl) {
+      await updateSourceDetails(existing, details);
+      revalidatePath("/");
+      revalidatePath(`/extractions/${existing}`);
+    }
+    return { id: existing, reused: true };
+  }
+  const id = await insertExtraction(text, await llmExtract(text), details);
   revalidatePath("/");
   return { id, reused: false };
+}
+
+/** Sets or clears the title and link of a saved source. */
+export async function updateSource(id: string, title: string, link: string): Promise<void> {
+  await updateSourceDetails(id, parseSourceDetails(title, link));
+  revalidatePath("/");
+  revalidatePath(`/extractions/${id}`);
 }
 
 /** Translates a saved extraction's text sentence by sentence and stores the result. */

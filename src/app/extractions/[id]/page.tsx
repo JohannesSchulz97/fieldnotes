@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { connection } from "next/server";
 import { ExtractionTabs } from "@/components/extraction-tabs";
+import { SourceDetails } from "@/components/source-details";
 import { ReextractButton } from "@/components/reextract-button";
 import { TranslateButton } from "@/components/translate-button";
 import { loadExtraction } from "@/lib/db/extractions";
@@ -32,11 +33,17 @@ export default async function ExtractionPage({
     <main className="mx-auto flex w-full max-w-5xl flex-col gap-6 px-4 py-8">
       <div className="flex flex-col gap-2">
         <Link href="/" className="text-sm text-muted-foreground hover:text-foreground">
-          ← All extractions
+          ← All sources
         </Link>
-        <div className="flex items-baseline justify-between gap-4">
-          <h1 className="text-2xl font-semibold">Extraction {result.createdAt.slice(0, 10)}</h1>
-          <div className="flex gap-2">
+        <div className="flex items-start justify-between gap-4">
+          <SourceDetails
+            key={`${result.title}|${result.sourceUrl}`}
+            id={result.id}
+            title={result.title}
+            sourceUrl={result.sourceUrl}
+            fallbackTitle={`Source ${result.createdAt.slice(0, 10)}`}
+          />
+          <div className="flex shrink-0 gap-2">
             {!result.translations && <TranslateButton id={result.id} />}
             <ReextractButton id={result.id} />
           </div>

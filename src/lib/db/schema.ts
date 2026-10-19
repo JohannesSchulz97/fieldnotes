@@ -48,6 +48,10 @@ export const extractions = sqliteTable(
     /** SHA-256 of the trimmed text; the same text is never extracted twice unless re-extracted. */
     textHash: text("text_hash").notNull(),
     text: text("text").notNull(),
+    /** Optional name of the source, chosen by the user. */
+    title: text("title"),
+    /** Optional http(s) link to where the text was found. */
+    sourceUrl: text("source_url"),
     sourceLanguage: text("source_language").notNull(),
     targetLanguage: text("target_language").notNull(),
     items: text("items", { mode: "json" }).$type<ExtractedItem[]>().notNull(),

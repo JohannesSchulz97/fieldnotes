@@ -3,6 +3,7 @@ import { createHash } from "node:crypto";
 import { desc, eq } from "drizzle-orm";
 import type { LlmExtraction } from "../llm/extract";
 import { splitParagraphs, splitSentences } from "../sentences";
+import type { SourceDetails } from "../source";
 import type { ExtractionResult, ExtractionSummary } from "../types";
 import { db } from ".";
 import { extractions } from "./schema";
@@ -52,13 +53,19 @@ export async function getExtractionSentences(id: string): Promise<{
   };
 }
 
-export async function insertExtraction(text: string, result: LlmExtraction): Promise<string> {
+export async function insertExtraction(
+  text: string,
+  result: LlmExtraction,
+  details: SourceDetails
+): Promise<string> {
   const id = crypto.randomUUID();
   const now = new Date().toISOString();
   await db.insert(extractions).values({
     id,
     textHash: hashText(text),
     text,
+    title: details.title,
+    sourceUrl: details.sourceUrl,
     sourceLanguage: result.sourceLanguage,
     targetLanguage: result.targetLanguage,
     items: result.items,
@@ -73,6 +80,14 @@ export async function saveTranslations(id: string, translations: string[]): Prom
   await db
     .update(extractions)
     .set({ translations, updatedAt: new Date().toISOString() })
+    .where(eq(extractions.id, id));
+}
+
+/** Sets the title and link of a saved source; null clears them. Does not touch updatedAt, which keys the page state. */
+export async function updateSourceDetails(id: string, details: SourceDetails): Promise<void> {
+  await db
+    .update(extractions)
+    .set({ title: details.title, sourceUrl: details.sourceUrl })
     .where(eq(extractions.id, id));
 }
 
@@ -108,6 +123,8 @@ export async function loadExtraction(id: string): Promise<ExtractionResult | nul
   return {
     id: row.id,
     text: row.text,
+    title: row.title,
+    sourceUrl: row.sourceUrl,
     paragraphs: splitParagraphs(row.text),
     translations: row.translations,
     sourceLanguage: row.sourceLanguage,
@@ -133,6 +150,8 @@ export async function listExtractions(): Promise<ExtractionSummary[]> {
       );
       return {
         id: row.id,
+        title: row.title,
+        sourceUrl: row.sourceUrl,
         preview:
           row.text.length > PREVIEW_LENGTH ? `${row.text.slice(0, PREVIEW_LENGTH)}…` : row.text,
         newCount: row.items.filter((i) => !stored.has(i.lemma)).length,
