@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { ExtractionView } from "@/components/extraction-view";
 import { GrammarSelection } from "@/components/grammar-selection";
 import { ReadView } from "@/components/read-view";
@@ -22,6 +22,8 @@ export function ExtractionTabs({
   focusSentence: number | null;
 }) {
   const [tab, setTab] = useStoredChoice<Tab>("extraction-tab", TABS, "words");
+  // New words, kept here so marking one in the word list also unbolds it in the Read tab.
+  const [items, setItems] = useState(result.items);
 
   // Runs after useStoredChoice restores the stored tab, so the link's sentence wins.
   useEffect(() => {
@@ -48,12 +50,18 @@ export function ExtractionTabs({
       {/* Both stay mounted so marking progress in the word list survives tab switches. */}
       <GrammarSelection extractionId={result.id}>
         <div className={cn(tab !== "words" && "hidden")}>
-          <ExtractionView result={result} ankiSettings={ankiSettings} />
+          <ExtractionView
+            result={result}
+            items={items}
+            setItems={setItems}
+            ankiSettings={ankiSettings}
+          />
         </div>
         <div className={cn(tab !== "read" && "hidden")}>
           <ReadView
             paragraphs={result.paragraphs}
             translations={result.translations}
+            newForms={items.map((i) => i.form)}
             focusSentence={focusSentence}
             active={tab === "read"}
           />

@@ -1,6 +1,7 @@
 "use client";
 
-import { Fragment, useEffect, useRef, useState } from "react";
+import { Fragment, useEffect, useRef, useState, type ReactNode } from "react";
+import { findWords } from "@/lib/highlight";
 import { cn } from "@/lib/utils";
 import { useStoredChoice } from "@/lib/use-stored-choice";
 
@@ -18,15 +19,19 @@ const FOCUS_HIGHLIGHT_MS = 2500;
 /**
  * The extraction's text, optionally with its sentence-by-sentence translation. Sentences carry
  * data-sentence for grammar selection (turned off in interlinear mode via data-grammar-off).
+ * New words are shown in bold wherever their form occurs.
  */
 export function ReadView({
   paragraphs,
   translations,
+  newForms,
   focusSentence,
   active,
 }: {
   paragraphs: string[][];
   translations: string[] | null;
+  /** How the extraction's new words appear in the text (ExtractedItem.form). */
+  newForms: string[];
   /** Sentence to scroll to and highlight once the view is visible, e.g. from a grammar example link. */
   focusSentence: number | null;
   active: boolean;
@@ -71,7 +76,10 @@ export function ReadView({
   const focusClass = (n: number) =>
     cn("transition-colors duration-700", highlighted === n && "bg-yellow-200/70 dark:bg-yellow-500/30");
 
+  const marked = (text: string) => <MarkedWords text={text} forms={newForms} />;
+
   const hint = [
+    newForms.length > 0 ? "New words are in bold." : "",
     !translations
       ? "Translate the text to see translated sentences."
       : effectiveMode === "original"
@@ -118,7 +126,7 @@ export function ReadView({
                       focusClass(n)
                     )}
                   >
-                    {text}
+                    {marked(text)}
                   </span>{" "}
                   {translations && revealed.has(n) && (
                     <span className="my-1 block border-l-2 pl-3 text-sm text-muted-foreground">
@@ -139,7 +147,7 @@ export function ReadView({
               {p.map(({ n, text }) => (
                 <div key={n}>
                   <p data-sentence={n} className={focusClass(n)}>
-                    {text}
+                    {marked(text)}
                   </p>
                   <p className="text-sm text-muted-foreground">{translations[n]}</p>
                 </div>
@@ -161,7 +169,7 @@ export function ReadView({
                     focusClass(n)
                   )}
                 >
-                  <p data-sentence={n}>{text}</p>
+                  <p data-sentence={n}>{marked(text)}</p>
                   <p className="text-muted-foreground">{translations[n]}</p>
                 </div>
               ))}
@@ -171,4 +179,16 @@ export function ReadView({
       )}
     </div>
   );
+}
+
+/** The text with every whole-word occurrence of the forms in bold. */
+function MarkedWords({ text, forms }: { text: string; forms: string[] }) {
+  const parts: ReactNode[] = [];
+  let at = 0;
+  for (const [start, end] of findWords(text, forms)) {
+    parts.push(text.slice(at, start), <strong key={start} className="font-semibold">{text.slice(start, end)}</strong>);
+    at = end;
+  }
+  parts.push(text.slice(at));
+  return parts;
 }
