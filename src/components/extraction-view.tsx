@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, type Dispatch, type SetStateAction } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -40,13 +40,17 @@ function withToggled(selection: Selection, lemma: string, checked: boolean): Sel
  */
 export function ExtractionView({
   result,
+  items,
+  setItems,
   ankiSettings: initialAnkiSettings,
 }: {
   result: ExtractionResult;
+  /** The new words, starting from result.items; held by the parent so the Read tab follows them. */
+  items: ExtractedItem[];
+  setItems: Dispatch<SetStateAction<ExtractedItem[]>>;
   ankiSettings: AnkiSettings;
 }) {
   const [error, setError] = useState<string | null>(null);
-  const [items, setItems] = useState(result.items);
   const [learned, setLearned] = useState(result.learnedItems);
   const [known, setKnown] = useState(result.knownItems);
   const [selectedNew, setSelectedNew] = useState<Selection>(new Set());
