@@ -97,7 +97,10 @@ export function catalogProblems(catalog: GrammarCatalog): string[] {
     if (c.deprecated?.replacedBy && !constructIds.has(c.deprecated.replacedBy)) {
       problems.push(`"${c.id}" is replaced by unknown construct "${c.deprecated.replacedBy}"`);
     }
-    const nameWords = new Set(c.name.toLowerCase().split(/[^\p{L}']+/u));
+    // Only the pattern in parentheses can name an instance; the term before it is the
+    // construct's own name, which may share a word with examples ("cause" / "à cause de").
+    const pattern = c.name.match(/\(([^)]*)\)/)?.[1] ?? "";
+    const nameWords = new Set(pattern.toLowerCase().split(/[^\p{L}']+/u));
     for (const e of c.card?.examples ?? []) {
       if (!e.sentence.includes(e.form)) problems.push(`"${c.id}": example form "${e.form}" not in its sentence`);
       // A name like "participe présent (étant)" names an instance, not the construct.

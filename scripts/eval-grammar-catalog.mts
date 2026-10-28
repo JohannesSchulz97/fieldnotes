@@ -33,41 +33,48 @@ const sample = Array.from({ length: count }, (_, k) => pool[Math.floor((k * pool
 
 let total = 0;
 let fallbacks = 0;
-let stableSentences = 0;
 const gaps: string[] = [];
+// Stability is judged per form: the same words of a sentence, found in several runs, should get
+// the same entry. Which constructs a run picks (at most 4 per selection) may legitimately vary.
+let repeatedForms = 0;
+let consistentForms = 0;
 const confusions = new Map<string, number>();
+const key = (form: string) => form.toLowerCase().replace(/\s+/g, " ").trim();
 
 for (const { sentence, context } of sample) {
-  const runs: string[][] = [];
+  const byForm = new Map<string, string[]>();
   for (let r = 0; r < Number(runArg); r++) {
     const found = await llmIdentifyGrammar({ language, span: sentence, sentence, context, catalog: constructs, savedNames: [] });
     total += found.length;
-    for (const c of found.filter((c) => !c.constructId)) {
-      fallbacks++;
-      gaps.push(`${c.name}  ←  "${c.form}"`);
-    }
-    runs.push(found.flatMap((c) => (c.constructId ? [c.constructId] : [])).sort());
-  }
-  const all = new Set(runs.flat());
-  const inEvery = [...all].filter((id) => runs.every((r) => r.includes(id)));
-  if (inEvery.length === all.size) stableSentences++;
-  // Entries that appear in some runs but not others, for the same sentence: candidates for confusion.
-  const unstable = [...all].filter((id) => !inEvery.includes(id)).sort();
-  for (let i = 0; i < unstable.length; i++) {
-    for (let j = i + 1; j < unstable.length; j++) {
-      const key = `${names.get(unstable[i])}  ↔  ${names.get(unstable[j])}`;
-      confusions.set(key, (confusions.get(key) ?? 0) + 1);
+    for (const c of found) {
+      if (!c.constructId) {
+        fallbacks++;
+        gaps.push(`${c.name}  ←  "${c.form}"`);
+      }
+      const ids = byForm.get(key(c.form)) ?? [];
+      byForm.set(key(c.form), [...ids, c.constructId ?? "(not in catalogue)"]);
     }
   }
-  console.log(`${inEvery.length === all.size ? "stable  " : "unstable"} ${sentence.slice(0, 70)}…  [${[...all].join(", ")}]`);
+  for (const ids of byForm.values()) {
+    if (ids.length < 2) continue;
+    repeatedForms++;
+    const distinct = [...new Set(ids)].sort();
+    if (distinct.length === 1) consistentForms++;
+    else {
+      const k = distinct.map((id) => names.get(id) ?? id).join("  ↔  ");
+      confusions.set(k, (confusions.get(k) ?? 0) + 1);
+    }
+  }
+  console.log(`${sentence.slice(0, 90)}…`);
 }
 
+const pct = (a: number, b: number) => `${((100 * a) / Math.max(1, b)).toFixed(0)}%`;
 console.log(`\nSentences: ${count}, runs each: ${runArg}, constructs found: ${total}`);
-console.log(`Not in catalogue: ${fallbacks} (${((100 * fallbacks) / Math.max(1, total)).toFixed(0)}%)`);
-console.log(`Sentences classified identically in every run: ${stableSentences}/${count}`);
+console.log(`Not in catalogue: ${fallbacks} (${pct(fallbacks, total)})`);
+console.log(`Forms found in 2+ runs that got the same entry every time: ${consistentForms}/${repeatedForms} (${pct(consistentForms, repeatedForms)})`);
 console.log(`\nNamed freely (possible gaps):\n${[...new Set(gaps)].map((g) => `  - ${g}`).join("\n") || "  none"}`);
 console.log(
-  `\nEntries appearing in some runs only, per sentence (possible confusions):\n${
+  `\nSame words, different entries across runs (possible confusions):\n${
     [...confusions.entries()].map(([k, n]) => `  - ${k} (${n})`).join("\n") || "  none"
   }`
 );
