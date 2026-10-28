@@ -10,7 +10,7 @@
     },
     {
       "id": "eaquals-ciep-inventaire",
-      "title": "Inventaire linguistique des contenus clés des niveaux du CECRL (Eaquals et CIEP / France Éducation international, 2015), annexes D et E (grammaire A1-C1)",
+      "title": "Inventaire linguistique des contenus clés des niveaux du CECRL (Eaquals et CIEP / France Éducation international, 2015), annexes D, E et F (grammaire A1-C1 et réalisations langagières)",
       "url": "https://france-education-international.fr/document/cecrl",
       "type": "official-curriculum"
     },
@@ -55,6 +55,24 @@
       "title": "Lingolia Français : grammaire française, leçons et exercices classés de A1 à C1 (plan du site)",
       "url": "https://francais.lingolia.com/fr/sitemap",
       "type": "other"
+    },
+    {
+      "id": "damic-bohac-difficultes",
+      "title": "Difficultés de la langue française vues par les croatophones (Darja Damić Bohač, FF Open Press, Université de Zagreb, 2022), chapitre 11 « Verbes et constructions impersonnels »",
+      "url": "https://openbooks.ffzg.unizg.hr/index.php/FFpress/catalog/book/132",
+      "type": "reference-grammar"
+    },
+    {
+      "id": "kazlauskiene-apposition-fle",
+      "title": "L'apposition dans la production écrite des apprenants lituaniens en FLE (Vitalija Kazlauskienė, Sustainable Multilingualism 15, 2019), corpus d'apprenants de niveau B1",
+      "url": "https://doi.org/10.2478/sm-2019-0015",
+      "type": "other"
+    },
+    {
+      "id": "oqlf-valeurs-du-subjonctif",
+      "title": "Vitrine linguistique de l'Office québécois de la langue française, « Valeurs particulières du subjonctif »",
+      "url": "https://vitrinelinguistique.oqlf.gouv.qc.ca/24248/la-grammaire/le-verbe/modes/subjonctif/valeurs-particulieres-du-subjonctif",
+      "type": "reference-grammar"
     }
   ],
   "constructs": [
@@ -204,7 +222,7 @@
       ],
       "category": "tense_aspect",
       "level": "A1",
-      "description": "Compound past formed with être for a set of verbs of movement and change of state and for pronominal verbs.",
+      "description": "Compound past formed with être for a set of intransitive verbs of movement and change of state, with the participle agreeing with the subject.",
       "lexical": false,
       "sources": [
         "eaquals-ciep-inventaire",
@@ -237,12 +255,13 @@
         "verbs taking either auxiliary"
       ],
       "category": "tense_aspect",
-      "level": "B2",
+      "level": "B1",
       "description": "Verbs like monter or sortir that take être when intransitive and avoir when they have a direct object.",
       "lexical": false,
       "sources": [
         "kwiziq-cefr",
-        "unige-grammaire-b1-b2"
+        "unige-grammaire-b1-b2",
+        "lingolia-grammaire"
       ]
     },
     {
@@ -373,11 +392,13 @@
         "was going to"
       ],
       "category": "tense_aspect",
-      "level": "B2",
+      "level": "B1",
       "description": "Aller in the imperfect plus infinitive for an action that was about to happen in the past.",
       "lexical": true,
       "sources": [
-        "kwiziq-cefr"
+        "kwiziq-cefr",
+        "eaquals-ciep-inventaire",
+        "unige-grammaire-b1-b2"
       ]
     },
     {
@@ -802,15 +823,16 @@
     },
     {
       "id": "subjonctif-apres-conjonctions-d-opposition",
-      "name": "subjonctif après conjonctions d'opposition",
+      "name": "subjonctif après sans que",
       "aliases": [
         "sans que + subjonctif",
-        "subjunctive after sans que"
+        "subjunctive after sans que",
+        "subjonctif après conjonctions d'opposition"
       ],
       "category": "mood",
       "level": "B2",
-      "description": "Subjunctive after conjunctions of exclusion or opposition such as the one meaning 'without'.",
-      "lexical": false,
+      "description": "Subjunctive after sans que ('without') for something that does not happen alongside the main action; with the same subject, sans + infinitive is used instead.",
+      "lexical": true,
       "sources": [
         "eaquals-ciep-inventaire",
         "unige-grammaire-c1",
@@ -851,6 +873,25 @@
         "unige-grammaire-c1",
         "kwiziq-cefr",
         "lingolia-grammaire"
+      ]
+    },
+    {
+      "id": "subjonctif-dans-une-proposition-independante-ordre-souhait",
+      "name": "subjonctif dans une proposition indépendante (ordre, souhait)",
+      "aliases": [
+        "subjonctif en proposition indépendante",
+        "subjonctif dans l'indépendante",
+        "que + subjonctif (ordre, souhait)",
+        "subjunctive in a main clause",
+        "optative subjunctive"
+      ],
+      "category": "mood",
+      "level": "B2",
+      "description": "A que + subjunctive sentence standing on its own, giving an order to a third person or expressing a wish (also with pourvu que); it does not depend on a following main clause.",
+      "lexical": false,
+      "sources": [
+        "oqlf-valeurs-du-subjonctif",
+        "damic-bohac-difficultes"
       ]
     },
     {
@@ -1140,7 +1181,7 @@
         "perfect infinitive"
       ],
       "category": "non_finite",
-      "level": "B2",
+      "level": "B1",
       "description": "Avoir or être in the infinitive plus past participle, for an action completed before the main one.",
       "lexical": false,
       "sources": [
@@ -1234,6 +1275,23 @@
       ]
     },
     {
+      "id": "verbes-impersonnels",
+      "name": "verbes impersonnels",
+      "aliases": [
+        "il impersonnel",
+        "impersonal verbs",
+        "il pleut"
+      ],
+      "category": "voice",
+      "level": "A1",
+      "description": "Verbs used only with the impersonal subject il, such as weather verbs and the verb of necessity.",
+      "lexical": false,
+      "sources": [
+        "beacco-niveau-a2",
+        "kwiziq-cefr"
+      ]
+    },
+    {
       "id": "verbes-pronominaux-aux-temps-composes",
       "name": "verbes pronominaux aux temps composés",
       "aliases": [
@@ -1247,22 +1305,6 @@
       "sources": [
         "eaquals-ciep-inventaire",
         "unige-grammaire-b1-b2"
-      ]
-    },
-    {
-      "id": "verbes-impersonnels",
-      "name": "verbes impersonnels",
-      "aliases": [
-        "il impersonnel",
-        "impersonal verbs",
-        "il pleut"
-      ],
-      "category": "voice",
-      "level": "A2",
-      "description": "Verbs used only with the impersonal subject il, such as weather verbs and the verb of necessity.",
-      "lexical": false,
-      "sources": [
-        "beacco-niveau-a2"
       ]
     },
     {
@@ -1292,11 +1334,12 @@
         "agent in the passive"
       ],
       "category": "voice",
-      "level": "B2",
+      "level": "B1",
       "description": "Introducing the agent of a passive verb with par or, for verbs of feeling and states, with de.",
       "lexical": false,
       "sources": [
-        "unige-grammaire-b1-b2"
+        "unige-grammaire-b1-b2",
+        "eaquals-ciep-inventaire"
       ]
     },
     {
@@ -1346,7 +1389,8 @@
       "description": "Ordinary verbs used with impersonal il, placing the real subject after the verb.",
       "lexical": false,
       "sources": [
-        "grammaire-progressive-avance"
+        "grammaire-progressive-avance",
+        "damic-bohac-difficultes"
       ]
     },
     {
@@ -2588,7 +2632,7 @@
         "which one"
       ],
       "category": "questions",
-      "level": "B2",
+      "level": "B1",
       "description": "Lequel and its forms asking which one among several.",
       "lexical": true,
       "sources": [
@@ -2910,6 +2954,22 @@
       ]
     },
     {
+      "id": "concession-avec-meme-si",
+      "name": "concession avec même si",
+      "aliases": [
+        "même si + indicatif",
+        "even if"
+      ],
+      "category": "clauses",
+      "level": "B1",
+      "description": "Même si followed by the indicative to express concession.",
+      "lexical": true,
+      "sources": [
+        "eaquals-ciep-inventaire",
+        "unige-grammaire-b1-b2"
+      ]
+    },
+    {
       "id": "connecteurs-de-conclusion",
       "name": "connecteurs de conclusion",
       "aliases": [
@@ -3027,21 +3087,6 @@
       "sources": [
         "eaquals-ciep-inventaire",
         "unige-grammaire-c1"
-      ]
-    },
-    {
-      "id": "concession-avec-meme-si",
-      "name": "concession avec même si",
-      "aliases": [
-        "même si + indicatif",
-        "even if"
-      ],
-      "category": "clauses",
-      "level": "B2",
-      "description": "Même si followed by the indicative to express concession.",
-      "lexical": true,
-      "sources": [
-        "eaquals-ciep-inventaire"
       ]
     },
     {
@@ -3182,12 +3227,13 @@
         "comparison of similarity"
       ],
       "category": "comparison",
-      "level": "B1",
+      "level": "A2",
       "description": "Expressing sameness or similarity with comme, le même ... que and similar words.",
       "lexical": false,
       "sources": [
         "beacco-niveau-a2",
-        "grammaire-progressive-avance"
+        "grammaire-progressive-avance",
+        "kwiziq-cefr"
       ]
     },
     {
@@ -3445,12 +3491,13 @@
         "adverbs in -ment"
       ],
       "category": "other",
-      "level": "B1",
+      "level": "A2",
       "description": "Forming adverbs of manner from the feminine of the adjective plus -ment, with the -amment/-emment forms.",
       "lexical": false,
       "sources": [
         "eaquals-ciep-inventaire",
-        "unige-grammaire-b1-b2"
+        "unige-grammaire-b1-b2",
+        "kwiziq-cefr"
       ]
     },
     {
@@ -3468,6 +3515,23 @@
       "sources": [
         "eaquals-ciep-inventaire",
         "unige-grammaire-b1-b2"
+      ]
+    },
+    {
+      "id": "apposition",
+      "name": "apposition",
+      "aliases": [
+        "apposition nominale",
+        "groupe nominal apposé",
+        "nominal apposition",
+        "appositive"
+      ],
+      "category": "other",
+      "level": "B1",
+      "description": "A noun phrase placed beside a noun, usually between commas, to identify or describe it, often without an article.",
+      "lexical": false,
+      "sources": [
+        "kazlauskiene-apposition-fle"
       ]
     }
   ]
