@@ -103,6 +103,18 @@ export default async function GrammarPage({
                     {item.status === "learned" && <Badge variant="outline">learned</Badge>}
                   </div>
                   <p className="max-w-3xl text-sm">{item.explanation}</p>
+                  {item.pitfalls.length > 0 && (
+                    <p className="max-w-3xl text-sm text-muted-foreground">
+                      <span className="font-medium text-foreground">Watch out:</span>{" "}
+                      {item.pitfalls.join(" ")}
+                    </p>
+                  )}
+                  {item.contrasts.length > 0 && (
+                    <p className="max-w-3xl text-sm text-muted-foreground">
+                      <span className="font-medium text-foreground">Not to confuse with:</span>{" "}
+                      {item.contrasts.map((c) => `${c.name} (${c.note})`).join("; ")}
+                    </p>
+                  )}
                 </div>
                 <div className="flex shrink-0 flex-col items-end gap-2">
                   <GrammarItemActions id={item.id} status={item.status} />

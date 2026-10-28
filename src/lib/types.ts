@@ -120,6 +120,8 @@ export interface GrammarExampleInput {
 
 /** A construct found in a selection. item is set when it matches a saved grammar item. */
 export interface IdentifiedConstruct {
+  /** The catalogue construct; null if named freely (no catalogue, or not in it). */
+  constructId: string | null;
   name: string;
   category: GrammarCategory;
   level: CefrLevel;
@@ -132,6 +134,8 @@ export interface IdentifiedConstruct {
 
 /** The constructs in a selection, plus all saved items of its language (to attach to manually). */
 export interface GrammarIdentification {
+  /** Whether the language has a grammar catalogue; constructs without a constructId are then not in it. */
+  hasCatalog: boolean;
   constructs: IdentifiedConstruct[];
   savedItems: { id: string; name: string }[];
 }
@@ -158,11 +162,17 @@ export interface GrammarExample {
 export interface GrammarItem {
   id: string;
   language: LanguageCode;
+  /** The catalogue construct; name, category, level and explanation then come from the catalogue. */
+  constructId: string | null;
   name: string;
   category: GrammarCategory;
-  /** Estimated by the LLM; a rough guide, sources differ by a level at the boundaries. */
+  /** From the catalogue's sources, or estimated by the LLM; sources differ by a level at the boundaries. */
   level: CefrLevel;
   explanation: string;
+  /** Typical mistakes, from the catalogue card. */
+  pitfalls: string[];
+  /** Related constructs it is easily confused with, from the catalogue card. */
+  contrasts: { name: string; note: string }[];
   status: GrammarStatus;
   examples: GrammarExample[];
   createdAt: string;

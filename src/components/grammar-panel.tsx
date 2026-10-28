@@ -69,6 +69,11 @@ export function GrammarPanel({
                   <span className="font-medium">{c.name}</span>
                   <GrammarTags level={c.level} category={c.category} />
                   {c.item && <Badge>saved</Badge>}
+                  {identification.hasCatalog && !c.constructId && (
+                    <Badge variant="outline" title="Named freely: the grammar catalogue has no entry for it">
+                      not in catalogue
+                    </Badge>
+                  )}
                 </span>
                 <span className="text-sm text-muted-foreground">
                   <span className="italic">{c.form}</span> · {c.gist}

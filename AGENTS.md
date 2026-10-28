@@ -29,6 +29,7 @@ Where the language-specific parts live:
 - `src/lib/languages.ts`: the learnable languages, the native language (`getNativeLanguage()`), and a `LanguageProfile` per language with optional prompt examples and rules. A language without a profile runs on the generic prompts.
 - `src/lib/llm/prompts.ts`: builds the extract, normalize and grammar-naming prompts from the generic rules plus the profile. The French output must stay unchanged when the generic text is edited.
 - `src/lib/format-lemma.ts`: per-language display of lemmas.
+- `src/lib/grammar-catalog/<code>.json`: the language's grammar catalogue, the fixed list of constructs the grammar analysis classifies against (with a reference card per construct). Built with `/grammar-catalog <code> list|cards` following `src/lib/grammar-catalog/SPEC.md`, reviewed, then committed; check with `npm run grammar:validate`. Never change or reuse a construct id: saved items refer to it (deprecate instead). A language without a catalogue names constructs freely. After catalogue changes, run `scripts/map-grammar-items.mts` to sync saved items.
 - Active language: a cookie, read with `getActiveLanguage()`. Vocabulary, grammar and sources are always queried for one language; never add an unscoped list query.
 
 - Store linguistic facts as data, not as formatting: e.g. a noun's grammatical gender is its own field and the lemma stays bare. How a word is shown (articles, gender markers, elision) is a per-language display rule, kept in one place, not baked into stored lemmas or prompts.

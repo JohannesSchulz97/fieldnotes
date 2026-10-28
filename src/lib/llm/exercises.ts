@@ -47,11 +47,17 @@ Known vocabulary: ${knownLemmas.join(", ")}`;
 
 function exerciseInput(item: GrammarItem, level: CefrLevel, count: number): string {
   const examples = item.examples.map((e) => `- ${e.sentence}`).join("\n");
+  // From the catalogue card: the forms learners confuse make the best contrast cases.
+  const pitfalls = item.pitfalls.length > 0 ? `\nTypical mistakes:\n${item.pitfalls.map((p) => `- ${p}`).join("\n")}` : "";
+  const contrasts =
+    item.contrasts.length > 0
+      ? `\nEasily confused with (use these for the contrast cases):\n${item.contrasts.map((c) => `- ${c.name}: ${c.note}`).join("\n")}`
+      : "";
   return `Construct: ${item.name}
 Explanation: ${item.explanation}
 Level: ${level}
 Examples:
-${examples}
+${examples}${pitfalls}${contrasts}
 
 Write ${count} exercises.`;
 }

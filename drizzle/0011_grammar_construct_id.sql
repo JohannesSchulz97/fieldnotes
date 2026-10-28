@@ -1,0 +1,1 @@
+ALTER TABLE `grammar_items` ADD `construct_id` text;
