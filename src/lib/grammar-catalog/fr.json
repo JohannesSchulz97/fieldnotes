@@ -73,6 +73,12 @@
       "title": "Vitrine linguistique de l'Office québécois de la langue française, « Valeurs particulières du subjonctif »",
       "url": "https://vitrinelinguistique.oqlf.gouv.qc.ca/24248/la-grammaire/le-verbe/modes/subjonctif/valeurs-particulieres-du-subjonctif",
       "type": "reference-grammar"
+    },
+    {
+      "id": "larousse-dictionnaire",
+      "title": "Dictionnaire de français Larousse en ligne, article « avoir »",
+      "url": "https://www.larousse.fr/dictionnaires/francais/avoir/7141",
+      "type": "other"
     }
   ],
   "constructs": [
@@ -3775,6 +3781,63 @@
             "sentence": "Il faudra partir tôt demain.",
             "form": "Il faudra partir",
             "translation": "We will have to leave early tomorrow."
+          }
+        ]
+      }
+    },
+    {
+      "id": "avoir-a-infinitif",
+      "name": "avoir à + infinitif (obligation)",
+      "aliases": [
+        "avoir à faire",
+        "to have to",
+        "n'avoir qu'à + infinitif"
+      ],
+      "category": "non_finite",
+      "level": "B1",
+      "description": "Avoir à + infinitive to say that something has to be done, a milder alternative to devoir.",
+      "lexical": true,
+      "sources": [
+        "larousse-dictionnaire"
+      ],
+      "card": {
+        "formation": "Avoir, conjugated in any tense, + à + infinitive (j'ai à finir, nous avions à attendre). Object pronouns go before the infinitive: j'ai à le faire.",
+        "use": "It says that something has to be done, often a task or an obligation imposed by circumstances; it is close to devoir and il faut but usually less forceful. N'avoir qu'à + infinitive means that one only has to do something to get a result (tu n'as qu'à demander).",
+        "pitfalls": [
+          "Confusing it with avoir + noun + à + infinitive, where the infinitive describes the noun: j'ai un livre à lire.",
+          "Reading n'avoir qu'à as a restriction on obligation: it means it is enough to, often as a suggestion.",
+          "Writing avoir de + infinitive; the preposition is always à.",
+          "Mixing up j'ai à faire (I have things to do) with avoir affaire à (to deal with)."
+        ],
+        "contrasts": [
+          {
+            "id": "il-faut-infinitif",
+            "note": "Il faut + infinitive states a necessity without a personal subject; avoir à names who has to act."
+          },
+          {
+            "id": "verbe-a-infinitif",
+            "note": "In verbe + à + infinitive (commencer à, réussir à) the verb keeps its own meaning; avoir à means having to do something."
+          },
+          {
+            "id": "ne-que-restriction",
+            "note": "N'avoir qu'à combines this construction with ne … que to say only this action is needed."
+          }
+        ],
+        "examples": [
+          {
+            "sentence": "J'ai à finir ce rapport ce soir.",
+            "form": "ai à finir",
+            "translation": "I have to finish this report tonight."
+          },
+          {
+            "sentence": "Nous avons eu à attendre deux heures.",
+            "form": "avons eu à attendre",
+            "translation": "We had to wait two hours."
+          },
+          {
+            "sentence": "Tu n'as qu'à lui demander.",
+            "form": "n'as qu'à lui demander",
+            "translation": "You only have to ask him."
           }
         ]
       }
