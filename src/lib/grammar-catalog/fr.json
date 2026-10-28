@@ -1,0 +1,3474 @@
+{
+  "language": "fr",
+  "explanationLanguage": "en",
+  "sources": [
+    {
+      "id": "beacco-niveau-a2",
+      "title": "Niveau A2 pour le français : un référentiel (Beacco, Lepage, Porquier, Riba, Didier 2008), chapitre 5 « Grammaire : morphologie et structures des énoncés et des phrases »",
+      "url": "https://bop.fipf.org/wp-content/uploads/2017/03/refa343342.pdf",
+      "type": "reference-level-description"
+    },
+    {
+      "id": "eaquals-ciep-inventaire",
+      "title": "Inventaire linguistique des contenus clés des niveaux du CECRL (Eaquals et CIEP / France Éducation international, 2015), annexes D et E (grammaire A1-C1)",
+      "url": "https://france-education-international.fr/document/cecrl",
+      "type": "official-curriculum"
+    },
+    {
+      "id": "grammaire-progressive-avance",
+      "title": "Grammaire progressive du français, niveau avancé (Boularès et Frérot, CLE International), table des matières d'après la notice de catalogue",
+      "url": "https://opac.wiuc-ghana.edu.gh/bib/1549",
+      "type": "reference-grammar"
+    },
+    {
+      "id": "unige-grammaire-b1-b2",
+      "title": "Éléments de grammaire B1-B2 (Maison des langues, Université de Genève, cours d'été de français, 2025)",
+      "url": "https://mdl.unige.ch/application/files/2817/6397/4809/Elements_de_grammaire_B1-B2_v2025.pdf",
+      "type": "reference-grammar"
+    },
+    {
+      "id": "unige-grammaire-c1",
+      "title": "Éléments de grammaire C1 (Maison des langues, Université de Genève, cours d'été de français, 2025)",
+      "url": "https://mdl.unige.ch/application/files/4517/6397/4836/Elements_de_grammaire_C1_v2025.pdf",
+      "type": "reference-grammar"
+    },
+    {
+      "id": "upc-grammaire-b1",
+      "title": "Français langue étrangère, Grammaire B1 : programme (Université Paris Cité, département LANSAD)",
+      "url": "https://u-paris.fr/eila/wp-content/uploads/sites/42/2022/09/Fiche-Grammaire-B1.pdf",
+      "type": "official-curriculum"
+    },
+    {
+      "id": "kwiziq-cefr",
+      "title": "Kwiziq French: grammar lessons by CEFR level (A2, B1, B2 and C1 lists)",
+      "url": "https://french.kwiziq.com/revision/grammar/by-cefr-level/B2",
+      "type": "other"
+    },
+    {
+      "id": "temps-litteraires",
+      "title": "Les temps littéraires (EdTech Books, module de cours de français)",
+      "url": "https://edtechbooks.org/docx/7738",
+      "type": "other"
+    },
+    {
+      "id": "lingolia-grammaire",
+      "title": "Lingolia Français : grammaire française, leçons et exercices classés de A1 à C1 (plan du site)",
+      "url": "https://francais.lingolia.com/fr/sitemap",
+      "type": "other"
+    }
+  ],
+  "constructs": [
+    {
+      "id": "present-de-l-indicatif-verbes-en-er",
+      "name": "présent de l'indicatif (verbes en -er)",
+      "aliases": [
+        "présent des verbes du premier groupe",
+        "present tense of -er verbs"
+      ],
+      "category": "tense_aspect",
+      "level": "A1",
+      "description": "Present tense of regular -er verbs: one stem plus the endings -e, -es, -e, -ons, -ez, -ent.",
+      "lexical": false,
+      "sources": [
+        "eaquals-ciep-inventaire",
+        "beacco-niveau-a2",
+        "unige-grammaire-b1-b2"
+      ]
+    },
+    {
+      "id": "present-de-l-indicatif-verbes-en-ir-a-deux-radicaux",
+      "name": "présent de l'indicatif (verbes en -ir à deux radicaux)",
+      "aliases": [
+        "présent des verbes du deuxième groupe",
+        "present tense of -ir/-issons verbs"
+      ],
+      "category": "tense_aspect",
+      "level": "A1",
+      "description": "Present tense of second-group -ir verbs, which insert -iss- in the plural.",
+      "lexical": false,
+      "sources": [
+        "eaquals-ciep-inventaire",
+        "unige-grammaire-b1-b2"
+      ]
+    },
+    {
+      "id": "present-de-l-indicatif-verbes-irreguliers",
+      "name": "présent de l'indicatif (verbes irréguliers)",
+      "aliases": [
+        "présent des verbes du troisième groupe",
+        "present tense of irregular verbs"
+      ],
+      "category": "tense_aspect",
+      "level": "A1",
+      "description": "Present tense of irregular and third-group verbs, with changing stems in the singular and plural.",
+      "lexical": false,
+      "sources": [
+        "eaquals-ciep-inventaire",
+        "beacco-niveau-a2",
+        "unige-grammaire-b1-b2"
+      ]
+    },
+    {
+      "id": "present-de-l-indicatif-emplois",
+      "name": "présent de l'indicatif (emplois)",
+      "aliases": [
+        "valeurs du présent",
+        "uses of the present tense"
+      ],
+      "category": "tense_aspect",
+      "level": "A1",
+      "description": "Uses of the present: current facts, habits, general truths and near future.",
+      "lexical": false,
+      "sources": [
+        "beacco-niveau-a2",
+        "eaquals-ciep-inventaire"
+      ]
+    },
+    {
+      "id": "present-progressif-etre-en-train-de-infinitif",
+      "name": "présent progressif (être en train de + infinitif)",
+      "aliases": [
+        "être en train de",
+        "present progressive",
+        "action in progress"
+      ],
+      "category": "tense_aspect",
+      "level": "A1",
+      "description": "Expresses an action in progress at a given moment.",
+      "lexical": true,
+      "sources": [
+        "eaquals-ciep-inventaire",
+        "unige-grammaire-b1-b2"
+      ]
+    },
+    {
+      "id": "futur-proche-aller-infinitif",
+      "name": "futur proche (aller + infinitif)",
+      "aliases": [
+        "futur périphrastique",
+        "near future",
+        "going to"
+      ],
+      "category": "tense_aspect",
+      "level": "A1",
+      "description": "Expresses a future action seen as near or already planned.",
+      "lexical": true,
+      "sources": [
+        "eaquals-ciep-inventaire",
+        "beacco-niveau-a2",
+        "unige-grammaire-b1-b2"
+      ]
+    },
+    {
+      "id": "passe-recent-venir-de-infinitif",
+      "name": "passé récent (venir de + infinitif)",
+      "aliases": [
+        "venir de",
+        "recent past",
+        "to have just done"
+      ],
+      "category": "tense_aspect",
+      "level": "A1",
+      "description": "Expresses an action that has just happened.",
+      "lexical": true,
+      "sources": [
+        "eaquals-ciep-inventaire",
+        "unige-grammaire-b1-b2"
+      ]
+    },
+    {
+      "id": "passe-compose-avec-avoir",
+      "name": "passé composé avec avoir",
+      "aliases": [
+        "passé composé (auxiliaire avoir)",
+        "perfect tense with avoir",
+        "compound past with avoir"
+      ],
+      "category": "tense_aspect",
+      "level": "A1",
+      "description": "Compound past formed with avoir in the present plus the past participle.",
+      "lexical": false,
+      "sources": [
+        "eaquals-ciep-inventaire",
+        "beacco-niveau-a2",
+        "unige-grammaire-b1-b2"
+      ]
+    },
+    {
+      "id": "passe-compose-avec-etre",
+      "name": "passé composé avec être",
+      "aliases": [
+        "passé composé (auxiliaire être)",
+        "verbes de mouvement avec être",
+        "compound past with être"
+      ],
+      "category": "tense_aspect",
+      "level": "A1",
+      "description": "Compound past formed with être for a set of verbs of movement and change of state and for pronominal verbs.",
+      "lexical": false,
+      "sources": [
+        "eaquals-ciep-inventaire",
+        "beacco-niveau-a2",
+        "unige-grammaire-b1-b2"
+      ]
+    },
+    {
+      "id": "passe-compose-emplois",
+      "name": "passé composé (emplois)",
+      "aliases": [
+        "valeurs du passé composé",
+        "uses of the passé composé"
+      ],
+      "category": "tense_aspect",
+      "level": "A2",
+      "description": "Uses of the passé composé for completed past events, successions of actions and results.",
+      "lexical": false,
+      "sources": [
+        "beacco-niveau-a2",
+        "unige-grammaire-b1-b2",
+        "unige-grammaire-c1"
+      ]
+    },
+    {
+      "id": "verbes-a-double-auxiliaire-avoir-ou-etre",
+      "name": "verbes à double auxiliaire (avoir ou être)",
+      "aliases": [
+        "sortir/monter/descendre avec avoir",
+        "verbs taking either auxiliary"
+      ],
+      "category": "tense_aspect",
+      "level": "B2",
+      "description": "Verbs like monter or sortir that take être when intransitive and avoir when they have a direct object.",
+      "lexical": false,
+      "sources": [
+        "kwiziq-cefr",
+        "unige-grammaire-b1-b2"
+      ]
+    },
+    {
+      "id": "imparfait-formation",
+      "name": "imparfait (formation)",
+      "aliases": [
+        "imparfait de l'indicatif",
+        "imperfect tense formation"
+      ],
+      "category": "tense_aspect",
+      "level": "A2",
+      "description": "Imperfect tense built on the nous stem of the present plus -ais, -ais, -ait, -ions, -iez, -aient.",
+      "lexical": false,
+      "sources": [
+        "beacco-niveau-a2",
+        "eaquals-ciep-inventaire",
+        "unige-grammaire-b1-b2"
+      ]
+    },
+    {
+      "id": "imparfait-description-et-habitude",
+      "name": "imparfait (description et habitude)",
+      "aliases": [
+        "emplois de l'imparfait",
+        "imperfect for description and habits"
+      ],
+      "category": "tense_aspect",
+      "level": "A2",
+      "description": "Use of the imperfect for background, descriptions, states and repeated actions in the past.",
+      "lexical": false,
+      "sources": [
+        "eaquals-ciep-inventaire",
+        "beacco-niveau-a2",
+        "unige-grammaire-b1-b2",
+        "unige-grammaire-c1"
+      ]
+    },
+    {
+      "id": "alternance-passe-compose-et-imparfait",
+      "name": "alternance passé composé et imparfait",
+      "aliases": [
+        "passé composé ou imparfait",
+        "temps du passé dans le récit",
+        "perfect vs imperfect"
+      ],
+      "category": "tense_aspect",
+      "level": "A2",
+      "description": "Choosing between passé composé for events and imparfait for background when telling a story.",
+      "lexical": false,
+      "sources": [
+        "eaquals-ciep-inventaire",
+        "unige-grammaire-b1-b2",
+        "upc-grammaire-b1"
+      ]
+    },
+    {
+      "id": "futur-simple-formation",
+      "name": "futur simple (formation)",
+      "aliases": [
+        "futur de l'indicatif",
+        "simple future formation"
+      ],
+      "category": "tense_aspect",
+      "level": "A2",
+      "description": "Simple future formed on the infinitive (or an irregular stem) plus -ai, -as, -a, -ons, -ez, -ont.",
+      "lexical": false,
+      "sources": [
+        "eaquals-ciep-inventaire",
+        "beacco-niveau-a2",
+        "unige-grammaire-b1-b2"
+      ]
+    },
+    {
+      "id": "futur-simple-emplois",
+      "name": "futur simple (emplois)",
+      "aliases": [
+        "valeurs du futur",
+        "uses of the simple future"
+      ],
+      "category": "tense_aspect",
+      "level": "A2",
+      "description": "Use of the simple future for predictions, promises, plans and instructions.",
+      "lexical": false,
+      "sources": [
+        "eaquals-ciep-inventaire",
+        "unige-grammaire-b1-b2"
+      ]
+    },
+    {
+      "id": "plus-que-parfait",
+      "name": "plus-que-parfait",
+      "aliases": [
+        "pluperfect",
+        "past perfect"
+      ],
+      "category": "tense_aspect",
+      "level": "B1",
+      "description": "Compound tense (imparfait of avoir or être plus past participle) for an action before another past action.",
+      "lexical": false,
+      "sources": [
+        "eaquals-ciep-inventaire",
+        "upc-grammaire-b1",
+        "unige-grammaire-b1-b2",
+        "unige-grammaire-c1"
+      ]
+    },
+    {
+      "id": "futur-dans-le-passe",
+      "name": "futur dans le passé",
+      "aliases": [
+        "conditionnel à valeur de futur dans le passé",
+        "future in the past"
+      ],
+      "category": "tense_aspect",
+      "level": "B1",
+      "description": "Conditional used to express a later event seen from a past point of view.",
+      "lexical": false,
+      "sources": [
+        "upc-grammaire-b1",
+        "unige-grammaire-c1"
+      ]
+    },
+    {
+      "id": "futur-proche-dans-le-passe-aller-a-l-imparfait-infinitif",
+      "name": "futur proche dans le passé (aller à l'imparfait + infinitif)",
+      "aliases": [
+        "j'allais + infinitif",
+        "was going to"
+      ],
+      "category": "tense_aspect",
+      "level": "B2",
+      "description": "Aller in the imperfect plus infinitive for an action that was about to happen in the past.",
+      "lexical": true,
+      "sources": [
+        "kwiziq-cefr"
+      ]
+    },
+    {
+      "id": "futur-anterieur",
+      "name": "futur antérieur",
+      "aliases": [
+        "future perfect"
+      ],
+      "category": "tense_aspect",
+      "level": "B2",
+      "description": "Compound future (future of avoir or être plus past participle) for an action completed before a future point.",
+      "lexical": false,
+      "sources": [
+        "eaquals-ciep-inventaire",
+        "unige-grammaire-b1-b2",
+        "unige-grammaire-c1",
+        "kwiziq-cefr"
+      ]
+    },
+    {
+      "id": "passe-simple",
+      "name": "passé simple",
+      "aliases": [
+        "passé historique",
+        "simple past",
+        "past historic"
+      ],
+      "category": "tense_aspect",
+      "level": "B1",
+      "description": "Simple past of written narrative, history and biography, replacing the passé composé in literary texts.",
+      "lexical": false,
+      "sources": [
+        "eaquals-ciep-inventaire",
+        "unige-grammaire-b1-b2",
+        "unige-grammaire-c1",
+        "kwiziq-cefr",
+        "upc-grammaire-b1"
+      ]
+    },
+    {
+      "id": "passe-anterieur",
+      "name": "passé antérieur",
+      "aliases": [
+        "past anterior"
+      ],
+      "category": "tense_aspect",
+      "level": "C2",
+      "description": "Literary compound tense (passé simple of avoir or être plus past participle) for an action just before another in the passé simple.",
+      "lexical": false,
+      "sources": [
+        "temps-litteraires"
+      ]
+    },
+    {
+      "id": "imperatif-formation",
+      "name": "impératif (formation)",
+      "aliases": [
+        "impératif présent",
+        "imperative"
+      ],
+      "category": "mood",
+      "level": "A1",
+      "description": "Imperative forms (tu, nous, vous) without a subject pronoun, to give orders, advice or instructions.",
+      "lexical": false,
+      "sources": [
+        "eaquals-ciep-inventaire",
+        "beacco-niveau-a2",
+        "unige-grammaire-b1-b2"
+      ]
+    },
+    {
+      "id": "imperatif-negatif",
+      "name": "impératif négatif",
+      "aliases": [
+        "ne + impératif + pas",
+        "negative imperative"
+      ],
+      "category": "mood",
+      "level": "A2",
+      "description": "Negative imperative, with ne before and pas after the verb, to forbid or warn.",
+      "lexical": false,
+      "sources": [
+        "beacco-niveau-a2"
+      ]
+    },
+    {
+      "id": "conditionnel-de-politesse",
+      "name": "conditionnel de politesse",
+      "aliases": [
+        "conditionnel présent de politesse",
+        "polite conditional",
+        "I would like"
+      ],
+      "category": "mood",
+      "level": "A1",
+      "description": "Conditional of a few verbs used as fixed polite forms to ask for something.",
+      "lexical": false,
+      "sources": [
+        "eaquals-ciep-inventaire",
+        "beacco-niveau-a2",
+        "upc-grammaire-b1"
+      ]
+    },
+    {
+      "id": "conditionnel-present-formation",
+      "name": "conditionnel présent (formation)",
+      "aliases": [
+        "conditionnel présent",
+        "present conditional formation"
+      ],
+      "category": "mood",
+      "level": "B1",
+      "description": "Present conditional formed on the future stem plus the imperfect endings.",
+      "lexical": false,
+      "sources": [
+        "eaquals-ciep-inventaire",
+        "upc-grammaire-b1",
+        "unige-grammaire-b1-b2"
+      ]
+    },
+    {
+      "id": "conditionnel-present-souhait-conseil-suggestion",
+      "name": "conditionnel présent (souhait, conseil, suggestion)",
+      "aliases": [
+        "emplois du conditionnel",
+        "conditional for wishes and advice"
+      ],
+      "category": "mood",
+      "level": "B1",
+      "description": "Present conditional to express wishes, advice, suggestions and imagined situations.",
+      "lexical": false,
+      "sources": [
+        "eaquals-ciep-inventaire",
+        "upc-grammaire-b1",
+        "unige-grammaire-b1-b2"
+      ]
+    },
+    {
+      "id": "conditionnel-information-non-confirmee",
+      "name": "conditionnel (information non confirmée)",
+      "aliases": [
+        "conditionnel journalistique",
+        "conditionnel de l'incertitude",
+        "reporting conditional"
+      ],
+      "category": "mood",
+      "level": "B2",
+      "description": "Conditional used to report information that is not confirmed, typical of the press.",
+      "lexical": false,
+      "sources": [
+        "unige-grammaire-b1-b2"
+      ]
+    },
+    {
+      "id": "conditionnel-passe-formation",
+      "name": "conditionnel passé (formation)",
+      "aliases": [
+        "conditionnel passé",
+        "past conditional formation"
+      ],
+      "category": "mood",
+      "level": "B2",
+      "description": "Past conditional formed with avoir or être in the conditional plus the past participle.",
+      "lexical": false,
+      "sources": [
+        "eaquals-ciep-inventaire",
+        "unige-grammaire-b1-b2",
+        "unige-grammaire-c1",
+        "kwiziq-cefr"
+      ]
+    },
+    {
+      "id": "conditionnel-passe-regret-reproche",
+      "name": "conditionnel passé (regret, reproche)",
+      "aliases": [
+        "emplois du conditionnel passé",
+        "past conditional for regret and reproach"
+      ],
+      "category": "mood",
+      "level": "B2",
+      "description": "Past conditional to express regret, reproach or an unrealised possibility in the past.",
+      "lexical": false,
+      "sources": [
+        "eaquals-ciep-inventaire",
+        "unige-grammaire-b1-b2",
+        "unige-grammaire-c1",
+        "kwiziq-cefr"
+      ]
+    },
+    {
+      "id": "subjonctif-present-formation",
+      "name": "subjonctif présent (formation)",
+      "aliases": [
+        "subjonctif présent",
+        "present subjunctive formation"
+      ],
+      "category": "mood",
+      "level": "B1",
+      "description": "Present subjunctive built on the ils stem of the present plus -e, -es, -e, -ions, -iez, -ent, with irregular verbs.",
+      "lexical": false,
+      "sources": [
+        "eaquals-ciep-inventaire",
+        "upc-grammaire-b1",
+        "unige-grammaire-b1-b2",
+        "kwiziq-cefr"
+      ]
+    },
+    {
+      "id": "subjonctif-apres-expressions-d-obligation",
+      "name": "subjonctif après expressions d'obligation",
+      "aliases": [
+        "il faut que + subjonctif",
+        "subjunctive after expressions of necessity"
+      ],
+      "category": "mood",
+      "level": "B1",
+      "description": "Subjunctive after expressions of obligation and necessity.",
+      "lexical": false,
+      "sources": [
+        "eaquals-ciep-inventaire",
+        "upc-grammaire-b1",
+        "unige-grammaire-b1-b2",
+        "unige-grammaire-c1",
+        "kwiziq-cefr"
+      ]
+    },
+    {
+      "id": "subjonctif-apres-expressions-de-volonte",
+      "name": "subjonctif après expressions de volonté",
+      "aliases": [
+        "vouloir que + subjonctif",
+        "subjunctive after verbs of will"
+      ],
+      "category": "mood",
+      "level": "B1",
+      "description": "Subjunctive after verbs and expressions of will, wish, order or permission.",
+      "lexical": false,
+      "sources": [
+        "upc-grammaire-b1",
+        "eaquals-ciep-inventaire",
+        "unige-grammaire-b1-b2",
+        "unige-grammaire-c1",
+        "kwiziq-cefr"
+      ]
+    },
+    {
+      "id": "subjonctif-apres-expressions-de-sentiment",
+      "name": "subjonctif après expressions de sentiment",
+      "aliases": [
+        "subjonctif et sentiments",
+        "subjunctive after emotions"
+      ],
+      "category": "mood",
+      "level": "B1",
+      "description": "Subjunctive after verbs, adjectives and nouns expressing feelings such as joy, fear or regret.",
+      "lexical": false,
+      "sources": [
+        "eaquals-ciep-inventaire",
+        "unige-grammaire-b1-b2",
+        "unige-grammaire-c1",
+        "kwiziq-cefr"
+      ]
+    },
+    {
+      "id": "subjonctif-ou-indicatif-apres-verbes-d-opinion",
+      "name": "subjonctif ou indicatif après verbes d'opinion",
+      "aliases": [
+        "indicatif ou subjonctif",
+        "espérer que + indicatif",
+        "subjunctive vs indicative"
+      ],
+      "category": "mood",
+      "level": "B1",
+      "description": "Choice of mood after verbs of opinion, hope and certainty, which take the indicative when affirmative.",
+      "lexical": false,
+      "sources": [
+        "eaquals-ciep-inventaire",
+        "unige-grammaire-b1-b2",
+        "unige-grammaire-c1"
+      ]
+    },
+    {
+      "id": "subjonctif-ou-infinitif",
+      "name": "subjonctif ou infinitif",
+      "aliases": [
+        "même sujet : infinitif",
+        "subjunctive vs infinitive"
+      ],
+      "category": "mood",
+      "level": "B1",
+      "description": "Use of the infinitive instead of the subjunctive when both clauses have the same subject.",
+      "lexical": false,
+      "sources": [
+        "unige-grammaire-b1-b2",
+        "unige-grammaire-c1"
+      ]
+    },
+    {
+      "id": "subjonctif-apres-conjonctions-de-but",
+      "name": "subjonctif après conjonctions de but",
+      "aliases": [
+        "pour que + subjonctif",
+        "afin que",
+        "subjunctive after purpose conjunctions"
+      ],
+      "category": "mood",
+      "level": "B1",
+      "description": "Subjunctive after conjunctions expressing purpose.",
+      "lexical": false,
+      "sources": [
+        "eaquals-ciep-inventaire",
+        "upc-grammaire-b1",
+        "unige-grammaire-c1",
+        "kwiziq-cefr"
+      ]
+    },
+    {
+      "id": "subjonctif-apres-conjonctions-de-concession",
+      "name": "subjonctif après conjonctions de concession",
+      "aliases": [
+        "bien que + subjonctif",
+        "quoique",
+        "subjunctive after concessive conjunctions"
+      ],
+      "category": "mood",
+      "level": "B1",
+      "description": "Subjunctive after conjunctions expressing concession.",
+      "lexical": false,
+      "sources": [
+        "eaquals-ciep-inventaire",
+        "unige-grammaire-c1",
+        "kwiziq-cefr"
+      ]
+    },
+    {
+      "id": "subjonctif-apres-expressions-de-doute-et-de-possibilite",
+      "name": "subjonctif après expressions de doute et de possibilité",
+      "aliases": [
+        "douter que",
+        "il est possible que",
+        "subjunctive after doubt"
+      ],
+      "category": "mood",
+      "level": "B2",
+      "description": "Subjunctive after verbs and impersonal expressions of doubt, possibility and uncertainty.",
+      "lexical": false,
+      "sources": [
+        "eaquals-ciep-inventaire",
+        "unige-grammaire-b1-b2",
+        "unige-grammaire-c1"
+      ]
+    },
+    {
+      "id": "subjonctif-apres-verbes-d-opinion-a-la-forme-negative-ou-interrogative",
+      "name": "subjonctif après verbes d'opinion à la forme négative ou interrogative",
+      "aliases": [
+        "je ne pense pas que + subjonctif",
+        "subjunctive after negative opinion"
+      ],
+      "category": "mood",
+      "level": "B2",
+      "description": "Subjunctive after verbs of opinion when they are negative or inverted in a question.",
+      "lexical": false,
+      "sources": [
+        "kwiziq-cefr",
+        "unige-grammaire-c1"
+      ]
+    },
+    {
+      "id": "subjonctif-apres-expressions-impersonnelles-de-jugement",
+      "name": "subjonctif après expressions impersonnelles de jugement",
+      "aliases": [
+        "il est + adjectif + que",
+        "subjunctive after impersonal expressions"
+      ],
+      "category": "mood",
+      "level": "B2",
+      "description": "Subjunctive after impersonal expressions of judgement or appreciation.",
+      "lexical": false,
+      "sources": [
+        "eaquals-ciep-inventaire",
+        "unige-grammaire-c1",
+        "kwiziq-cefr",
+        "unige-grammaire-b1-b2"
+      ]
+    },
+    {
+      "id": "subjonctif-apres-conjonctions-de-temps",
+      "name": "subjonctif après conjonctions de temps",
+      "aliases": [
+        "avant que",
+        "jusqu'à ce que",
+        "subjunctive after time conjunctions"
+      ],
+      "category": "mood",
+      "level": "B2",
+      "description": "Subjunctive after conjunctions of time that point to a later or expected event.",
+      "lexical": false,
+      "sources": [
+        "unige-grammaire-c1",
+        "kwiziq-cefr"
+      ]
+    },
+    {
+      "id": "subjonctif-apres-conjonctions-de-condition",
+      "name": "subjonctif après conjonctions de condition",
+      "aliases": [
+        "à condition que",
+        "pourvu que",
+        "à moins que",
+        "subjunctive after conditional conjunctions"
+      ],
+      "category": "mood",
+      "level": "B2",
+      "description": "Subjunctive after conjunctions that state a condition or a restriction.",
+      "lexical": false,
+      "sources": [
+        "eaquals-ciep-inventaire",
+        "unige-grammaire-c1",
+        "kwiziq-cefr"
+      ]
+    },
+    {
+      "id": "subjonctif-apres-conjonctions-d-opposition",
+      "name": "subjonctif après conjonctions d'opposition",
+      "aliases": [
+        "sans que + subjonctif",
+        "subjunctive after sans que"
+      ],
+      "category": "mood",
+      "level": "B2",
+      "description": "Subjunctive after conjunctions of exclusion or opposition such as the one meaning 'without'.",
+      "lexical": false,
+      "sources": [
+        "eaquals-ciep-inventaire",
+        "unige-grammaire-c1",
+        "kwiziq-cefr"
+      ]
+    },
+    {
+      "id": "subjonctif-passe",
+      "name": "subjonctif passé",
+      "aliases": [
+        "passé du subjonctif",
+        "past subjunctive"
+      ],
+      "category": "mood",
+      "level": "B2",
+      "description": "Past subjunctive (subjunctive of avoir or être plus past participle) for an action completed before the main one.",
+      "lexical": false,
+      "sources": [
+        "eaquals-ciep-inventaire",
+        "unige-grammaire-b1-b2",
+        "unige-grammaire-c1",
+        "kwiziq-cefr"
+      ]
+    },
+    {
+      "id": "subjonctif-dans-les-relatives",
+      "name": "subjonctif dans les relatives",
+      "aliases": [
+        "subjonctif après superlatif",
+        "le seul qui + subjonctif",
+        "subjunctive in relative clauses"
+      ],
+      "category": "mood",
+      "level": "B2",
+      "description": "Subjunctive in relative clauses after a superlative or 'the only', or describing something sought or uncertain.",
+      "lexical": false,
+      "sources": [
+        "unige-grammaire-c1",
+        "kwiziq-cefr",
+        "lingolia-grammaire"
+      ]
+    },
+    {
+      "id": "subjonctif-apres-conjonctions-de-crainte",
+      "name": "subjonctif après conjonctions de crainte",
+      "aliases": [
+        "de peur que",
+        "de crainte que",
+        "subjunctive after fear conjunctions"
+      ],
+      "category": "mood",
+      "level": "C1",
+      "description": "Subjunctive after conjunctions expressing fear or a purpose to avoid.",
+      "lexical": false,
+      "sources": [
+        "eaquals-ciep-inventaire",
+        "unige-grammaire-c1",
+        "kwiziq-cefr"
+      ]
+    },
+    {
+      "id": "subjonctif-apres-verbe-a-ce-que",
+      "name": "subjonctif après verbe + à ce que",
+      "aliases": [
+        "s'attendre à ce que",
+        "tenir à ce que"
+      ],
+      "category": "mood",
+      "level": "C1",
+      "description": "Subjunctive after verbs built with à, which introduce the clause with à ce que.",
+      "lexical": false,
+      "sources": [
+        "eaquals-ciep-inventaire",
+        "unige-grammaire-c1"
+      ]
+    },
+    {
+      "id": "subjonctif-apres-relatifs-indefinis-de-concession",
+      "name": "subjonctif après relatifs indéfinis de concession",
+      "aliases": [
+        "qui que",
+        "quoi que",
+        "où que",
+        "quel que soit",
+        "whoever, whatever"
+      ],
+      "category": "mood",
+      "level": "C1",
+      "description": "Subjunctive after indefinite concessive expressions meaning whoever, whatever or wherever.",
+      "lexical": false,
+      "sources": [
+        "unige-grammaire-c1"
+      ]
+    },
+    {
+      "id": "subjonctif-apres-cause-rejetee",
+      "name": "subjonctif après cause rejetée",
+      "aliases": [
+        "non que + subjonctif",
+        "ce n'est pas que",
+        "subjunctive for a rejected cause"
+      ],
+      "category": "mood",
+      "level": "C1",
+      "description": "Subjunctive after expressions that reject a possible cause.",
+      "lexical": false,
+      "sources": [
+        "unige-grammaire-c1"
+      ]
+    },
+    {
+      "id": "que-subjonctif-en-tete-de-phrase",
+      "name": "que + subjonctif en tête de phrase",
+      "aliases": [
+        "que ... ou non",
+        "whether ... or not"
+      ],
+      "category": "mood",
+      "level": "C1",
+      "description": "A que-clause in the subjunctive placed first, as subject or to express an alternative.",
+      "lexical": false,
+      "sources": [
+        "kwiziq-cefr"
+      ]
+    },
+    {
+      "id": "imparfait-du-subjonctif",
+      "name": "imparfait du subjonctif",
+      "aliases": [
+        "subjonctif imparfait",
+        "imperfect subjunctive"
+      ],
+      "category": "mood",
+      "level": "C2",
+      "description": "Literary subjunctive tense built on the passé simple, found in older and literary narrative.",
+      "lexical": false,
+      "sources": [
+        "temps-litteraires"
+      ]
+    },
+    {
+      "id": "plus-que-parfait-du-subjonctif",
+      "name": "plus-que-parfait du subjonctif",
+      "aliases": [
+        "subjonctif plus-que-parfait",
+        "pluperfect subjunctive"
+      ],
+      "category": "mood",
+      "level": "C2",
+      "description": "Literary compound subjunctive, also used in literature as a past conditional.",
+      "lexical": false,
+      "sources": [
+        "temps-litteraires"
+      ]
+    },
+    {
+      "id": "participe-passe-formation",
+      "name": "participe passé (formation)",
+      "aliases": [
+        "formes du participe passé",
+        "past participle"
+      ],
+      "category": "non_finite",
+      "level": "A1",
+      "description": "Regular and irregular forms of the past participle, used in compound tenses and the passive.",
+      "lexical": false,
+      "sources": [
+        "eaquals-ciep-inventaire",
+        "unige-grammaire-b1-b2",
+        "lingolia-grammaire"
+      ]
+    },
+    {
+      "id": "verbe-infinitif-sans-preposition",
+      "name": "verbe + infinitif (sans préposition)",
+      "aliases": [
+        "verbes modaux + infinitif",
+        "modal verbs + infinitive",
+        "verb + bare infinitive"
+      ],
+      "category": "non_finite",
+      "level": "A1",
+      "description": "Verbs such as the modals or verbs of liking followed directly by an infinitive.",
+      "lexical": false,
+      "sources": [
+        "eaquals-ciep-inventaire",
+        "beacco-niveau-a2"
+      ]
+    },
+    {
+      "id": "il-faut-infinitif",
+      "name": "il faut + infinitif",
+      "aliases": [
+        "il ne faut pas + infinitif",
+        "obligation with il faut"
+      ],
+      "category": "non_finite",
+      "level": "A1",
+      "description": "Impersonal expression of obligation or prohibition followed by an infinitive.",
+      "lexical": true,
+      "sources": [
+        "eaquals-ciep-inventaire",
+        "beacco-niveau-a2"
+      ]
+    },
+    {
+      "id": "verbe-a-infinitif",
+      "name": "verbe + à + infinitif",
+      "aliases": [
+        "verbes prépositionnels",
+        "verb + à + infinitive"
+      ],
+      "category": "non_finite",
+      "level": "A2",
+      "description": "Verbs whose infinitive complement is introduced by à.",
+      "lexical": false,
+      "sources": [
+        "beacco-niveau-a2",
+        "eaquals-ciep-inventaire"
+      ]
+    },
+    {
+      "id": "verbe-de-infinitif",
+      "name": "verbe + de + infinitif",
+      "aliases": [
+        "verbes prépositionnels",
+        "verb + de + infinitive"
+      ],
+      "category": "non_finite",
+      "level": "A2",
+      "description": "Verbs whose infinitive complement is introduced by de.",
+      "lexical": false,
+      "sources": [
+        "beacco-niveau-a2",
+        "eaquals-ciep-inventaire"
+      ]
+    },
+    {
+      "id": "adjectif-preposition-infinitif",
+      "name": "adjectif + préposition + infinitif",
+      "aliases": [
+        "adjectif + de + infinitif",
+        "adjective + infinitive"
+      ],
+      "category": "non_finite",
+      "level": "A2",
+      "description": "Adjectives followed by de or à and an infinitive.",
+      "lexical": false,
+      "sources": [
+        "beacco-niveau-a2",
+        "eaquals-ciep-inventaire"
+      ]
+    },
+    {
+      "id": "preposition-infinitif",
+      "name": "préposition + infinitif",
+      "aliases": [
+        "sans + infinitif",
+        "avant de + infinitif",
+        "preposition + infinitive"
+      ],
+      "category": "non_finite",
+      "level": "A2",
+      "description": "Prepositions other than those of purpose followed by an infinitive.",
+      "lexical": false,
+      "sources": [
+        "eaquals-ciep-inventaire",
+        "kwiziq-cefr"
+      ]
+    },
+    {
+      "id": "infinitif-a-valeur-d-imperatif",
+      "name": "infinitif à valeur d'impératif",
+      "aliases": [
+        "infinitif injonctif",
+        "infinitive for instructions"
+      ],
+      "category": "non_finite",
+      "level": "A2",
+      "description": "Infinitive used instead of the imperative in instructions, notices and recipes.",
+      "lexical": false,
+      "sources": [
+        "beacco-niveau-a2"
+      ]
+    },
+    {
+      "id": "participe-passe-employe-comme-adjectif",
+      "name": "participe passé employé comme adjectif",
+      "aliases": [
+        "participe passé sans auxiliaire",
+        "past participle used as an adjective",
+        "adjectival past participle"
+      ],
+      "category": "non_finite",
+      "level": "A2",
+      "description": "Past participle used without an auxiliary to describe a noun, agreeing with it like an adjective.",
+      "lexical": false,
+      "sources": [
+        "lingolia-grammaire",
+        "unige-grammaire-c1"
+      ]
+    },
+    {
+      "id": "gerondif",
+      "name": "gérondif",
+      "aliases": [
+        "en + participe présent",
+        "gerund"
+      ],
+      "category": "non_finite",
+      "level": "B1",
+      "description": "En plus the present participle, expressing simultaneity, manner, means, cause or condition with the same subject.",
+      "lexical": false,
+      "sources": [
+        "eaquals-ciep-inventaire",
+        "grammaire-progressive-avance",
+        "unige-grammaire-b1-b2",
+        "unige-grammaire-c1"
+      ]
+    },
+    {
+      "id": "infinitif-passe",
+      "name": "infinitif passé",
+      "aliases": [
+        "après avoir + participe passé",
+        "past infinitive",
+        "perfect infinitive"
+      ],
+      "category": "non_finite",
+      "level": "B2",
+      "description": "Avoir or être in the infinitive plus past participle, for an action completed before the main one.",
+      "lexical": false,
+      "sources": [
+        "eaquals-ciep-inventaire",
+        "unige-grammaire-b1-b2",
+        "kwiziq-cefr"
+      ]
+    },
+    {
+      "id": "proposition-infinitive-apres-verbes-de-perception",
+      "name": "proposition infinitive (verbe de perception + infinitif)",
+      "aliases": [
+        "infinitif après verbes de perception",
+        "verbe de perception + infinitif",
+        "infinitive clause after verbs of perception"
+      ],
+      "category": "non_finite",
+      "level": "B2",
+      "description": "A verb of perception followed by an infinitive that has its own subject, the person or thing perceived.",
+      "lexical": false,
+      "sources": [
+        "lingolia-grammaire"
+      ]
+    },
+    {
+      "id": "participe-present",
+      "name": "participe présent",
+      "aliases": [
+        "present participle"
+      ],
+      "category": "non_finite",
+      "level": "B2",
+      "description": "Invariable -ant form used mainly in writing, replacing a relative clause or expressing cause.",
+      "lexical": false,
+      "sources": [
+        "eaquals-ciep-inventaire",
+        "grammaire-progressive-avance",
+        "unige-grammaire-b1-b2",
+        "unige-grammaire-c1"
+      ]
+    },
+    {
+      "id": "adjectif-verbal",
+      "name": "adjectif verbal",
+      "aliases": [
+        "verbal adjective"
+      ],
+      "category": "non_finite",
+      "level": "B2",
+      "description": "Adjective derived from a present participle, which agrees with its noun and may differ in spelling.",
+      "lexical": false,
+      "sources": [
+        "eaquals-ciep-inventaire",
+        "grammaire-progressive-avance",
+        "unige-grammaire-b1-b2",
+        "unige-grammaire-c1"
+      ]
+    },
+    {
+      "id": "participe-present-forme-composee",
+      "name": "participe présent (forme composée)",
+      "aliases": [
+        "ayant + participe passé",
+        "étant + participe passé",
+        "participe passé composé",
+        "perfect participle"
+      ],
+      "category": "non_finite",
+      "level": "C1",
+      "description": "Compound participle (ayant or étant plus past participle) for a completed action, often expressing cause.",
+      "lexical": false,
+      "sources": [
+        "unige-grammaire-c1"
+      ]
+    },
+    {
+      "id": "verbes-pronominaux-present",
+      "name": "verbes pronominaux (présent)",
+      "aliases": [
+        "verbes réfléchis",
+        "pronoms réfléchis",
+        "reflexive verbs"
+      ],
+      "category": "voice",
+      "level": "A1",
+      "description": "Verbs conjugated with a reflexive pronoun of the same person as the subject.",
+      "lexical": false,
+      "sources": [
+        "eaquals-ciep-inventaire",
+        "beacco-niveau-a2"
+      ]
+    },
+    {
+      "id": "verbes-pronominaux-aux-temps-composes",
+      "name": "verbes pronominaux aux temps composés",
+      "aliases": [
+        "passé composé des verbes pronominaux",
+        "reflexive verbs in the perfect"
+      ],
+      "category": "voice",
+      "level": "A2",
+      "description": "Pronominal verbs in compound tenses, always with the auxiliary être.",
+      "lexical": false,
+      "sources": [
+        "eaquals-ciep-inventaire",
+        "unige-grammaire-b1-b2"
+      ]
+    },
+    {
+      "id": "verbes-impersonnels",
+      "name": "verbes impersonnels",
+      "aliases": [
+        "il impersonnel",
+        "impersonal verbs",
+        "il pleut"
+      ],
+      "category": "voice",
+      "level": "A2",
+      "description": "Verbs used only with the impersonal subject il, such as weather verbs and the verb of necessity.",
+      "lexical": false,
+      "sources": [
+        "beacco-niveau-a2"
+      ]
+    },
+    {
+      "id": "voix-passive-formation",
+      "name": "voix passive (formation)",
+      "aliases": [
+        "passif",
+        "forme passive",
+        "passive voice"
+      ],
+      "category": "voice",
+      "level": "B1",
+      "description": "Être in the required tense plus the past participle, which agrees with the subject.",
+      "lexical": false,
+      "sources": [
+        "eaquals-ciep-inventaire",
+        "grammaire-progressive-avance",
+        "unige-grammaire-b1-b2",
+        "kwiziq-cefr"
+      ]
+    },
+    {
+      "id": "complement-d-agent",
+      "name": "complément d'agent",
+      "aliases": [
+        "passif avec par ou de",
+        "agent in the passive"
+      ],
+      "category": "voice",
+      "level": "B2",
+      "description": "Introducing the agent of a passive verb with par or, for verbs of feeling and states, with de.",
+      "lexical": false,
+      "sources": [
+        "unige-grammaire-b1-b2"
+      ]
+    },
+    {
+      "id": "verbes-pronominaux-reciproques",
+      "name": "verbes pronominaux réciproques",
+      "aliases": [
+        "sens réciproque",
+        "reciprocal verbs",
+        "each other"
+      ],
+      "category": "voice",
+      "level": "B2",
+      "description": "Plural pronominal verbs expressing a mutual action.",
+      "lexical": false,
+      "sources": [
+        "kwiziq-cefr",
+        "unige-grammaire-c1"
+      ]
+    },
+    {
+      "id": "verbes-pronominaux-a-sens-passif",
+      "name": "verbes pronominaux à sens passif",
+      "aliases": [
+        "pronominal passif",
+        "se vendre",
+        "passive pronominal"
+      ],
+      "category": "voice",
+      "level": "B2",
+      "description": "Pronominal construction with a non-human subject, used with a passive meaning.",
+      "lexical": false,
+      "sources": [
+        "grammaire-progressive-avance",
+        "lingolia-grammaire"
+      ]
+    },
+    {
+      "id": "construction-impersonnelle",
+      "name": "construction impersonnelle",
+      "aliases": [
+        "tournure impersonnelle",
+        "forme impersonnelle",
+        "impersonal construction"
+      ],
+      "category": "voice",
+      "level": "B2",
+      "description": "Ordinary verbs used with impersonal il, placing the real subject after the verb.",
+      "lexical": false,
+      "sources": [
+        "grammaire-progressive-avance"
+      ]
+    },
+    {
+      "id": "faire-causatif-faire-infinitif",
+      "name": "faire causatif (faire + infinitif)",
+      "aliases": [
+        "faire faire",
+        "causative faire",
+        "to have something done"
+      ],
+      "category": "voice",
+      "level": "B2",
+      "description": "Faire plus infinitive, meaning to make someone do something or have something done.",
+      "lexical": true,
+      "sources": [
+        "kwiziq-cefr",
+        "unige-grammaire-c1"
+      ]
+    },
+    {
+      "id": "se-faire-infinitif",
+      "name": "se faire + infinitif",
+      "aliases": [
+        "passif avec se faire",
+        "to get something done to oneself"
+      ],
+      "category": "voice",
+      "level": "C1",
+      "description": "Se faire plus infinitive, presenting the subject as undergoing an action or having it done.",
+      "lexical": true,
+      "sources": [
+        "unige-grammaire-c1"
+      ]
+    },
+    {
+      "id": "laisser-infinitif",
+      "name": "laisser + infinitif",
+      "aliases": [
+        "se laisser + infinitif",
+        "to let someone do"
+      ],
+      "category": "voice",
+      "level": "C1",
+      "description": "Laisser plus infinitive, meaning to let or allow something to happen.",
+      "lexical": true,
+      "sources": [
+        "unige-grammaire-c1"
+      ]
+    },
+    {
+      "id": "pronoms-personnels-sujets",
+      "name": "pronoms personnels sujets",
+      "aliases": [
+        "subject pronouns"
+      ],
+      "category": "pronouns",
+      "level": "A1",
+      "description": "Subject pronouns, including the choice between tu and vous.",
+      "lexical": false,
+      "sources": [
+        "eaquals-ciep-inventaire",
+        "beacco-niveau-a2"
+      ]
+    },
+    {
+      "id": "pronoms-toniques",
+      "name": "pronoms toniques",
+      "aliases": [
+        "pronoms personnels toniques",
+        "pronoms disjoints",
+        "stressed pronouns",
+        "disjunctive pronouns"
+      ],
+      "category": "pronouns",
+      "level": "A1",
+      "description": "Stressed pronoun forms used alone, after prepositions, after c'est and for emphasis.",
+      "lexical": false,
+      "sources": [
+        "eaquals-ciep-inventaire",
+        "beacco-niveau-a2"
+      ]
+    },
+    {
+      "id": "pronoms-demonstratifs-neutres",
+      "name": "pronoms démonstratifs neutres",
+      "aliases": [
+        "ça, cela, ceci",
+        "neuter demonstratives"
+      ],
+      "category": "pronouns",
+      "level": "A1",
+      "description": "Invariable demonstratives referring to things, ideas or situations.",
+      "lexical": false,
+      "sources": [
+        "eaquals-ciep-inventaire",
+        "beacco-niveau-a2",
+        "kwiziq-cefr"
+      ]
+    },
+    {
+      "id": "pronom-on",
+      "name": "pronom on",
+      "aliases": [
+        "valeurs de on",
+        "on = nous",
+        "indefinite pronoun on"
+      ],
+      "category": "pronouns",
+      "level": "A2",
+      "description": "On used for 'we', for people in general or for an unspecified someone.",
+      "lexical": true,
+      "sources": [
+        "eaquals-ciep-inventaire",
+        "beacco-niveau-a2"
+      ]
+    },
+    {
+      "id": "pronoms-complements-d-objet-direct",
+      "name": "pronoms compléments d'objet direct",
+      "aliases": [
+        "pronoms COD",
+        "direct object pronouns"
+      ],
+      "category": "pronouns",
+      "level": "A2",
+      "description": "Pronouns replacing a direct object, placed before the conjugated verb.",
+      "lexical": false,
+      "sources": [
+        "eaquals-ciep-inventaire",
+        "beacco-niveau-a2",
+        "unige-grammaire-b1-b2",
+        "upc-grammaire-b1"
+      ]
+    },
+    {
+      "id": "pronoms-complements-d-objet-indirect",
+      "name": "pronoms compléments d'objet indirect",
+      "aliases": [
+        "pronoms COI",
+        "indirect object pronouns"
+      ],
+      "category": "pronouns",
+      "level": "A2",
+      "description": "Pronouns replacing a person introduced by à, placed before the verb.",
+      "lexical": false,
+      "sources": [
+        "eaquals-ciep-inventaire",
+        "beacco-niveau-a2",
+        "unige-grammaire-b1-b2",
+        "upc-grammaire-b1"
+      ]
+    },
+    {
+      "id": "pronom-en-quantite",
+      "name": "pronom en (quantité)",
+      "aliases": [
+        "en partitif",
+        "pronoun en for quantity"
+      ],
+      "category": "pronouns",
+      "level": "A2",
+      "description": "En replacing a noun with a partitive, indefinite article or expression of quantity.",
+      "lexical": true,
+      "sources": [
+        "eaquals-ciep-inventaire",
+        "unige-grammaire-b1-b2"
+      ]
+    },
+    {
+      "id": "pronom-y-lieu",
+      "name": "pronom y (lieu)",
+      "aliases": [
+        "y locatif",
+        "pronoun y for place"
+      ],
+      "category": "pronouns",
+      "level": "A2",
+      "description": "Y replacing a place introduced by à, en, dans or chez.",
+      "lexical": true,
+      "sources": [
+        "eaquals-ciep-inventaire",
+        "unige-grammaire-b1-b2"
+      ]
+    },
+    {
+      "id": "pronoms-demonstratifs-variables",
+      "name": "pronoms démonstratifs variables",
+      "aliases": [
+        "celui-ci, celle-là",
+        "demonstrative pronouns"
+      ],
+      "category": "pronouns",
+      "level": "A2",
+      "description": "Demonstrative pronouns agreeing with the noun they replace, often with -ci or -là.",
+      "lexical": false,
+      "sources": [
+        "eaquals-ciep-inventaire",
+        "beacco-niveau-a2"
+      ]
+    },
+    {
+      "id": "pronoms-possessifs",
+      "name": "pronoms possessifs",
+      "aliases": [
+        "le mien, le tien",
+        "possessive pronouns"
+      ],
+      "category": "pronouns",
+      "level": "A2",
+      "description": "Pronouns replacing a possessive determiner plus noun.",
+      "lexical": false,
+      "sources": [
+        "eaquals-ciep-inventaire"
+      ]
+    },
+    {
+      "id": "pronoms-indefinis-de-personne-et-de-chose",
+      "name": "pronoms indéfinis de personne et de chose",
+      "aliases": [
+        "quelqu'un, quelque chose",
+        "indefinite pronouns"
+      ],
+      "category": "pronouns",
+      "level": "A2",
+      "description": "Indefinite pronouns for an unspecified person or thing, and tout.",
+      "lexical": false,
+      "sources": [
+        "beacco-niveau-a2",
+        "eaquals-ciep-inventaire"
+      ]
+    },
+    {
+      "id": "pronom-relatif-qui",
+      "name": "pronom relatif qui",
+      "aliases": [
+        "relative pronoun qui"
+      ],
+      "category": "pronouns",
+      "level": "A2",
+      "description": "Qui introducing a relative clause in which it is the subject.",
+      "lexical": true,
+      "sources": [
+        "eaquals-ciep-inventaire",
+        "beacco-niveau-a2",
+        "unige-grammaire-b1-b2",
+        "upc-grammaire-b1"
+      ]
+    },
+    {
+      "id": "pronom-relatif-que",
+      "name": "pronom relatif que",
+      "aliases": [
+        "relative pronoun que"
+      ],
+      "category": "pronouns",
+      "level": "A2",
+      "description": "Que introducing a relative clause in which it is the direct object.",
+      "lexical": true,
+      "sources": [
+        "eaquals-ciep-inventaire",
+        "beacco-niveau-a2",
+        "unige-grammaire-b1-b2",
+        "upc-grammaire-b1"
+      ]
+    },
+    {
+      "id": "pronom-relatif-ou",
+      "name": "pronom relatif où",
+      "aliases": [
+        "où relatif de lieu et de temps",
+        "relative pronoun où"
+      ],
+      "category": "pronouns",
+      "level": "A2",
+      "description": "Où introducing a relative clause of place or time.",
+      "lexical": true,
+      "sources": [
+        "eaquals-ciep-inventaire",
+        "beacco-niveau-a2",
+        "unige-grammaire-b1-b2",
+        "upc-grammaire-b1"
+      ]
+    },
+    {
+      "id": "pronom-relatif-dont",
+      "name": "pronom relatif dont",
+      "aliases": [
+        "relative pronoun dont",
+        "whose, of which"
+      ],
+      "category": "pronouns",
+      "level": "B1",
+      "description": "Dont replacing a complement introduced by de, including possession.",
+      "lexical": true,
+      "sources": [
+        "eaquals-ciep-inventaire",
+        "unige-grammaire-b1-b2",
+        "upc-grammaire-b1",
+        "kwiziq-cefr"
+      ]
+    },
+    {
+      "id": "pronoms-relatifs-composes",
+      "name": "pronoms relatifs composés",
+      "aliases": [
+        "lequel, auquel, duquel",
+        "préposition + lequel",
+        "préposition + qui",
+        "compound relative pronouns"
+      ],
+      "category": "pronouns",
+      "level": "B1",
+      "description": "Relative pronouns after a preposition, with lequel and its contracted forms or qui for people.",
+      "lexical": false,
+      "sources": [
+        "eaquals-ciep-inventaire",
+        "unige-grammaire-b1-b2",
+        "unige-grammaire-c1",
+        "kwiziq-cefr"
+      ]
+    },
+    {
+      "id": "pronoms-relatifs-neutres-ce-qui-ce-que-ce-dont",
+      "name": "pronoms relatifs neutres (ce qui, ce que, ce dont)",
+      "aliases": [
+        "tout ce qui, tout ce que",
+        "what (relative)"
+      ],
+      "category": "pronouns",
+      "level": "B1",
+      "description": "Relative pronouns with the antecedent ce, meaning 'what' or 'the thing that'.",
+      "lexical": true,
+      "sources": [
+        "eaquals-ciep-inventaire",
+        "unige-grammaire-b1-b2",
+        "kwiziq-cefr",
+        "lingolia-grammaire"
+      ]
+    },
+    {
+      "id": "pronoms-en-et-y-complements-de-verbes-prepositionnels",
+      "name": "pronoms en et y (compléments de verbes prépositionnels)",
+      "aliases": [
+        "en = de + nom",
+        "y = à + nom",
+        "en and y with verbs"
+      ],
+      "category": "pronouns",
+      "level": "B1",
+      "description": "En and y replacing a complement of a verb built with de or à.",
+      "lexical": true,
+      "sources": [
+        "eaquals-ciep-inventaire",
+        "unige-grammaire-b1-b2"
+      ]
+    },
+    {
+      "id": "double-pronominalisation",
+      "name": "double pronominalisation",
+      "aliases": [
+        "doubles pronoms",
+        "ordre des pronoms compléments",
+        "double object pronouns"
+      ],
+      "category": "pronouns",
+      "level": "B1",
+      "description": "Two object pronouns together before the verb, in a fixed order.",
+      "lexical": false,
+      "sources": [
+        "eaquals-ciep-inventaire",
+        "unige-grammaire-b1-b2",
+        "kwiziq-cefr"
+      ]
+    },
+    {
+      "id": "pronoms-indefinis-de-quantite",
+      "name": "pronoms indéfinis de quantité",
+      "aliases": [
+        "plusieurs, certains, quelques-uns",
+        "chacun",
+        "indefinite pronouns of quantity"
+      ],
+      "category": "pronouns",
+      "level": "B1",
+      "description": "Indefinite pronouns expressing an imprecise quantity or each member of a group.",
+      "lexical": false,
+      "sources": [
+        "eaquals-ciep-inventaire",
+        "unige-grammaire-b1-b2",
+        "unige-grammaire-c1"
+      ]
+    },
+    {
+      "id": "pronoms-demonstratifs-suivis-d-une-relative-ou-de-de",
+      "name": "pronoms démonstratifs suivis d'une relative ou de de",
+      "aliases": [
+        "celui qui, celle que",
+        "celui de",
+        "demonstrative + relative"
+      ],
+      "category": "pronouns",
+      "level": "B1",
+      "description": "Demonstrative pronouns followed by a relative clause or a de-complement instead of -ci/-là.",
+      "lexical": false,
+      "sources": [
+        "unige-grammaire-b1-b2"
+      ]
+    },
+    {
+      "id": "pronom-neutre-le",
+      "name": "pronom neutre le",
+      "aliases": [
+        "le neutre",
+        "neuter le"
+      ],
+      "category": "pronouns",
+      "level": "B2",
+      "description": "Le replacing an adjective, an infinitive or a whole clause.",
+      "lexical": true,
+      "sources": [
+        "unige-grammaire-b1-b2"
+      ]
+    },
+    {
+      "id": "article-defini",
+      "name": "article défini",
+      "aliases": [
+        "le, la, les",
+        "definite article"
+      ],
+      "category": "determiners",
+      "level": "A1",
+      "description": "Definite articles, used for specific or known things and for general statements.",
+      "lexical": false,
+      "sources": [
+        "eaquals-ciep-inventaire",
+        "beacco-niveau-a2"
+      ]
+    },
+    {
+      "id": "article-indefini",
+      "name": "article indéfini",
+      "aliases": [
+        "un, une, des",
+        "indefinite article"
+      ],
+      "category": "determiners",
+      "level": "A1",
+      "description": "Indefinite articles, introducing countable things not yet identified.",
+      "lexical": false,
+      "sources": [
+        "eaquals-ciep-inventaire",
+        "beacco-niveau-a2"
+      ]
+    },
+    {
+      "id": "article-contracte",
+      "name": "article contracté",
+      "aliases": [
+        "au, aux, du, des",
+        "contracted article"
+      ],
+      "category": "determiners",
+      "level": "A1",
+      "description": "Contraction of à and de with the definite articles le and les.",
+      "lexical": false,
+      "sources": [
+        "beacco-niveau-a2",
+        "eaquals-ciep-inventaire",
+        "lingolia-grammaire"
+      ]
+    },
+    {
+      "id": "article-partitif",
+      "name": "article partitif",
+      "aliases": [
+        "du, de la, de l'",
+        "partitive article"
+      ],
+      "category": "determiners",
+      "level": "A1",
+      "description": "Partitive article for an unspecified amount of something uncountable.",
+      "lexical": false,
+      "sources": [
+        "beacco-niveau-a2",
+        "lingolia-grammaire"
+      ]
+    },
+    {
+      "id": "article-apres-une-negation",
+      "name": "article après une négation",
+      "aliases": [
+        "pas de",
+        "de après négation",
+        "article after negation"
+      ],
+      "category": "determiners",
+      "level": "A1",
+      "description": "Indefinite and partitive articles becoming de after a negation.",
+      "lexical": false,
+      "sources": [
+        "eaquals-ciep-inventaire",
+        "beacco-niveau-a2"
+      ]
+    },
+    {
+      "id": "absence-d-article",
+      "name": "absence d'article",
+      "aliases": [
+        "omission de l'article",
+        "zero article"
+      ],
+      "category": "determiners",
+      "level": "A1",
+      "description": "Cases where no article is used, such as after some prepositions, in lists or before professions.",
+      "lexical": false,
+      "sources": [
+        "grammaire-progressive-avance",
+        "lingolia-grammaire"
+      ]
+    },
+    {
+      "id": "expressions-de-quantite-de",
+      "name": "expressions de quantité + de",
+      "aliases": [
+        "beaucoup de, un kilo de",
+        "quantity + de"
+      ],
+      "category": "determiners",
+      "level": "A1",
+      "description": "Adverbs and nouns of quantity followed by de and a noun without article.",
+      "lexical": false,
+      "sources": [
+        "eaquals-ciep-inventaire",
+        "beacco-niveau-a2"
+      ]
+    },
+    {
+      "id": "adjectifs-possessifs",
+      "name": "adjectifs possessifs",
+      "aliases": [
+        "déterminants possessifs",
+        "possessive determiners"
+      ],
+      "category": "determiners",
+      "level": "A1",
+      "description": "Possessive determiners agreeing with the thing possessed, not the possessor.",
+      "lexical": false,
+      "sources": [
+        "eaquals-ciep-inventaire",
+        "beacco-niveau-a2"
+      ]
+    },
+    {
+      "id": "adjectifs-demonstratifs",
+      "name": "adjectifs démonstratifs",
+      "aliases": [
+        "déterminants démonstratifs",
+        "demonstrative determiners"
+      ],
+      "category": "determiners",
+      "level": "A1",
+      "description": "Demonstrative determiners pointing to a thing or a time.",
+      "lexical": false,
+      "sources": [
+        "eaquals-ciep-inventaire",
+        "beacco-niveau-a2",
+        "kwiziq-cefr"
+      ]
+    },
+    {
+      "id": "adjectif-indefini-tout",
+      "name": "adjectif indéfini tout",
+      "aliases": [
+        "tout, toute, tous, toutes",
+        "all, every"
+      ],
+      "category": "determiners",
+      "level": "A2",
+      "description": "Tout as a determiner meaning all or every, agreeing with the noun.",
+      "lexical": true,
+      "sources": [
+        "eaquals-ciep-inventaire",
+        "beacco-niveau-a2"
+      ]
+    },
+    {
+      "id": "determinants-indefinis",
+      "name": "déterminants indéfinis",
+      "aliases": [
+        "quelques, plusieurs, chaque, certains",
+        "indefinite determiners"
+      ],
+      "category": "determiners",
+      "level": "A2",
+      "description": "Determiners expressing an imprecise quantity or each element of a set.",
+      "lexical": false,
+      "sources": [
+        "beacco-niveau-a2",
+        "eaquals-ciep-inventaire",
+        "unige-grammaire-b1-b2",
+        "unige-grammaire-c1"
+      ]
+    },
+    {
+      "id": "indefinis-avec-n-importe",
+      "name": "indéfinis avec n'importe",
+      "aliases": [
+        "n'importe quel",
+        "n'importe qui",
+        "n'importe quoi",
+        "any, no matter"
+      ],
+      "category": "determiners",
+      "level": "B2",
+      "description": "N'importe plus a determiner, pronoun or adverb, meaning any at all.",
+      "lexical": true,
+      "sources": [
+        "eaquals-ciep-inventaire",
+        "unige-grammaire-b1-b2"
+      ]
+    },
+    {
+      "id": "genre-des-noms",
+      "name": "genre des noms",
+      "aliases": [
+        "masculin et féminin des noms",
+        "noun gender"
+      ],
+      "category": "agreement",
+      "level": "A1",
+      "description": "Grammatical gender of nouns and the feminine of nouns for people.",
+      "lexical": false,
+      "sources": [
+        "eaquals-ciep-inventaire",
+        "beacco-niveau-a2"
+      ]
+    },
+    {
+      "id": "pluriel-des-noms",
+      "name": "pluriel des noms",
+      "aliases": [
+        "singulier et pluriel",
+        "plural of nouns"
+      ],
+      "category": "agreement",
+      "level": "A1",
+      "description": "Plural of nouns in -s and in -x, and spoken vs written plural marks.",
+      "lexical": false,
+      "sources": [
+        "eaquals-ciep-inventaire",
+        "beacco-niveau-a2"
+      ]
+    },
+    {
+      "id": "feminin-des-adjectifs",
+      "name": "féminin des adjectifs",
+      "aliases": [
+        "accord de l'adjectif en genre",
+        "feminine of adjectives"
+      ],
+      "category": "agreement",
+      "level": "A1",
+      "description": "Feminine forms of adjectives, regular and irregular.",
+      "lexical": false,
+      "sources": [
+        "eaquals-ciep-inventaire",
+        "beacco-niveau-a2"
+      ]
+    },
+    {
+      "id": "pluriel-des-adjectifs",
+      "name": "pluriel des adjectifs",
+      "aliases": [
+        "accord de l'adjectif en nombre",
+        "plural of adjectives"
+      ],
+      "category": "agreement",
+      "level": "A1",
+      "description": "Plural forms of adjectives and their agreement with the noun.",
+      "lexical": false,
+      "sources": [
+        "eaquals-ciep-inventaire",
+        "beacco-niveau-a2"
+      ]
+    },
+    {
+      "id": "accord-du-participe-passe-avec-etre",
+      "name": "accord du participe passé avec être",
+      "aliases": [
+        "accord avec le sujet",
+        "past participle agreement with être"
+      ],
+      "category": "agreement",
+      "level": "A2",
+      "description": "Past participle agreeing with the subject in compound tenses with être.",
+      "lexical": false,
+      "sources": [
+        "eaquals-ciep-inventaire",
+        "unige-grammaire-b1-b2",
+        "unige-grammaire-c1"
+      ]
+    },
+    {
+      "id": "accord-du-participe-passe-avec-avoir",
+      "name": "accord du participe passé avec avoir",
+      "aliases": [
+        "COD placé avant",
+        "past participle agreement with avoir"
+      ],
+      "category": "agreement",
+      "level": "B1",
+      "description": "Past participle agreeing with a direct object placed before the verb in tenses with avoir.",
+      "lexical": false,
+      "sources": [
+        "eaquals-ciep-inventaire",
+        "unige-grammaire-b1-b2",
+        "unige-grammaire-c1",
+        "kwiziq-cefr"
+      ]
+    },
+    {
+      "id": "accord-du-participe-passe-des-verbes-pronominaux",
+      "name": "accord du participe passé des verbes pronominaux",
+      "aliases": [
+        "accord des pronominaux",
+        "past participle agreement of reflexive verbs"
+      ],
+      "category": "agreement",
+      "level": "B2",
+      "description": "Agreement of the past participle of pronominal verbs, depending on the role of the reflexive pronoun.",
+      "lexical": false,
+      "sources": [
+        "eaquals-ciep-inventaire",
+        "unige-grammaire-b1-b2",
+        "unige-grammaire-c1"
+      ]
+    },
+    {
+      "id": "accords-particuliers-du-participe-passe",
+      "name": "accords particuliers du participe passé",
+      "aliases": [
+        "accords exceptionnels",
+        "participe passé + infinitif",
+        "special past participle agreement"
+      ],
+      "category": "agreement",
+      "level": "B2",
+      "description": "Special cases of past participle agreement, such as with en, before an infinitive or with verbs of measure.",
+      "lexical": false,
+      "sources": [
+        "eaquals-ciep-inventaire",
+        "unige-grammaire-b1-b2",
+        "unige-grammaire-c1"
+      ]
+    },
+    {
+      "id": "prepositions-de-lieu",
+      "name": "prépositions de lieu",
+      "aliases": [
+        "locutions prépositives de lieu",
+        "prepositions of place"
+      ],
+      "category": "prepositions",
+      "level": "A1",
+      "description": "Prepositions and prepositional phrases locating something in space.",
+      "lexical": false,
+      "sources": [
+        "eaquals-ciep-inventaire",
+        "beacco-niveau-a2"
+      ]
+    },
+    {
+      "id": "prepositions-devant-les-noms-geographiques",
+      "name": "prépositions devant les noms géographiques",
+      "aliases": [
+        "en, au, aux + pays",
+        "à + ville",
+        "prepositions with countries and cities"
+      ],
+      "category": "prepositions",
+      "level": "A1",
+      "description": "Choice of preposition before names of cities, countries and regions.",
+      "lexical": false,
+      "sources": [
+        "eaquals-ciep-inventaire",
+        "beacco-niveau-a2"
+      ]
+    },
+    {
+      "id": "prepositions-de-temps",
+      "name": "prépositions de temps",
+      "aliases": [
+        "prepositions of time"
+      ],
+      "category": "prepositions",
+      "level": "A1",
+      "description": "Prepositions situating an event in time: hours, dates, months, years.",
+      "lexical": false,
+      "sources": [
+        "eaquals-ciep-inventaire"
+      ]
+    },
+    {
+      "id": "expression-de-la-duree",
+      "name": "expression de la durée",
+      "aliases": [
+        "depuis, il y a, pendant, dans",
+        "expressing duration"
+      ],
+      "category": "prepositions",
+      "level": "A1",
+      "description": "Prepositions and expressions for duration and the time elapsed since or until an event.",
+      "lexical": false,
+      "sources": [
+        "eaquals-ciep-inventaire",
+        "unige-grammaire-b1-b2"
+      ]
+    },
+    {
+      "id": "verbe-preposition-nom",
+      "name": "verbe + préposition + nom",
+      "aliases": [
+        "construction indirecte",
+        "verb + preposition + noun"
+      ],
+      "category": "prepositions",
+      "level": "A2",
+      "description": "Verbs whose complement is introduced by a preposition, mainly à or de.",
+      "lexical": false,
+      "sources": [
+        "beacco-niveau-a2",
+        "eaquals-ciep-inventaire"
+      ]
+    },
+    {
+      "id": "adjectif-preposition-nom",
+      "name": "adjectif + préposition + nom",
+      "aliases": [
+        "différent de, fort en",
+        "adjective + preposition"
+      ],
+      "category": "prepositions",
+      "level": "A2",
+      "description": "Adjectives followed by a preposition and a noun.",
+      "lexical": false,
+      "sources": [
+        "beacco-niveau-a2",
+        "eaquals-ciep-inventaire"
+      ]
+    },
+    {
+      "id": "complement-du-nom",
+      "name": "complément du nom",
+      "aliases": [
+        "nom + de + nom",
+        "noun + de + noun"
+      ],
+      "category": "prepositions",
+      "level": "A2",
+      "description": "A noun followed by de or à and another noun to specify it.",
+      "lexical": false,
+      "sources": [
+        "beacco-niveau-a2"
+      ]
+    },
+    {
+      "id": "negation-ne-pas",
+      "name": "négation ne ... pas",
+      "aliases": [
+        "ne pas",
+        "basic negation"
+      ],
+      "category": "negation",
+      "level": "A1",
+      "description": "Basic negation around the conjugated verb.",
+      "lexical": true,
+      "sources": [
+        "eaquals-ciep-inventaire",
+        "beacco-niveau-a2"
+      ]
+    },
+    {
+      "id": "negation-sans-verbe",
+      "name": "négation sans verbe",
+      "aliases": [
+        "pas + nom ou pronom",
+        "non",
+        "negation without a verb"
+      ],
+      "category": "negation",
+      "level": "A1",
+      "description": "Pas or non used alone or before a word, without a verb.",
+      "lexical": false,
+      "sources": [
+        "eaquals-ciep-inventaire",
+        "beacco-niveau-a2"
+      ]
+    },
+    {
+      "id": "ne-jamais",
+      "name": "ne ... jamais",
+      "aliases": [
+        "never"
+      ],
+      "category": "negation",
+      "level": "A1",
+      "description": "Negation meaning never.",
+      "lexical": true,
+      "sources": [
+        "eaquals-ciep-inventaire",
+        "beacco-niveau-a2"
+      ]
+    },
+    {
+      "id": "ne-plus",
+      "name": "ne ... plus",
+      "aliases": [
+        "no longer",
+        "not anymore"
+      ],
+      "category": "negation",
+      "level": "A2",
+      "description": "Negation meaning no longer.",
+      "lexical": true,
+      "sources": [
+        "eaquals-ciep-inventaire",
+        "beacco-niveau-a2"
+      ]
+    },
+    {
+      "id": "pronoms-negatifs-rien-personne",
+      "name": "pronoms négatifs (rien, personne)",
+      "aliases": [
+        "ne ... rien",
+        "ne ... personne",
+        "nothing, nobody"
+      ],
+      "category": "negation",
+      "level": "A2",
+      "description": "Negative pronouns meaning nothing and nobody, as object or as subject.",
+      "lexical": true,
+      "sources": [
+        "eaquals-ciep-inventaire",
+        "beacco-niveau-a2"
+      ]
+    },
+    {
+      "id": "negation-de-l-infinitif",
+      "name": "négation de l'infinitif",
+      "aliases": [
+        "ne pas + infinitif",
+        "negative infinitive"
+      ],
+      "category": "negation",
+      "level": "A2",
+      "description": "Both parts of the negation placed together before an infinitive.",
+      "lexical": false,
+      "sources": [
+        "beacco-niveau-a2",
+        "kwiziq-cefr"
+      ]
+    },
+    {
+      "id": "ne-que-restriction",
+      "name": "ne ... que (restriction)",
+      "aliases": [
+        "only",
+        "restriction"
+      ],
+      "category": "negation",
+      "level": "B1",
+      "description": "Restriction meaning only, which is not a true negation.",
+      "lexical": true,
+      "sources": [
+        "eaquals-ciep-inventaire",
+        "unige-grammaire-c1"
+      ]
+    },
+    {
+      "id": "ne-aucun",
+      "name": "ne ... aucun",
+      "aliases": [
+        "aucun, aucune",
+        "not any, none"
+      ],
+      "category": "negation",
+      "level": "B1",
+      "description": "Negative determiner or pronoun meaning not a single one.",
+      "lexical": true,
+      "sources": [
+        "eaquals-ciep-inventaire"
+      ]
+    },
+    {
+      "id": "ne-ni-ni",
+      "name": "ne ... ni ... ni",
+      "aliases": [
+        "neither ... nor"
+      ],
+      "category": "negation",
+      "level": "B1",
+      "description": "Negation of two or more coordinated elements.",
+      "lexical": true,
+      "sources": [
+        "eaquals-ciep-inventaire",
+        "unige-grammaire-c1"
+      ]
+    },
+    {
+      "id": "ne-nulle-part",
+      "name": "ne ... nulle part",
+      "aliases": [
+        "nowhere"
+      ],
+      "category": "negation",
+      "level": "B2",
+      "description": "Negation meaning nowhere.",
+      "lexical": true,
+      "sources": [
+        "eaquals-ciep-inventaire"
+      ]
+    },
+    {
+      "id": "combinaison-de-negations",
+      "name": "combinaison de négations",
+      "aliases": [
+        "ne ... plus jamais rien",
+        "ne pas ... que",
+        "combined negations"
+      ],
+      "category": "negation",
+      "level": "C1",
+      "description": "Combining several negative words in one clause, and the negative restriction ne pas ... que.",
+      "lexical": false,
+      "sources": [
+        "unige-grammaire-c1"
+      ]
+    },
+    {
+      "id": "ne-expletif",
+      "name": "ne explétif",
+      "aliases": [
+        "ne non négatif",
+        "expletive ne"
+      ],
+      "category": "negation",
+      "level": "C1",
+      "description": "A ne without negative meaning in formal style after expressions of fear, some conjunctions and comparisons.",
+      "lexical": false,
+      "sources": [
+        "eaquals-ciep-inventaire",
+        "unige-grammaire-b1-b2",
+        "unige-grammaire-c1",
+        "kwiziq-cefr"
+      ]
+    },
+    {
+      "id": "negations-litteraires-ne-guere-ne-point",
+      "name": "négations littéraires (ne ... guère, ne ... point)",
+      "aliases": [
+        "hardly",
+        "not at all (literary)"
+      ],
+      "category": "negation",
+      "level": "C1",
+      "description": "Literary negations meaning hardly or not at all.",
+      "lexical": true,
+      "sources": [
+        "kwiziq-cefr"
+      ]
+    },
+    {
+      "id": "interrogation-par-intonation",
+      "name": "interrogation par intonation",
+      "aliases": [
+        "question intonative",
+        "intonation question"
+      ],
+      "category": "questions",
+      "level": "A1",
+      "description": "Yes/no question formed with rising intonation and statement word order.",
+      "lexical": false,
+      "sources": [
+        "eaquals-ciep-inventaire",
+        "beacco-niveau-a2"
+      ]
+    },
+    {
+      "id": "interrogation-avec-est-ce-que",
+      "name": "interrogation avec est-ce que",
+      "aliases": [
+        "est-ce que",
+        "questions with est-ce que"
+      ],
+      "category": "questions",
+      "level": "A1",
+      "description": "Questions formed with est-ce que, alone or after a question word.",
+      "lexical": true,
+      "sources": [
+        "eaquals-ciep-inventaire",
+        "beacco-niveau-a2"
+      ]
+    },
+    {
+      "id": "mots-interrogatifs",
+      "name": "mots interrogatifs",
+      "aliases": [
+        "adverbes interrogatifs",
+        "qui, où, quand, comment, pourquoi, combien",
+        "question words"
+      ],
+      "category": "questions",
+      "level": "A1",
+      "description": "Question words for person, place, time, manner, reason and quantity, placed first or last.",
+      "lexical": false,
+      "sources": [
+        "eaquals-ciep-inventaire",
+        "beacco-niveau-a2"
+      ]
+    },
+    {
+      "id": "determinant-interrogatif-quel",
+      "name": "déterminant interrogatif quel",
+      "aliases": [
+        "quel, quelle, quels, quelles",
+        "which, what"
+      ],
+      "category": "questions",
+      "level": "A1",
+      "description": "Quel agreeing with the noun to ask which or what.",
+      "lexical": true,
+      "sources": [
+        "eaquals-ciep-inventaire",
+        "beacco-niveau-a2"
+      ]
+    },
+    {
+      "id": "qui-est-ce-et-qu-est-ce-que-c-est",
+      "name": "qui est-ce et qu'est-ce que c'est",
+      "aliases": [
+        "identification questions",
+        "who is it, what is it"
+      ],
+      "category": "questions",
+      "level": "A1",
+      "description": "Fixed questions to identify a person or a thing.",
+      "lexical": true,
+      "sources": [
+        "eaquals-ciep-inventaire",
+        "beacco-niveau-a2"
+      ]
+    },
+    {
+      "id": "interrogation-par-inversion",
+      "name": "interrogation par inversion",
+      "aliases": [
+        "inversion du sujet",
+        "inversion question"
+      ],
+      "category": "questions",
+      "level": "A2",
+      "description": "Question formed by inverting subject pronoun and verb, typical of formal style.",
+      "lexical": false,
+      "sources": [
+        "eaquals-ciep-inventaire",
+        "beacco-niveau-a2",
+        "kwiziq-cefr",
+        "lingolia-grammaire"
+      ]
+    },
+    {
+      "id": "interrogation-par-inversion-complexe",
+      "name": "interrogation par inversion complexe",
+      "aliases": [
+        "inversion complexe",
+        "complex inversion",
+        "inversion with a noun subject"
+      ],
+      "category": "questions",
+      "level": "A2",
+      "description": "Question with a noun subject kept first and taken up by a subject pronoun inverted after the verb.",
+      "lexical": false,
+      "sources": [
+        "kwiziq-cefr",
+        "lingolia-grammaire"
+      ]
+    },
+    {
+      "id": "interrogation-avec-preposition",
+      "name": "interrogation avec préposition",
+      "aliases": [
+        "à quelle heure, avec qui",
+        "preposition + question word"
+      ],
+      "category": "questions",
+      "level": "A2",
+      "description": "Questions where a preposition comes before the question word.",
+      "lexical": false,
+      "sources": [
+        "beacco-niveau-a2"
+      ]
+    },
+    {
+      "id": "pronoms-interrogatifs-avec-est-ce",
+      "name": "pronoms interrogatifs avec est-ce",
+      "aliases": [
+        "qu'est-ce qui, qui est-ce que",
+        "long-form interrogative pronouns"
+      ],
+      "category": "questions",
+      "level": "A2",
+      "description": "Interrogative pronouns reinforced with est-ce qui or est-ce que, distinguishing subject and object.",
+      "lexical": false,
+      "sources": [
+        "beacco-niveau-a2"
+      ]
+    },
+    {
+      "id": "reponse-si-a-une-question-negative",
+      "name": "réponse si à une question négative",
+      "aliases": [
+        "si",
+        "yes to a negative question"
+      ],
+      "category": "questions",
+      "level": "A2",
+      "description": "Si used instead of oui to contradict a negative question or statement.",
+      "lexical": true,
+      "sources": [
+        "beacco-niveau-a2"
+      ]
+    },
+    {
+      "id": "pronom-interrogatif-lequel",
+      "name": "pronom interrogatif lequel",
+      "aliases": [
+        "lequel, laquelle",
+        "which one"
+      ],
+      "category": "questions",
+      "level": "B2",
+      "description": "Lequel and its forms asking which one among several.",
+      "lexical": true,
+      "sources": [
+        "eaquals-ciep-inventaire"
+      ]
+    },
+    {
+      "id": "conjonctions-de-coordination",
+      "name": "conjonctions de coordination",
+      "aliases": [
+        "et, ou, mais",
+        "coordinating conjunctions"
+      ],
+      "category": "clauses",
+      "level": "A1",
+      "description": "Joining words, phrases or clauses with coordinating conjunctions.",
+      "lexical": false,
+      "sources": [
+        "eaquals-ciep-inventaire",
+        "beacco-niveau-a2"
+      ]
+    },
+    {
+      "id": "cause-conjonction-indicatif",
+      "name": "cause (conjonction + indicatif)",
+      "aliases": [
+        "parce que, comme, puisque, car",
+        "cause with conjunctions"
+      ],
+      "category": "clauses",
+      "level": "A1",
+      "description": "Expressing cause with conjunctions followed by the indicative.",
+      "lexical": false,
+      "sources": [
+        "eaquals-ciep-inventaire",
+        "beacco-niveau-a2",
+        "grammaire-progressive-avance",
+        "unige-grammaire-b1-b2",
+        "unige-grammaire-c1"
+      ]
+    },
+    {
+      "id": "consequence-connecteurs",
+      "name": "conséquence (connecteurs)",
+      "aliases": [
+        "donc, alors, c'est pourquoi",
+        "consequence connectors"
+      ],
+      "category": "clauses",
+      "level": "A1",
+      "description": "Expressing consequence with adverbs and connectors.",
+      "lexical": false,
+      "sources": [
+        "eaquals-ciep-inventaire",
+        "beacco-niveau-a2",
+        "grammaire-progressive-avance",
+        "unige-grammaire-b1-b2"
+      ]
+    },
+    {
+      "id": "but-preposition-nom-ou-infinitif",
+      "name": "but (préposition + nom ou infinitif)",
+      "aliases": [
+        "pour + infinitif",
+        "afin de",
+        "purpose with infinitive"
+      ],
+      "category": "clauses",
+      "level": "A1",
+      "description": "Expressing purpose with a preposition followed by a noun or an infinitive.",
+      "lexical": false,
+      "sources": [
+        "eaquals-ciep-inventaire",
+        "beacco-niveau-a2",
+        "grammaire-progressive-avance",
+        "unige-grammaire-b1-b2"
+      ]
+    },
+    {
+      "id": "cause-preposition-nom",
+      "name": "cause (préposition + nom)",
+      "aliases": [
+        "à cause de, grâce à",
+        "cause with prepositions"
+      ],
+      "category": "clauses",
+      "level": "A2",
+      "description": "Expressing cause with a preposition followed by a noun.",
+      "lexical": false,
+      "sources": [
+        "eaquals-ciep-inventaire",
+        "beacco-niveau-a2",
+        "unige-grammaire-b1-b2",
+        "unige-grammaire-c1"
+      ]
+    },
+    {
+      "id": "proposition-completive-a-l-indicatif",
+      "name": "proposition complétive à l'indicatif",
+      "aliases": [
+        "verbe + que + indicatif",
+        "complétive",
+        "that-clause"
+      ],
+      "category": "clauses",
+      "level": "A2",
+      "description": "A que-clause in the indicative as the object of a verb of saying, thinking or knowing.",
+      "lexical": false,
+      "sources": [
+        "beacco-niveau-a2"
+      ]
+    },
+    {
+      "id": "hypothese-sur-le-futur-si-present",
+      "name": "hypothèse sur le futur (si + présent)",
+      "aliases": [
+        "si + présent, futur",
+        "hypothèse réelle",
+        "first conditional"
+      ],
+      "category": "clauses",
+      "level": "A2",
+      "description": "A si-clause in the present with a main clause in the present, future or imperative.",
+      "lexical": true,
+      "sources": [
+        "beacco-niveau-a2",
+        "eaquals-ciep-inventaire",
+        "upc-grammaire-b1",
+        "unige-grammaire-c1"
+      ]
+    },
+    {
+      "id": "connecteurs-chronologiques",
+      "name": "connecteurs chronologiques",
+      "aliases": [
+        "d'abord, ensuite, enfin",
+        "sequencing connectors"
+      ],
+      "category": "clauses",
+      "level": "A2",
+      "description": "Connectors ordering the steps of a story or a list.",
+      "lexical": false,
+      "sources": [
+        "eaquals-ciep-inventaire",
+        "beacco-niveau-a2",
+        "unige-grammaire-b1-b2"
+      ]
+    },
+    {
+      "id": "connecteurs-d-addition",
+      "name": "connecteurs d'addition",
+      "aliases": [
+        "en plus, de plus, en outre",
+        "additive connectors"
+      ],
+      "category": "clauses",
+      "level": "A2",
+      "description": "Connectors adding an element or an argument.",
+      "lexical": false,
+      "sources": [
+        "eaquals-ciep-inventaire",
+        "beacco-niveau-a2"
+      ]
+    },
+    {
+      "id": "connecteurs-de-reformulation",
+      "name": "connecteurs de reformulation",
+      "aliases": [
+        "c'est-à-dire, autrement dit",
+        "reformulation markers"
+      ],
+      "category": "clauses",
+      "level": "A2",
+      "description": "Connectors introducing a rewording or explanation of what was said.",
+      "lexical": false,
+      "sources": [
+        "beacco-niveau-a2",
+        "eaquals-ciep-inventaire"
+      ]
+    },
+    {
+      "id": "hypothese-sur-le-present-si-imparfait",
+      "name": "hypothèse sur le présent (si + imparfait)",
+      "aliases": [
+        "si + imparfait, conditionnel présent",
+        "hypothèse incertaine",
+        "second conditional"
+      ],
+      "category": "clauses",
+      "level": "B1",
+      "description": "A si-clause in the imperfect with a main clause in the present conditional, for unlikely or imagined situations.",
+      "lexical": true,
+      "sources": [
+        "eaquals-ciep-inventaire",
+        "upc-grammaire-b1",
+        "unige-grammaire-b1-b2",
+        "unige-grammaire-c1"
+      ]
+    },
+    {
+      "id": "si-imparfait-suggestion",
+      "name": "si + imparfait (suggestion)",
+      "aliases": [
+        "et si on + imparfait",
+        "suggestion with si"
+      ],
+      "category": "clauses",
+      "level": "B1",
+      "description": "An independent si-clause in the imperfect used to make a suggestion.",
+      "lexical": true,
+      "sources": [
+        "eaquals-ciep-inventaire"
+      ]
+    },
+    {
+      "id": "proposition-subordonnee-de-temps-indicatif",
+      "name": "proposition subordonnée de temps (indicatif)",
+      "aliases": [
+        "quand, lorsque, dès que",
+        "time clauses"
+      ],
+      "category": "clauses",
+      "level": "B1",
+      "description": "Time clauses in the indicative for simultaneity or succession.",
+      "lexical": false,
+      "sources": [
+        "eaquals-ciep-inventaire",
+        "grammaire-progressive-avance",
+        "unige-grammaire-c1",
+        "kwiziq-cefr",
+        "lingolia-grammaire"
+      ]
+    },
+    {
+      "id": "discours-indirect-au-present",
+      "name": "discours indirect au présent",
+      "aliases": [
+        "discours rapporté",
+        "reported speech (present)"
+      ],
+      "category": "clauses",
+      "level": "B1",
+      "description": "Reporting statements, questions and orders with a reporting verb in the present.",
+      "lexical": false,
+      "sources": [
+        "eaquals-ciep-inventaire",
+        "grammaire-progressive-avance",
+        "unige-grammaire-b1-b2"
+      ]
+    },
+    {
+      "id": "interrogation-indirecte",
+      "name": "interrogation indirecte",
+      "aliases": [
+        "si, ce que, ce qui + discours indirect",
+        "indirect questions"
+      ],
+      "category": "clauses",
+      "level": "B1",
+      "description": "Questions embedded after a verb, with statement word order.",
+      "lexical": false,
+      "sources": [
+        "eaquals-ciep-inventaire",
+        "unige-grammaire-b1-b2",
+        "unige-grammaire-c1"
+      ]
+    },
+    {
+      "id": "opposition-conjonction-indicatif",
+      "name": "opposition (conjonction + indicatif)",
+      "aliases": [
+        "alors que, tandis que",
+        "contrast clauses"
+      ],
+      "category": "clauses",
+      "level": "B1",
+      "description": "Contrasting two facts with conjunctions followed by the indicative.",
+      "lexical": false,
+      "sources": [
+        "eaquals-ciep-inventaire",
+        "grammaire-progressive-avance",
+        "unige-grammaire-b1-b2",
+        "unige-grammaire-c1"
+      ]
+    },
+    {
+      "id": "concession-connecteurs",
+      "name": "concession (connecteurs)",
+      "aliases": [
+        "pourtant, cependant, quand même",
+        "concessive connectors"
+      ],
+      "category": "clauses",
+      "level": "B1",
+      "description": "Expressing concession with adverbs and connectors.",
+      "lexical": false,
+      "sources": [
+        "eaquals-ciep-inventaire",
+        "grammaire-progressive-avance",
+        "unige-grammaire-b1-b2",
+        "unige-grammaire-c1"
+      ]
+    },
+    {
+      "id": "concession-preposition-nom",
+      "name": "concession (préposition + nom)",
+      "aliases": [
+        "malgré, en dépit de",
+        "despite"
+      ],
+      "category": "clauses",
+      "level": "B1",
+      "description": "Expressing concession with a preposition followed by a noun.",
+      "lexical": false,
+      "sources": [
+        "eaquals-ciep-inventaire",
+        "kwiziq-cefr",
+        "unige-grammaire-c1"
+      ]
+    },
+    {
+      "id": "connecteurs-de-conclusion",
+      "name": "connecteurs de conclusion",
+      "aliases": [
+        "finalement, en conclusion",
+        "concluding connectors"
+      ],
+      "category": "clauses",
+      "level": "B1",
+      "description": "Connectors closing an argument or a story.",
+      "lexical": false,
+      "sources": [
+        "eaquals-ciep-inventaire"
+      ]
+    },
+    {
+      "id": "opposition-connecteurs",
+      "name": "opposition (connecteurs)",
+      "aliases": [
+        "en revanche, par contre, au contraire",
+        "contrast connectors"
+      ],
+      "category": "clauses",
+      "level": "B1",
+      "description": "Contrasting two facts with adverbs and connectors.",
+      "lexical": false,
+      "sources": [
+        "eaquals-ciep-inventaire",
+        "unige-grammaire-c1"
+      ]
+    },
+    {
+      "id": "hypothese-sur-le-passe-si-plus-que-parfait",
+      "name": "hypothèse sur le passé (si + plus-que-parfait)",
+      "aliases": [
+        "si + plus-que-parfait, conditionnel passé",
+        "hypothèse irréelle",
+        "third conditional"
+      ],
+      "category": "clauses",
+      "level": "B2",
+      "description": "A si-clause in the pluperfect with a past or present conditional for unreal past situations.",
+      "lexical": true,
+      "sources": [
+        "eaquals-ciep-inventaire",
+        "unige-grammaire-b1-b2",
+        "unige-grammaire-c1"
+      ]
+    },
+    {
+      "id": "hypothese-sans-si",
+      "name": "hypothèse sans si",
+      "aliases": [
+        "au cas où + conditionnel",
+        "en cas de",
+        "avec, sans + nom",
+        "conditions without si"
+      ],
+      "category": "clauses",
+      "level": "B2",
+      "description": "Expressing a condition or hypothesis with prepositions, au cas où, a gerund or other means than si.",
+      "lexical": false,
+      "sources": [
+        "eaquals-ciep-inventaire",
+        "unige-grammaire-c1",
+        "kwiziq-cefr"
+      ]
+    },
+    {
+      "id": "discours-indirect-au-passe-concordance-des-temps",
+      "name": "discours indirect au passé (concordance des temps)",
+      "aliases": [
+        "concordance des temps",
+        "sequence of tenses",
+        "reported speech (past)"
+      ],
+      "category": "clauses",
+      "level": "B2",
+      "description": "Shifting tenses and time expressions when the reporting verb is in the past.",
+      "lexical": false,
+      "sources": [
+        "eaquals-ciep-inventaire",
+        "unige-grammaire-b1-b2",
+        "unige-grammaire-c1"
+      ]
+    },
+    {
+      "id": "consequence-conjonction-indicatif",
+      "name": "conséquence (conjonction + indicatif)",
+      "aliases": [
+        "si bien que, de sorte que",
+        "consequence clauses"
+      ],
+      "category": "clauses",
+      "level": "B2",
+      "description": "Expressing consequence with conjunctions followed by the indicative.",
+      "lexical": false,
+      "sources": [
+        "eaquals-ciep-inventaire",
+        "grammaire-progressive-avance",
+        "unige-grammaire-c1"
+      ]
+    },
+    {
+      "id": "consequence-liee-a-l-intensite",
+      "name": "conséquence liée à l'intensité",
+      "aliases": [
+        "si ... que, tant ... que, tellement ... que",
+        "à tel point que",
+        "so ... that"
+      ],
+      "category": "clauses",
+      "level": "B2",
+      "description": "Consequence linked to an intensity or quantity: an adverb in the main clause and que.",
+      "lexical": false,
+      "sources": [
+        "eaquals-ciep-inventaire",
+        "unige-grammaire-c1"
+      ]
+    },
+    {
+      "id": "concession-avec-meme-si",
+      "name": "concession avec même si",
+      "aliases": [
+        "même si + indicatif",
+        "even if"
+      ],
+      "category": "clauses",
+      "level": "B2",
+      "description": "Même si followed by the indicative to express concession.",
+      "lexical": true,
+      "sources": [
+        "eaquals-ciep-inventaire"
+      ]
+    },
+    {
+      "id": "proposition-participiale",
+      "name": "proposition participiale",
+      "aliases": [
+        "participe absolu",
+        "absolute participle clause"
+      ],
+      "category": "clauses",
+      "level": "C1",
+      "description": "A participle clause with its own subject, expressing cause or time in formal writing.",
+      "lexical": false,
+      "sources": [
+        "unige-grammaire-c1"
+      ]
+    },
+    {
+      "id": "apres-que-indicatif",
+      "name": "après que + indicatif",
+      "aliases": [
+        "after + clause"
+      ],
+      "category": "clauses",
+      "level": "C1",
+      "description": "Après que followed by the indicative for an action completed before the main one.",
+      "lexical": true,
+      "sources": [
+        "kwiziq-cefr",
+        "unige-grammaire-c1"
+      ]
+    },
+    {
+      "id": "cause-conjonctions-de-justification",
+      "name": "cause (conjonctions de justification)",
+      "aliases": [
+        "d'autant plus que",
+        "surtout que",
+        "considérant que"
+      ],
+      "category": "clauses",
+      "level": "C1",
+      "description": "Conjunctions that add or stress a justifying cause.",
+      "lexical": false,
+      "sources": [
+        "eaquals-ciep-inventaire",
+        "unige-grammaire-c1"
+      ]
+    },
+    {
+      "id": "comparatif-de-l-adjectif-et-de-l-adverbe",
+      "name": "comparatif de l'adjectif et de l'adverbe",
+      "aliases": [
+        "plus ... que, moins ... que, aussi ... que",
+        "comparative of adjectives"
+      ],
+      "category": "comparison",
+      "level": "A2",
+      "description": "Comparing qualities with plus, moins or aussi before an adjective or adverb and que.",
+      "lexical": false,
+      "sources": [
+        "eaquals-ciep-inventaire",
+        "grammaire-progressive-avance"
+      ]
+    },
+    {
+      "id": "comparatif-du-nom-et-du-verbe",
+      "name": "comparatif du nom et du verbe",
+      "aliases": [
+        "plus de ... que, autant de ... que",
+        "verbe + plus que",
+        "comparative of nouns and verbs"
+      ],
+      "category": "comparison",
+      "level": "A2",
+      "description": "Comparing quantities and actions with plus (de), moins (de), autant (de) and que.",
+      "lexical": false,
+      "sources": [
+        "eaquals-ciep-inventaire",
+        "kwiziq-cefr",
+        "grammaire-progressive-avance"
+      ]
+    },
+    {
+      "id": "comparatifs-et-superlatifs-irreguliers",
+      "name": "comparatifs et superlatifs irréguliers",
+      "aliases": [
+        "meilleur, mieux, pire",
+        "irregular comparatives"
+      ],
+      "category": "comparison",
+      "level": "A2",
+      "description": "Irregular comparative and superlative forms of good and well.",
+      "lexical": true,
+      "sources": [
+        "eaquals-ciep-inventaire",
+        "grammaire-progressive-avance"
+      ]
+    },
+    {
+      "id": "superlatif",
+      "name": "superlatif",
+      "aliases": [
+        "le plus, le moins",
+        "superlative"
+      ],
+      "category": "comparison",
+      "level": "A2",
+      "description": "Article plus plus or moins to express the highest or lowest degree.",
+      "lexical": false,
+      "sources": [
+        "eaquals-ciep-inventaire",
+        "grammaire-progressive-avance",
+        "kwiziq-cefr"
+      ]
+    },
+    {
+      "id": "comparaison-progressive",
+      "name": "comparaison progressive",
+      "aliases": [
+        "de plus en plus, de moins en moins",
+        "more and more"
+      ],
+      "category": "comparison",
+      "level": "A2",
+      "description": "Expressing a gradual increase or decrease.",
+      "lexical": true,
+      "sources": [
+        "grammaire-progressive-avance",
+        "kwiziq-cefr"
+      ]
+    },
+    {
+      "id": "comparaison-de-ressemblance",
+      "name": "comparaison de ressemblance",
+      "aliases": [
+        "comme, le même que, pareil",
+        "comparison of similarity"
+      ],
+      "category": "comparison",
+      "level": "B1",
+      "description": "Expressing sameness or similarity with comme, le même ... que and similar words.",
+      "lexical": false,
+      "sources": [
+        "beacco-niveau-a2",
+        "grammaire-progressive-avance"
+      ]
+    },
+    {
+      "id": "comparaison-proportionnelle",
+      "name": "comparaison proportionnelle",
+      "aliases": [
+        "plus ... plus",
+        "moins ... moins",
+        "the more ... the more"
+      ],
+      "category": "comparison",
+      "level": "B1",
+      "description": "Two parallel clauses expressing proportion.",
+      "lexical": true,
+      "sources": [
+        "grammaire-progressive-avance",
+        "kwiziq-cefr"
+      ]
+    },
+    {
+      "id": "place-de-l-adjectif",
+      "name": "place de l'adjectif",
+      "aliases": [
+        "adjectif avant ou après le nom",
+        "adjective position"
+      ],
+      "category": "word_order",
+      "level": "A1",
+      "description": "Most adjectives follow the noun; a small group of short frequent adjectives comes before it.",
+      "lexical": false,
+      "sources": [
+        "eaquals-ciep-inventaire",
+        "beacco-niveau-a2",
+        "unige-grammaire-b1-b2"
+      ]
+    },
+    {
+      "id": "place-des-pronoms-complements",
+      "name": "place des pronoms compléments",
+      "aliases": [
+        "pronoms avant le verbe",
+        "object pronoun position"
+      ],
+      "category": "word_order",
+      "level": "A2",
+      "description": "Object pronouns placed before the conjugated verb, or before the infinitive they depend on.",
+      "lexical": false,
+      "sources": [
+        "beacco-niveau-a2",
+        "eaquals-ciep-inventaire",
+        "unige-grammaire-b1-b2"
+      ]
+    },
+    {
+      "id": "place-des-pronoms-a-l-imperatif",
+      "name": "place des pronoms à l'impératif",
+      "aliases": [
+        "impératif + pronom",
+        "pronouns with the imperative"
+      ],
+      "category": "word_order",
+      "level": "A2",
+      "description": "Object pronouns after the verb with a hyphen in the affirmative imperative, before it in the negative.",
+      "lexical": false,
+      "sources": [
+        "beacco-niveau-a2",
+        "kwiziq-cefr"
+      ]
+    },
+    {
+      "id": "dislocation",
+      "name": "dislocation",
+      "aliases": [
+        "détachement",
+        "phrase détachée",
+        "reprise par un pronom",
+        "dislocation"
+      ],
+      "category": "word_order",
+      "level": "A2",
+      "description": "Placing an element at the start or end of the sentence and taking it up with a pronoun, for emphasis.",
+      "lexical": false,
+      "sources": [
+        "beacco-niveau-a2"
+      ]
+    },
+    {
+      "id": "mise-en-relief-c-est-qui-c-est-que",
+      "name": "mise en relief (c'est ... qui, c'est ... que)",
+      "aliases": [
+        "phrase clivée",
+        "cleft sentence",
+        "it is ... who"
+      ],
+      "category": "word_order",
+      "level": "B1",
+      "description": "Highlighting one element of the sentence by framing it with c'est and a relative pronoun.",
+      "lexical": true,
+      "sources": [
+        "eaquals-ciep-inventaire",
+        "unige-grammaire-b1-b2",
+        "unige-grammaire-c1"
+      ]
+    },
+    {
+      "id": "mise-en-relief-ce-qui-c-est",
+      "name": "mise en relief (ce qui ..., c'est)",
+      "aliases": [
+        "phrase pseudo-clivée",
+        "ce que ..., c'est",
+        "what I want is"
+      ],
+      "category": "word_order",
+      "level": "B1",
+      "description": "Highlighting with a ce qui/ce que/ce dont clause taken up by c'est.",
+      "lexical": true,
+      "sources": [
+        "eaquals-ciep-inventaire",
+        "unige-grammaire-b1-b2",
+        "unige-grammaire-c1"
+      ]
+    },
+    {
+      "id": "place-de-l-adverbe",
+      "name": "place de l'adverbe",
+      "aliases": [
+        "adverbe aux temps composés",
+        "adverb position"
+      ],
+      "category": "word_order",
+      "level": "B1",
+      "description": "Position of adverbs after the conjugated verb, and between auxiliary and participle in compound tenses.",
+      "lexical": false,
+      "sources": [
+        "grammaire-progressive-avance",
+        "unige-grammaire-b1-b2"
+      ]
+    },
+    {
+      "id": "adjectifs-a-sens-variable-selon-la-place",
+      "name": "adjectifs à sens variable selon la place",
+      "aliases": [
+        "un grand homme, un homme grand",
+        "adjectives changing meaning with position"
+      ],
+      "category": "word_order",
+      "level": "B2",
+      "description": "Adjectives whose meaning changes depending on whether they come before or after the noun.",
+      "lexical": false,
+      "sources": [
+        "unige-grammaire-b1-b2"
+      ]
+    },
+    {
+      "id": "inversion-du-sujet-apres-certains-adverbes",
+      "name": "inversion du sujet après certains adverbes",
+      "aliases": [
+        "aussi + inversion",
+        "peut-être + inversion",
+        "subject inversion after adverbs"
+      ],
+      "category": "word_order",
+      "level": "C1",
+      "description": "Subject-verb inversion in formal writing after some adverbs placed first in the clause.",
+      "lexical": false,
+      "sources": [
+        "unige-grammaire-b1-b2",
+        "unige-grammaire-c1"
+      ]
+    },
+    {
+      "id": "presentatifs-c-est-voici-voila",
+      "name": "présentatifs (c'est, voici, voilà)",
+      "aliases": [
+        "ce sont",
+        "presentatives"
+      ],
+      "category": "other",
+      "level": "A1",
+      "description": "Expressions used to present or identify a person or thing.",
+      "lexical": true,
+      "sources": [
+        "eaquals-ciep-inventaire",
+        "beacco-niveau-a2"
+      ]
+    },
+    {
+      "id": "il-y-a",
+      "name": "il y a",
+      "aliases": [
+        "there is, there are"
+      ],
+      "category": "other",
+      "level": "A1",
+      "description": "Impersonal il y a stating that something exists or is present.",
+      "lexical": true,
+      "sources": [
+        "eaquals-ciep-inventaire",
+        "beacco-niveau-a2"
+      ]
+    },
+    {
+      "id": "adverbes-d-intensite-et-de-quantite",
+      "name": "adverbes d'intensité et de quantité",
+      "aliases": [
+        "très, trop, assez, beaucoup",
+        "intensifiers"
+      ],
+      "category": "other",
+      "level": "A1",
+      "description": "Adverbs modifying the degree of an adjective, adverb or verb.",
+      "lexical": false,
+      "sources": [
+        "eaquals-ciep-inventaire"
+      ]
+    },
+    {
+      "id": "phrase-exclamative",
+      "name": "phrase exclamative",
+      "aliases": [
+        "exclamation",
+        "quel !, que !, comme !",
+        "exclamatory sentence"
+      ],
+      "category": "other",
+      "level": "A2",
+      "description": "Exclamatory sentences with an exclamative word or intonation.",
+      "lexical": false,
+      "sources": [
+        "eaquals-ciep-inventaire",
+        "beacco-niveau-a2"
+      ]
+    },
+    {
+      "id": "phrase-nominale",
+      "name": "phrase nominale",
+      "aliases": [
+        "phrase tronquée",
+        "énoncé sans verbe",
+        "verbless sentence"
+      ],
+      "category": "other",
+      "level": "A2",
+      "description": "Sentences without a conjugated verb, typical of signs, titles and headlines.",
+      "lexical": false,
+      "sources": [
+        "beacco-niveau-a2"
+      ]
+    },
+    {
+      "id": "adverbes-en-ment",
+      "name": "adverbes en -ment",
+      "aliases": [
+        "formation des adverbes",
+        "adverbs in -ment"
+      ],
+      "category": "other",
+      "level": "B1",
+      "description": "Forming adverbs of manner from the feminine of the adjective plus -ment, with the -amment/-emment forms.",
+      "lexical": false,
+      "sources": [
+        "eaquals-ciep-inventaire",
+        "unige-grammaire-b1-b2"
+      ]
+    },
+    {
+      "id": "nominalisation",
+      "name": "nominalisation",
+      "aliases": [
+        "forme nominale",
+        "nominalisation des verbes",
+        "nominalisation"
+      ],
+      "category": "other",
+      "level": "B1",
+      "description": "Turning a verb or adjective into a noun, often to make writing more compact.",
+      "lexical": false,
+      "sources": [
+        "eaquals-ciep-inventaire",
+        "unige-grammaire-b1-b2"
+      ]
+    }
+  ]
+}

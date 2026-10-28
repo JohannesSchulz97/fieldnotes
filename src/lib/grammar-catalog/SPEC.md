@@ -35,7 +35,7 @@ Never copy text from a source. Descriptions and cards are your own words, based 
   - Use the term learners meet in grammar books, not a linguist's term.
 - **aliases**: other names a learner or a grammar book might use, in the language and in English (e.g. "gerund" for "gérondif"). They help classification.
 - **category**: one of `schema.ts`'s categories: tense_aspect (tenses, aspect), mood (subjunctive, conditional, imperative), non_finite (infinitive, participles, gerund), voice (passive, causative, reflexive voice), pronouns, determiners (articles, partitives, possessives, quantifiers), agreement, prepositions, negation, questions, clauses (subordination, conjunctions, conditionals, reported speech), comparison, word_order, other.
-- **level**: the CEFR level at which the construct is introduced, from the reference level description.
+- **level**: the CEFR level at which the construct is introduced, from the reference level description. The app is used for reading, so where sources give separate levels for understanding and producing a construct, use the level for understanding (e.g. the French passé simple: understood from B1, produced at C1). Where a construct groups words introduced at different levels, use the level of its first, most common member.
 - **description**: what the construct is, in one line, in the explanation language.
 - **lexical**: true only if the construct exists only with specific words, e.g. "ne … que", "il y a", "venir de + infinitif". Then the name may and should contain those words.
 - **sources**: ids of the sources that list it.
