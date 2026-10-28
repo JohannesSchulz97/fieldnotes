@@ -11,7 +11,8 @@
     "db:migrate": "drizzle-kit migrate",
     "db:migrate:remote": "set -a && . ./.env.turso && set +a && drizzle-kit migrate",
     "db:pull": "scripts/db-pull.sh",
-    "db:studio": "drizzle-kit studio"
+    "db:studio": "drizzle-kit studio",
+    "grammar:validate": "npx tsx scripts/validate-grammar-catalog.mts"
   },
   "dependencies": {
     "@base-ui/react": "^1.8.0",

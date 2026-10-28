@@ -8,6 +8,7 @@ import type {
   GrammarExplanation,
   LanguageCode,
 } from "../types";
+import type { CatalogConstruct } from "../grammar-catalog/schema";
 import { getNativeLanguage } from "../languages";
 import { getClient, model, reasoningEffort, trackUsage } from "./client";
 import { namingProtocol } from "./prompts";
@@ -50,8 +51,54 @@ For each construct:
 ${namingProtocol(language)}`;
 }
 
+/** Value of `constructId` for a construct the catalogue lacks. */
+export const NOT_IN_CATALOG = "none";
+
+function catalogIdentifySchema(ids: string[]) {
+  return z.object({
+    constructs: z.array(
+      z.object({
+        constructId: z.enum([NOT_IN_CATALOG, ...ids]),
+        name: z.string(),
+        category: z.enum(GRAMMAR_CATEGORY_VALUES),
+        level: z.enum(CEFR_LEVELS),
+        form: z.string(),
+        gist: z.string(),
+      })
+    ),
+  });
+}
+
+/**
+ * Identification against the language's grammar catalogue. Depends only on the language and its
+ * catalogue, so it is a stable, cacheable prefix.
+ */
+export function catalogIdentifyInstructions(language: LanguageCode, catalog: CatalogConstruct[]): string {
+  const entries = catalog
+    .map((c) => {
+      const aliases = c.aliases.length > 0 ? ` (also: ${c.aliases.join("; ")})` : "";
+      return `${c.id} | ${c.name}${aliases} | ${c.description}`;
+    })
+    .join("\n");
+  return `You help a learner understand the grammar of a text in the language with ISO 639-1 code "${language}". The learner selected part of one sentence. List the grammatical constructs in the selection that are worth learning, most relevant first, at most 4. Skip trivial ones (plain articles, regular agreement, basic word order) unless nothing else is there. Plain vocabulary, idioms and fixed expressions are not grammatical constructs.
+
+Classify each construct against the grammar catalogue below: one entry per line, "id | name (also: other names) | description".
+- constructId: the id of the catalogue entry that is this construct: the same form with the same use. Use "${NOT_IN_CATALOG}" only if no entry fits; never stretch an entry to a different construct.
+- One entry per form: never list two entries for the same words. When the catalogue has a formation entry and use entries for the same form (e.g. "… (formation)" or "… (verbes irréguliers)" next to "… (emplois)"), pick the use entry that fits this sentence; pick the formation entry only if no use entry fits. Prefer the most specific entry: a use triggered by a word class (e.g. subjunctive after a conjunction of concession) over the general mood or tense, and a verb-specific entry (e.g. compound tenses of pronominal verbs) over the general tense.
+- name, category, level: only for "${NOT_IN_CATALOG}": the construct's name following the naming protocol, its grammar area (${CATEGORY_GUIDE}) and the CEFR level (A1-C2) at which learners usually study it. For catalogue entries, copy the entry's name; category and level are ignored.
+- form: the words of the selection that show the construct, copied character for character.
+- gist: what the construct does here, in at most 12 words of ${getNativeLanguage()}.
+
+${namingProtocol(language)}
+
+Catalogue:
+${entries}`;
+}
+
 export interface LlmConstruct {
-  /** A saved name, or NEW_CONSTRUCT. */
+  /** For catalogue identification: a catalogue id, or null. */
+  constructId: string | null;
+  /** For free identification: a saved name, or NEW_CONSTRUCT. */
   match: string;
   name: string;
   category: GrammarCategory;
@@ -60,12 +107,16 @@ export interface LlmConstruct {
   gist: string;
 }
 
-/** Lists the grammatical constructs in a span of a sentence, matched against saved names. */
+/**
+ * Lists the grammatical constructs in a span of a sentence: classified against the catalogue if
+ * the language has one, otherwise named freely and matched against saved names.
+ */
 export async function llmIdentifyGrammar({
   language,
   span,
   sentence,
   context,
+  catalog,
   savedNames,
 }: {
   language: LanguageCode;
@@ -73,19 +124,70 @@ export async function llmIdentifyGrammar({
   sentence: string;
   /** The surrounding sentences, for meaning only. */
   context: string;
+  catalog: CatalogConstruct[] | null;
+  /** Only used without a catalogue. */
   savedNames: string[];
 }): Promise<LlmConstruct[]> {
+  const input = `Context: ${context}\n\nSentence: ${sentence}\n\nSelection: ${span}`;
+  if (catalog) {
+    const response = await getClient().responses.parse({
+      model,
+      reasoning: { effort: reasoningEffort },
+      instructions: catalogIdentifyInstructions(language, catalog),
+      input,
+      text: {
+        format: zodTextFormat(catalogIdentifySchema(catalog.map((c) => c.id)), "grammar_constructs"),
+      },
+    });
+    await trackUsage("grammar", response.usage);
+    const parsed = response.output_parsed;
+    if (!parsed) throw new Error("LLM returned no parseable constructs");
+    return parsed.constructs.map((c) => ({
+      ...c,
+      constructId: c.constructId === NOT_IN_CATALOG ? null : c.constructId,
+      match: NEW_CONSTRUCT,
+    }));
+  }
   const response = await getClient().responses.parse({
     model,
     reasoning: { effort: reasoningEffort },
     instructions: identifyInstructions(language, savedNames),
-    input: `Context: ${context}\n\nSentence: ${sentence}\n\nSelection: ${span}`,
+    input,
     text: { format: zodTextFormat(identifySchema(savedNames), "grammar_constructs") },
   });
   await trackUsage("grammar", response.usage);
   const parsed = response.output_parsed;
   if (!parsed) throw new Error("LLM returned no parseable constructs");
-  return parsed.constructs;
+  return parsed.constructs.map((c) => ({ ...c, constructId: null }));
+}
+
+/**
+ * Finds the catalogue entry for a construct saved before the catalogue existed, from its name,
+ * explanation and examples. Null if no entry fits.
+ */
+export async function llmClassifySavedConstruct({
+  language,
+  catalog,
+  item,
+}: {
+  language: LanguageCode;
+  catalog: CatalogConstruct[];
+  item: { name: string; explanation: string; examples: { sentence: string; form: string }[] };
+}): Promise<string | null> {
+  const schema = z.object({ constructId: z.enum([NOT_IN_CATALOG, ...catalog.map((c) => c.id)]) });
+  const examples = item.examples.map((e) => `- ${e.sentence} (shows: ${e.form})`).join("\n");
+  const response = await getClient().responses.parse({
+    model,
+    reasoning: { effort: reasoningEffort },
+    instructions: `${catalogIdentifyInstructions(language, catalog)}
+
+Task: the learner saved a construct earlier, possibly under a poor name (e.g. named after one example word). Give the constructId of the catalogue entry that is the same construct, judged by what the examples show. Use "${NOT_IN_CATALOG}" only if no entry fits.`,
+    input: `Saved name: ${item.name}\nExplanation: ${item.explanation}\nExamples:\n${examples}`,
+    text: { format: zodTextFormat(schema, "catalog_match") },
+  });
+  await trackUsage("grammar", response.usage);
+  const id = response.output_parsed?.constructId;
+  return id && id !== NOT_IN_CATALOG ? id : null;
 }
 
 const Explanation = z.object({

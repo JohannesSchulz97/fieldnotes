@@ -78,10 +78,18 @@ export const grammarItems = sqliteTable(
   {
     id: text("id").primaryKey(),
     language: text("language").notNull(),
-    /** Canonical name as the LLM gives it, e.g. "gérondif (en + participe présent)". */
+    /**
+     * Id of the construct in the language's grammar catalogue; null for constructs named freely
+     * (languages without a catalogue, or constructs the catalogue lacks).
+     */
+    constructId: text("construct_id"),
+    /**
+     * Canonical name: the catalogue's for catalogue constructs, otherwise as the LLM gives it,
+     * e.g. "gérondif (en + participe présent)".
+     */
     name: text("name").notNull(),
     category: text("category", { enum: GRAMMAR_CATEGORY_VALUES }).notNull(),
-    /** CEFR level as estimated by the LLM. */
+    /** CEFR level: the catalogue's, or as estimated by the LLM. */
     level: text("level", { enum: CEFR_LEVELS }).notNull(),
     explanation: text("explanation").notNull(),
     explanationLanguage: text("explanation_language").notNull(),

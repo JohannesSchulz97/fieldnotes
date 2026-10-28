@@ -32,6 +32,7 @@ import {
   recordAttempt,
 } from "@/lib/db/exercises";
 import { getActiveLanguage, LANGUAGE_COOKIE } from "@/lib/active-language";
+import { activeConstructs, cardExplanation, getCatalog, getConstruct } from "@/lib/grammar-catalog";
 import {
   addLearningLanguage,
   AnkiSettingsSchema,
@@ -275,42 +276,57 @@ export async function identifyGrammar(
   span: string
 ): Promise<GrammarIdentification> {
   const s = await loadSelection(extractionId, sentence, span);
-  const saved = await listGrammarNames(s.sourceLanguage);
+  const language = s.sourceLanguage;
+  const catalog = getCatalog(language);
+  const saved = await listGrammarNames(language);
   const constructs = await llmIdentifyGrammar({
-    language: s.sourceLanguage,
+    language,
     span: s.span,
     sentence: s.text,
     context: s.sentences
       .slice(Math.max(0, sentence - CONTEXT_SENTENCES), sentence + CONTEXT_SENTENCES + 1)
       .join(" "),
-    savedNames: saved.map((i) => i.name),
+    catalog: catalog && activeConstructs(catalog),
+    savedNames: catalog ? [] : saved.map((i) => i.name),
   });
 
-  // A "new" construct whose name only differs in spelling details still counts as saved.
+  // Catalogue constructs match saved items by id; others by name, where spelling details don't count.
+  const byConstruct = new Map(saved.flatMap((i) => (i.constructId ? [[i.constructId, i.id]] : [])));
   const byKey = new Map(saved.map((i) => [grammarNameKey(i.name), i.id]));
-  const itemIdOf = (c: LlmConstruct) =>
-    byKey.get(grammarNameKey(c.match === NEW_CONSTRUCT ? c.name : c.match)) ?? null;
-  const ids = constructs.map(itemIdOf);
+  const seen = new Set<string>();
+  const resolved = constructs.flatMap((c: LlmConstruct) => {
+    const entry = c.constructId ? getConstruct(language, c.constructId) : null;
+    const name = entry?.name ?? normalizeGrammarName(c.match === NEW_CONSTRUCT ? c.name : c.match);
+    if (seen.has(entry?.id ?? grammarNameKey(name))) return [];
+    seen.add(entry?.id ?? grammarNameKey(name));
+    const itemId = (entry && byConstruct.get(entry.id)) ?? byKey.get(grammarNameKey(name)) ?? null;
+    return [{ c, entry, name, itemId }];
+  });
   const items = new Map(
-    (await listGrammarItems({ ids: ids.filter((id) => id !== null) })).map((i) => [i.id, i])
+    (await listGrammarItems({ ids: resolved.flatMap((r) => (r.itemId ? [r.itemId] : [])) })).map(
+      (i) => [i.id, i]
+    )
   );
   return {
-    constructs: constructs.map((c, i) => {
-      const item = items.get(ids[i]!) ?? null;
+    hasCatalog: catalog !== null,
+    constructs: resolved.map(({ c, entry, name, itemId }) => {
+      const item = (itemId && items.get(itemId)) || null;
       return {
-        name: item?.name ?? normalizeGrammarName(c.name),
-        category: item?.category ?? c.category,
-        level: item?.level ?? c.level,
+        constructId: entry?.id ?? item?.constructId ?? null,
+        name: item?.name ?? name,
+        category: entry?.category ?? item?.category ?? c.category,
+        level: entry?.level ?? item?.level ?? c.level,
         form: c.form,
         gist: c.gist,
         item,
       };
     }),
-    savedItems: saved,
+    savedItems: saved.map(({ id, name }) => ({ id, name })),
   };
 }
 
 const ConstructSchema = z.object({
+  constructId: z.string().max(100).nullable(),
   name: z.string().trim().min(1).max(200),
   category: z.enum(GRAMMAR_CATEGORY_VALUES),
   level: z.enum(CEFR_LEVELS),
@@ -319,7 +335,18 @@ const ConstructSchema = z.object({
 
 type ConstructInput = z.infer<typeof ConstructSchema>;
 
-/** Explains a new construct found in a selection. Nothing is stored until it is saved. */
+/** The catalogue entry a construct from the client refers to; throws for an unknown id. */
+function catalogEntry(language: LanguageCode, construct: ConstructInput) {
+  if (construct.constructId === null) return null;
+  const entry = getConstruct(language, construct.constructId);
+  if (!entry) throw new Error("Unknown catalogue construct");
+  return entry;
+}
+
+/**
+ * Explains a new construct found in a selection: from its catalogue card if it has one, otherwise
+ * by the LLM. Nothing is stored until it is saved.
+ */
 export async function explainGrammar(
   extractionId: string,
   sentence: number,
@@ -327,8 +354,21 @@ export async function explainGrammar(
   construct: ConstructInput
 ): Promise<GrammarExplanation> {
   const s = await loadSelection(extractionId, sentence, span);
-  const { name, form } = ConstructSchema.parse(construct);
-  return llmExplainGrammar({ language: s.sourceLanguage, name, form, sentence: s.text });
+  const c = ConstructSchema.parse(construct);
+  const entry = catalogEntry(s.sourceLanguage, c);
+  const explanation = entry && cardExplanation(s.sourceLanguage, entry, getNativeLanguage());
+  if (entry && explanation) {
+    return {
+      explanation,
+      examples: entry.card!.examples.map(({ sentence, form, translation }) => ({ sentence, form, translation })),
+    };
+  }
+  return llmExplainGrammar({
+    language: s.sourceLanguage,
+    name: entry?.name ?? c.name,
+    form: c.form,
+    sentence: s.text,
+  });
 }
 
 /** Saves a new construct with the selected sentence and the generated sentences as examples. */
@@ -342,10 +382,18 @@ export async function saveGrammarItem(
   const s = await loadSelection(extractionId, sentence, span);
   const c = ConstructSchema.parse(construct);
   const e = GrammarExplanationSchema.parse(explanation);
+  // For catalogue constructs, name, category and level always come from the catalogue.
+  const entry = catalogEntry(s.sourceLanguage, c);
   await createGrammarItem(
     s.sourceLanguage,
     getNativeLanguage(),
-    { name: c.name, category: c.category, level: c.level, explanation: e.explanation },
+    {
+      constructId: entry?.id ?? null,
+      name: entry?.name ?? c.name,
+      category: entry?.category ?? c.category,
+      level: entry?.level ?? c.level,
+      explanation: e.explanation,
+    },
     [
       sourceExample(s, extractionId, sentence, c.form),
       ...e.examples.map((x) => ({
