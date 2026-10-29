@@ -16,21 +16,24 @@ import { markExported, markItem, unmarkItem, updateAnkiSettings } from "@/app/ac
 import { AnkiSettingsPanel } from "@/components/anki-settings-panel";
 import { Highlighted } from "@/components/highlighted";
 import { buildAnkiFile } from "@/lib/anki";
-import { formatLemma } from "@/lib/format-lemma";
+import { formatLemma, formatPartOfSpeech } from "@/lib/format-lemma";
+import { vocabKey } from "@/lib/lemma";
 import type {
   AnkiSettings,
   ExtractedItem,
   ExtractionResult,
+  KnownHomograph,
   LearnedItem,
   WordStatus,
 } from "@/lib/types";
 
 type Selection = Set<string>;
 
-function withToggled(selection: Selection, lemma: string, checked: boolean): Selection {
+/** Items are selected and listed by vocabKey: two words may share a lemma. */
+function withToggled(selection: Selection, key: string, checked: boolean): Selection {
   const next = new Set(selection);
-  if (checked) next.add(lemma);
-  else next.delete(lemma);
+  if (checked) next.add(key);
+  else next.delete(key);
   return next;
 }
 
@@ -66,8 +69,8 @@ export function ExtractionView({
 
   // Preview the first selected word, else the first word that could be exported.
   const previewItem =
-    items.find((i) => selectedNew.has(i.lemma)) ??
-    learned.find((i) => selectedLearned.has(i.lemma)) ??
+    items.find((i) => selectedNew.has(vocabKey(i))) ??
+    learned.find((i) => selectedLearned.has(vocabKey(i))) ??
     items[0] ??
     learned[0];
 
@@ -78,25 +81,30 @@ export function ExtractionView({
 
   async function mark(item: ExtractedItem, status: WordStatus) {
     await markItem(item, result.sourceLanguage, result.targetLanguage, status);
-    setItems((prev) => prev.filter((i) => i.lemma !== item.lemma));
-    setSelectedNew((prev) => withToggled(prev, item.lemma, false));
+    setItems((prev) => prev.filter((i) => vocabKey(i) !== vocabKey(item)));
+    setSelectedNew((prev) => withToggled(prev, vocabKey(item), false));
     if (status === "known") setKnown((prev) => [item, ...prev]);
   }
 
   async function unmark(item: ExtractedItem) {
-    await unmarkItem(result.sourceLanguage, item.lemma);
-    setLearned((prev) => prev.filter((i) => i.lemma !== item.lemma));
-    setKnown((prev) => prev.filter((i) => i.lemma !== item.lemma));
-    setSelectedLearned((prev) => withToggled(prev, item.lemma, false));
+    await unmarkItem(result.sourceLanguage, {
+      lemma: item.lemma,
+      partOfSpeech: item.partOfSpeech,
+      gender: item.gender,
+      kind: item.kind,
+    });
+    setLearned((prev) => prev.filter((i) => vocabKey(i) !== vocabKey(item)));
+    setKnown((prev) => prev.filter((i) => vocabKey(i) !== vocabKey(item)));
+    setSelectedLearned((prev) => withToggled(prev, vocabKey(item), false));
     setItems((prev) => [...prev, item]);
   }
 
   async function exportSelected(from: "new" | "learned") {
     const toExport: ExtractedItem[] =
       from === "new"
-        ? items.filter((i) => selectedNew.has(i.lemma))
-        : learned.filter((i) => selectedLearned.has(i.lemma));
-    const lemmas = new Set(toExport.map((i) => i.lemma));
+        ? items.filter((i) => selectedNew.has(vocabKey(i)))
+        : learned.filter((i) => selectedLearned.has(vocabKey(i)));
+    const keys = new Set(toExport.map(vocabKey));
     setExporting(from);
     setError(null);
     try {
@@ -108,11 +116,11 @@ export function ExtractionView({
       const exportedAt = new Date().toISOString();
       const exported: LearnedItem[] = toExport.map((i) => ({ ...i, exportedAt }));
       if (from === "new") {
-        setItems((prev) => prev.filter((i) => !lemmas.has(i.lemma)));
+        setItems((prev) => prev.filter((i) => !keys.has(vocabKey(i))));
         setLearned((prev) => [...exported, ...prev]);
         setSelectedNew(new Set());
       } else {
-        setLearned((prev) => prev.map((i) => (lemmas.has(i.lemma) ? { ...i, exportedAt } : i)));
+        setLearned((prev) => prev.map((i) => (keys.has(vocabKey(i)) ? { ...i, exportedAt } : i)));
         setSelectedLearned(new Set());
       }
     } catch (e) {
@@ -186,17 +194,21 @@ export function ExtractionView({
             </TableHeader>
             <TableBody>
               {items.map((item) => (
-                <TableRow key={item.lemma}>
+                <TableRow key={vocabKey(item)}>
                   <TableCell>
                     <Checkbox
-                      checked={selectedNew.has(item.lemma)}
+                      checked={selectedNew.has(vocabKey(item))}
                       onCheckedChange={(checked) =>
-                        setSelectedNew((prev) => withToggled(prev, item.lemma, checked))
+                        setSelectedNew((prev) => withToggled(prev, vocabKey(item), checked))
                       }
                       aria-label={`Select ${item.lemma}`}
                     />
                   </TableCell>
-                  <LemmaCell item={item} language={result.sourceLanguage} />
+                  <LemmaCell
+                    item={item}
+                    language={result.sourceLanguage}
+                    alsoKnown={result.homographs[vocabKey(item)]}
+                  />
                   <TableCell>
                     {item.translation}
                     {item.contextNote && (
@@ -254,12 +266,12 @@ export function ExtractionView({
             </TableHeader>
             <TableBody>
               {learned.map((item) => (
-                <TableRow key={item.lemma}>
+                <TableRow key={vocabKey(item)}>
                   <TableCell>
                     <Checkbox
-                      checked={selectedLearned.has(item.lemma)}
+                      checked={selectedLearned.has(vocabKey(item))}
                       onCheckedChange={(checked) =>
-                        setSelectedLearned((prev) => withToggled(prev, item.lemma, checked))
+                        setSelectedLearned((prev) => withToggled(prev, vocabKey(item), checked))
                       }
                       aria-label={`Select ${item.lemma}`}
                     />
@@ -301,7 +313,7 @@ export function ExtractionView({
             </TableHeader>
             <TableBody>
               {known.map((item) => (
-                <TableRow key={item.lemma} className="text-muted-foreground">
+                <TableRow key={vocabKey(item)} className="text-muted-foreground">
                   <LemmaCell item={item} language={result.sourceLanguage} />
                   <TableCell>{item.translation}</TableCell>
                   {exampleCell(item)}
@@ -343,20 +355,34 @@ function SelectAll({
     <Checkbox
       checked={all}
       indeterminate={selected.size > 0 && !all}
-      onCheckedChange={(checked) => onChange(checked ? new Set(items.map((i) => i.lemma)) : new Set())}
+      onCheckedChange={(checked) => onChange(checked ? new Set(items.map(vocabKey)) : new Set())}
       aria-label="Select all"
     />
   );
 }
 
-function LemmaCell({ item, language }: { item: ExtractedItem; language: string }) {
+function LemmaCell({
+  item,
+  language,
+  alsoKnown,
+}: {
+  item: ExtractedItem;
+  language: string;
+  /** Known entries with the same lemma that are other words, shown as a hint on new items. */
+  alsoKnown?: KnownHomograph[];
+}) {
   return (
     <TableCell>
       <div className="flex items-center gap-2">
         <span className="font-medium">{formatLemma(language, item)}</span>
         {item.kind === "expression" && <Badge variant="secondary">expr.</Badge>}
       </div>
-      <div className="text-xs text-muted-foreground">{item.partOfSpeech}</div>
+      <div className="text-xs text-muted-foreground">{formatPartOfSpeech(item)}</div>
+      {alsoKnown?.map((h) => (
+        <div key={vocabKey(h)} className="text-xs text-muted-foreground">
+          Also known: {h.lemma} ({h.kind === "expression" ? "expression" : formatPartOfSpeech(h)}){h.translation && `: ${h.translation}`}
+        </div>
+      ))}
     </TableCell>
   );
 }
