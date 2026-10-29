@@ -407,6 +407,38 @@ export async function saveGrammarItem(
   revalidatePath("/grammar");
 }
 
+/**
+ * Saves a catalogue construct of the active language to the grammar list without a sentence from
+ * a text: the card's examples become its examples. Returns the item's id (an existing one if the
+ * construct is already tracked).
+ */
+export async function addCatalogConstruct(constructId: string): Promise<string> {
+  const language = await getActiveLanguage();
+  const entry = typeof constructId === "string" ? getConstruct(language, constructId) : null;
+  if (!entry) throw new Error("Unknown catalogue construct");
+  const id = await createGrammarItem(
+    language,
+    getNativeLanguage(),
+    {
+      constructId: entry.id,
+      name: entry.name,
+      category: entry.category,
+      level: entry.level,
+      explanation: cardExplanation(language, entry, getNativeLanguage()) ?? entry.description,
+    },
+    (entry.card?.examples ?? []).map(({ sentence, form, translation }) => ({
+      origin: "generated" as const,
+      sentence,
+      form,
+      translation,
+      extractionId: null,
+      sentenceIndex: null,
+    }))
+  );
+  revalidatePath("/grammar", "layout");
+  return id;
+}
+
 /** Adds the selected sentence as an example to a saved item. */
 export async function addGrammarExample(
   itemId: string,

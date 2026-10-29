@@ -203,6 +203,17 @@ export async function assignConstruct(
   return id;
 }
 
+/** The saved item and its status for every catalogue construct the learner tracks, by construct id. */
+export async function listTrackedConstructs(
+  language: LanguageCode
+): Promise<Record<string, { itemId: string; status: GrammarStatus }>> {
+  const rows = await db
+    .select({ itemId: grammarItems.id, constructId: grammarItems.constructId, status: grammarItems.status })
+    .from(grammarItems)
+    .where(and(eq(grammarItems.language, language), sql`${grammarItems.constructId} is not null`));
+  return Object.fromEntries(rows.map((r) => [r.constructId!, { itemId: r.itemId, status: r.status }]));
+}
+
 /** Saved items of a language not linked to a catalogue construct. */
 export async function listUnlinkedGrammarItems(language: LanguageCode): Promise<GrammarItem[]> {
   const items = await listGrammarItems({ language });
@@ -272,6 +283,10 @@ export async function createGrammarItem(
 /** Adds examples to an item (skipping sentences it already has) and puts it back to "to work on". */
 export async function addGrammarExamples(id: string, examples: ExampleRecord[]): Promise<void> {
   const now = new Date().toISOString();
+  if (examples.length === 0) {
+    await db.update(grammarItems).set({ status: "to_work_on", updatedAt: now }).where(eq(grammarItems.id, id));
+    return;
+  }
   await db.batch([
     db
       .insert(grammarExamples)

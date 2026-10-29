@@ -27,7 +27,8 @@ export function SiteNav({ active, learning }: { active: string; learning: string
               "text-sm text-muted-foreground hover:text-foreground",
               (pathname === href ||
                 (href === "/" && pathname.startsWith("/extractions")) ||
-                (href === "/exercises" && pathname.startsWith("/exercises/"))) &&
+                (href === "/exercises" && pathname.startsWith("/exercises/")) ||
+                (href === "/grammar" && pathname.startsWith("/grammar/"))) &&
                 "font-medium text-foreground"
             )}
           >
