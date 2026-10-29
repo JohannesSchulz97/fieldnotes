@@ -15,7 +15,7 @@ import { getActiveLanguage } from "@/lib/active-language";
 import { getTotalCost } from "@/lib/db/usage";
 import { countBySource, listVocab } from "@/lib/db/vocab";
 import { formatUsd } from "@/lib/format";
-import { formatLemma } from "@/lib/format-lemma";
+import { formatLemma, formatPartOfSpeech } from "@/lib/format-lemma";
 import { cn } from "@/lib/utils";
 import type { WordSource } from "@/lib/types";
 
@@ -128,7 +128,7 @@ export default async function VocabPage({
                 </div>
                 {entry.partOfSpeech && (
                   <div className="text-xs text-muted-foreground">
-                    {entry.partOfSpeech}
+                    {formatPartOfSpeech(entry)}
                   </div>
                 )}
               </TableCell>
@@ -144,7 +144,7 @@ export default async function VocabPage({
               <TableCell>{entry.exportedAt ? entry.exportedAt.slice(0, 10) : "—"}</TableCell>
               <TableCell>{entry.createdAt.slice(0, 10)}</TableCell>
               <TableCell className="text-right">
-                <UnmarkButton language={entry.language} lemma={entry.lemma} />
+                <UnmarkButton language={entry.language} id={entry.id} />
               </TableCell>
             </TableRow>
           ))}

@@ -4,7 +4,7 @@ import { z } from "zod";
 import type { ExerciseRecord } from "../db/exercises";
 import { answerKey } from "../exercises";
 import { getNativeLanguage } from "../languages";
-import { normalizeLemma } from "../lemma";
+import { normalizeLemma, PARTS_OF_SPEECH } from "../lemma";
 import type { CefrLevel, GrammarItem, LanguageCode } from "../types";
 import { getClient, model, reasoningEffort, trackUsage } from "./client";
 
@@ -18,7 +18,16 @@ const Exercises = z.object({
       alternatives: z.array(z.string()),
       translation: z.string(),
       reason: z.string(),
-      words: z.array(z.object({ form: z.string(), lemma: z.string(), translation: z.string() })),
+      words: z.array(
+        z.object({
+          form: z.string(),
+          lemma: z.string(),
+          partOfSpeech: z.enum(PARTS_OF_SPEECH).nullable(),
+          kind: z.enum(["word", "expression"]),
+          gender: z.enum(["m", "f"]).nullable(),
+          translation: z.string(),
+        })
+      ),
     })
   ),
 });
@@ -38,7 +47,7 @@ Each exercise is one short, natural, everyday sentence (at most 15 words) with o
 - alternatives: other answers that are equally correct in this sentence; usually none.
 - translation: natural ${native} translation of the full sentence.
 - reason: why this form is needed here, in at most 15 words of ${native}.
-- words: every content word of the full sentence (nouns, verbs, adjectives, adverbs, expressions), including those in the answer. form: the word exactly as it appears in the sentence, copied character for character. lemma: its dictionary form, spelled as in the vocabulary list when it is there. translation: its common ${native} translation.
+- words: every content word of the full sentence (nouns, verbs, adjectives, adverbs, expressions), including those in the answer. form: the word exactly as it appears in the sentence, copied character for character. lemma: its dictionary form, spelled as in the vocabulary list when it is there. partOfSpeech: exactly one of ${PARTS_OF_SPEECH.map((p) => `"${p}"`).join(", ")}; null for an expression where none fits. kind: "expression" for expressions, otherwise "word". gender: "m" or "f" for a noun of a language with masculine and feminine nouns, otherwise null. translation: its common ${native} translation.
 
 Vocabulary: build the sentences only from the learner's known vocabulary below, plus function words (articles, pronouns, prepositions, conjunctions, auxiliaries). Use another word only if a natural sentence is impossible without it, and then a very common one. Vary subjects, situations and words across the exercises. Use no grammar above the given level besides the construct.
 
@@ -106,7 +115,14 @@ export async function llmGenerateExercises({
         translation: e.translation.trim(),
         reason: e.reason.trim(),
         words: e.words
-          .map((w) => ({ form: w.form.trim(), lemma: lemmaOf(w.lemma), translation: w.translation.trim() }))
+          .map((w) => ({
+            form: w.form.trim(),
+            lemma: lemmaOf(w.lemma),
+            partOfSpeech: w.partOfSpeech,
+            kind: w.kind,
+            gender: w.partOfSpeech === "noun" ? w.gender : null,
+            translation: w.translation.trim(),
+          }))
           .filter((w) => w.form && w.lemma && sentence.includes(w.form)),
       };
     });

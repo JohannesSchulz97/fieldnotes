@@ -1,4 +1,5 @@
 import { getNativeLanguage, getProfile } from "../languages";
+import { PARTS_OF_SPEECH } from "../lemma";
 import type { LanguageCode } from "../types";
 
 /** `"a", "b", "c"` */
@@ -33,7 +34,7 @@ Lemma format: dictionary form, lowercase. Infinitive for verbs${verbs}; masculin
 - kind: "expression" for expressions, otherwise "word".
 - gender: ${gender}
 - pluralOnly: true only for nouns that exist only in the plural${pluralOnlyRule}; otherwise false.
-- partOfSpeech: e.g. "noun", "verb", "adjective", "adverb", "pronoun", "preposition", "conjunction", "determiner"; null for expressions if unclear.
+- partOfSpeech: exactly one of ${quoted([...PARTS_OF_SPEECH])}; null only for an expression where none fits.
 - translation: the most common ${target} translation of the lemma in general use, independent of any particular text. One translation is usually enough; add more only when the lemma has truly different common meanings, never synonyms of the same meaning. Separate several with ", " (at most three).`;
 }
 

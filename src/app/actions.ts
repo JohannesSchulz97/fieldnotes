@@ -40,7 +40,14 @@ import {
   saveAnkiSettings,
 } from "@/lib/db/settings";
 import { getTotalCost } from "@/lib/db/usage";
-import { deleteEntry, getStoredStatuses, listKnownLemmas, upsertEntries } from "@/lib/db/vocab";
+import {
+  deleteEntry,
+  findStoredEntry,
+  getStoredEntries,
+  listKnownLemmas,
+  upsertEntries,
+} from "@/lib/db/vocab";
+import { keyItems, matchStored, vocabKey } from "@/lib/lemma";
 import { EXERCISE_COUNTS, type Grade, gradeAnswer } from "@/lib/exercises";
 import { llmGenerateExercises } from "@/lib/llm/exercises";
 import { llmExtract } from "@/lib/llm/extract";
@@ -65,10 +72,13 @@ import { parseSourceDetails } from "@/lib/source";
 import type {
   AnkiSettings,
   ExtractedItem,
+  Gender,
   GrammarExplanation,
   GrammarIdentification,
   GrammarStatus,
   LanguageCode,
+  PartOfSpeech,
+  WordKind,
   WordStatus,
 } from "@/lib/types";
 
@@ -191,10 +201,10 @@ export async function addKnownWords(text: string): Promise<AddKnownResult> {
   const language = await getActiveLanguage();
   const { items, costUsd } = await llmNormalize(language, lines);
 
-  const lemmas = [...new Set(items.map((i) => i.lemma))];
-  const stored = await getStoredStatuses(language, lemmas);
-  const alreadyStored = stored.size;
-  const added = lemmas.length - stored.size;
+  const unique = [...keyItems(items).values()];
+  const stored = await getStoredEntries(language, unique);
+  const alreadyStored = unique.filter((i) => matchStored(stored, i)).length;
+  const added = unique.length - alreadyStored;
   await upsertEntries(items, language, getNativeLanguage(), "known", "manual");
   revalidatePath("/vocab");
   revalidatePath("/");
@@ -207,10 +217,22 @@ export async function addKnownWords(text: string): Promise<AddKnownResult> {
   };
 }
 
-/** Removes a stored word so it shows up as new again. */
-export async function unmarkItem(language: LanguageCode, lemma: string): Promise<void> {
-  if (!language?.trim() || !lemma?.trim()) throw new Error("Missing language or lemma");
-  await deleteEntry(language, lemma);
+/** Which stored word to remove: by id, or by the key parts of an item (e.g. from an extraction). */
+export type UnmarkTarget =
+  | { id: string }
+  | { lemma: string; partOfSpeech: PartOfSpeech | null; gender?: Gender | null; kind?: WordKind };
+
+/** Removes a stored word so it shows up as new again. Other words with the same lemma stay. */
+export async function unmarkItem(language: LanguageCode, target: UnmarkTarget): Promise<void> {
+  if (!language?.trim()) throw new Error("Missing language");
+  if ("id" in target) {
+    if (!target.id?.trim()) throw new Error("Missing id");
+    await deleteEntry(target.id);
+  } else {
+    if (!target?.lemma?.trim()) throw new Error("Missing lemma");
+    const entry = await findStoredEntry(language, target);
+    if (entry) await deleteEntry(entry.id);
+  }
   revalidatePath("/vocab");
   revalidatePath("/");
 }
@@ -509,27 +531,32 @@ export async function submitExerciseAnswer(exerciseId: string, answer: string): 
  * (the learner doesn't know it after all) and adds it with its sentence to the language's
  * exercises source, from where it is exported like any new word. Returns the source's id.
  */
-export async function studyExerciseWord(exerciseId: string, lemma: string): Promise<string> {
+export async function studyExerciseWord(exerciseId: string, wordKey: string): Promise<string> {
   const exercise = await getExerciseSentence(exerciseId);
   if (!exercise) throw new Error("Exercise not found");
-  const word = exercise.words.find((w) => w.lemma === lemma);
+  const word = exercise.words.find((w) => vocabKey(w) === wordKey);
   if (!word) throw new Error("Word not in exercise");
 
   // Same lemma rules as extraction, for gender, part of speech and a dictionary translation.
+  // Words generated with their own kind, part of speech and gender keep them, as they decide the match.
   const { items } = await llmNormalize(exercise.language, [`${word.lemma} (${word.translation})`]);
   const normalized = items[0];
+  const keepsOwn = word.kind !== undefined;
   const item: ExtractedItem = {
     lemma: word.lemma,
-    partOfSpeech: normalized?.partOfSpeech ?? null,
-    kind: normalized?.kind ?? (word.lemma.includes(" ") ? "expression" : "word"),
-    gender: normalized?.gender ?? null,
+    partOfSpeech: keepsOwn ? (word.partOfSpeech ?? null) : (normalized?.partOfSpeech ?? null),
+    kind: word.kind ?? normalized?.kind ?? (word.lemma.includes(" ") ? "expression" : "word"),
+    gender: keepsOwn ? (word.gender ?? null) : (normalized?.gender ?? null),
     pluralOnly: normalized?.pluralOnly ?? false,
     translation: normalized?.translation || word.translation,
     contextNote: null,
     exampleSentence: exercise.sentence,
     form: word.form,
   };
-  await deleteEntry(exercise.language, word.lemma);
+  // By the item, not the word: an old word without part of speech now has one, so of two stored
+  // homographs the right one goes.
+  const stored = await findStoredEntry(exercise.language, item);
+  if (stored) await deleteEntry(stored.id);
   const sourceId = await addToExercisesSource(
     exercise.language,
     getNativeLanguage(),

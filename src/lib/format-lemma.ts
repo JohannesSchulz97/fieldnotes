@@ -45,3 +45,8 @@ const FORMATTERS: Record<LanguageCode, Formatter> = {
 export function formatLemma(language: LanguageCode, item: LemmaDisplay): string {
   return (FORMATTERS[language] ?? ((i) => i.lemma))(item);
 }
+
+/** Part of speech and gender in short, e.g. "noun, f": what tells apart words that share a lemma. */
+export function formatPartOfSpeech(item: Pick<LemmaDisplay, "partOfSpeech" | "gender">): string {
+  return [item.partOfSpeech, item.gender].filter(Boolean).join(", ");
+}
