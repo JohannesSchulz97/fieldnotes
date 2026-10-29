@@ -4,7 +4,9 @@ import { Badge } from "@/components/ui/badge";
 import { CreateExercises } from "@/components/create-exercises";
 import { GrammarExampleLine, GrammarTags, sentenceHref } from "@/components/grammar-example";
 import { GrammarItemActions } from "@/components/grammar-item-actions";
+import { GrammarViews } from "@/components/grammar-views";
 import { getActiveLanguage } from "@/lib/active-language";
+import { getCatalog } from "@/lib/grammar-catalog";
 import { countByCategory, countByStatus, listGrammarItems } from "@/lib/db/grammar";
 import { GRAMMAR_CATEGORIES } from "@/lib/grammar";
 import type { GrammarCategory, GrammarStatus } from "@/lib/types";
@@ -52,7 +54,10 @@ export default async function GrammarPage({
 
   return (
     <main className="mx-auto w-full max-w-5xl px-4 py-8">
-      <h1 className="mb-6 text-2xl font-semibold">Grammar</h1>
+      <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
+        <h1 className="text-2xl font-semibold">Grammar</h1>
+        {getCatalog(language) && <GrammarViews active="/grammar" />}
+      </div>
       <nav className="mb-3 flex flex-wrap gap-4 text-sm">
         {statusFilters.map(({ value, label, n }) => (
           <Link
@@ -94,7 +99,7 @@ export default async function GrammarPage({
       ) : (
         <ul className="flex flex-col divide-y">
           {items.map((item) => (
-            <li key={item.id} className="flex flex-col gap-3 py-5">
+            <li key={item.id} id={`item-${item.id}`} className="flex scroll-mt-4 flex-col gap-3 py-5">
               <div className="flex items-start justify-between gap-4">
                 <div className="flex flex-col gap-1">
                   <div className="flex flex-wrap items-center gap-2">
