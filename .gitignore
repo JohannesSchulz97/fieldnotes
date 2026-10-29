@@ -40,6 +40,12 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
+# playwright MCP output
+/.playwright-mcp/
+
+# claude code worktrees
+/.claude/worktrees/
+
 # local database
 /data/*
 !/data/.gitkeep
