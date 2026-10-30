@@ -27,7 +27,13 @@ export async function listGrammarItems({
   ids?: string[];
 } = {}): Promise<GrammarItem[]> {
   if (ids?.length === 0) return [];
-  const items = await db
+  const where = and(
+    language ? eq(grammarItems.language, language) : undefined,
+    status ? eq(grammarItems.status, status) : undefined,
+    category ? eq(grammarItems.category, category) : undefined,
+    ids ? inArray(grammarItems.id, ids) : undefined
+  );
+  const itemsQuery = db
     .select({
       id: grammarItems.id,
       language: grammarItems.language,
@@ -42,17 +48,10 @@ export async function listGrammarItems({
       updatedAt: grammarItems.updatedAt,
     })
     .from(grammarItems)
-    .where(
-      and(
-        language ? eq(grammarItems.language, language) : undefined,
-        status ? eq(grammarItems.status, status) : undefined,
-        category ? eq(grammarItems.category, category) : undefined,
-        ids ? inArray(grammarItems.id, ids) : undefined
-      )
-    )
+    .where(where)
     .orderBy(desc(grammarItems.createdAt));
-  if (items.length === 0) return [];
-  const examples = await db
+  // Selects the examples by the same filters, so both queries run at once.
+  const examplesQuery = db
     .select({
       id: grammarExamples.id,
       grammarItemId: grammarExamples.grammarItemId,
@@ -64,10 +63,16 @@ export async function listGrammarItems({
       sentenceIndex: grammarExamples.sentenceIndex,
     })
     .from(grammarExamples)
-    .where(inArray(grammarExamples.grammarItemId, items.map((i) => i.id)))
+    .where(
+      inArray(
+        grammarExamples.grammarItemId,
+        db.select({ id: grammarItems.id }).from(grammarItems).where(where)
+      )
+    )
     // "source" sorts after "generated", so descending puts source examples first; examples saved
     // together share a timestamp, so rowid keeps the order they were inserted in.
     .orderBy(desc(grammarExamples.origin), sql`rowid`);
+  const [items, examples] = await Promise.all([itemsQuery, examplesQuery]);
   const byItem = Map.groupBy(examples, (e) => e.grammarItemId);
   return items.map(({ explanationLanguage, ...item }) => ({
     ...item,

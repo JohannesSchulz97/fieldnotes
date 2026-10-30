@@ -1,6 +1,6 @@
 import "server-only";
 import { createHash } from "node:crypto";
-import { and, desc, eq } from "drizzle-orm";
+import { and, desc, eq, sql } from "drizzle-orm";
 import type { LlmExtraction } from "../llm/extract";
 import { splitParagraphs, splitSentences } from "../sentences";
 import type { SourceDetails } from "../source";
@@ -148,28 +148,29 @@ export async function loadExtraction(id: string): Promise<ExtractionResult | nul
 /** The sources of one language, newest first. */
 export async function listExtractions(language: LanguageCode): Promise<ExtractionSummary[]> {
   const rows = await db
-    .select()
+    .select({
+      id: extractions.id,
+      title: extractions.title,
+      sourceUrl: extractions.sourceUrl,
+      // One character more than the preview, to tell whether the text was cut.
+      head: sql<string>`substr(${extractions.text}, 1, ${PREVIEW_LENGTH + 1})`,
+      items: extractions.items,
+      createdAt: extractions.createdAt,
+    })
     .from(extractions)
     .where(eq(extractions.sourceLanguage, language))
     .orderBy(desc(extractions.createdAt));
-  return Promise.all(
-    rows.map(async (row) => {
-      const stored = await getStoredStatuses(
-        row.sourceLanguage,
-        row.items.map((i) => i.lemma)
-      );
-      return {
-        id: row.id,
-        title: row.title,
-        sourceUrl: row.sourceUrl,
-        preview:
-          row.text.length > PREVIEW_LENGTH ? `${row.text.slice(0, PREVIEW_LENGTH)}…` : row.text,
-        newCount: row.items.filter((i) => !stored.has(i.lemma)).length,
-        totalCount: row.items.length,
-        createdAt: row.createdAt,
-      };
-    })
+  // One lookup for the items of all sources, instead of one per source.
+  const stored = await getStoredStatuses(
+    language,
+    rows.flatMap((r) => r.items.map((i) => i.lemma))
   );
+  return rows.map(({ head, items, ...row }) => ({
+    ...row,
+    preview: head.length > PREVIEW_LENGTH ? `${head.slice(0, PREVIEW_LENGTH)}…` : head,
+    newCount: items.filter((i) => !stored.has(i.lemma)).length,
+    totalCount: items.length,
+  }));
 }
 
 const EXERCISES_SOURCE_TITLE = "Exercises";

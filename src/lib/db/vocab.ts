@@ -77,17 +77,27 @@ export async function listKnownLemmas(language: LanguageCode): Promise<string[]>
   return rows.map((r) => r.lemma);
 }
 
+/** Lemmas per lookup query, well below SQLite's cap on bound parameters per statement. */
+const LOOKUP_BATCH_SIZE = 1000;
+
 /** Returns the status of each given lemma that is already stored. */
 export async function getStoredStatuses(
   language: LanguageCode,
   lemmas: string[]
 ): Promise<Map<string, WordStatus>> {
-  if (lemmas.length === 0) return new Map();
-  const rows = await db
-    .select({ lemma: vocabEntries.lemma, status: vocabEntries.status })
-    .from(vocabEntries)
-    .where(and(eq(vocabEntries.language, language), inArray(vocabEntries.lemma, lemmas)));
-  return new Map(rows.map((r) => [r.lemma, r.status]));
+  const unique = [...new Set(lemmas)];
+  const chunks = Array.from({ length: Math.ceil(unique.length / LOOKUP_BATCH_SIZE) }, (_, i) =>
+    unique.slice(i * LOOKUP_BATCH_SIZE, (i + 1) * LOOKUP_BATCH_SIZE)
+  );
+  const rows = await Promise.all(
+    chunks.map((chunk) =>
+      db
+        .select({ lemma: vocabEntries.lemma, status: vocabEntries.status })
+        .from(vocabEntries)
+        .where(and(eq(vocabEntries.language, language), inArray(vocabEntries.lemma, chunk)))
+    )
+  );
+  return new Map(rows.flat().map((r) => [r.lemma, r.status]));
 }
 
 export interface StoredEntry {
