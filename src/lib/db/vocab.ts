@@ -1,7 +1,22 @@
 import "server-only";
 import { and, count, desc, eq, inArray, or, sql } from "drizzle-orm";
-import type { Gender, LanguageCode, VocabEntry, WordKind, WordSource, WordStatus } from "../types";
-import { normalizeLemma } from "../lemma";
+import type {
+  Gender,
+  LanguageCode,
+  PartOfSpeech,
+  VocabEntry,
+  WordKind,
+  WordSource,
+  WordStatus,
+} from "../types";
+import {
+  homographKey,
+  type KeyedItem,
+  matchStored,
+  normalizeLemma,
+  normalizePartOfSpeech,
+  vocabKey,
+} from "../lemma";
 import { db } from ".";
 import { vocabEntries } from "./schema";
 
@@ -61,10 +76,8 @@ export async function countBySource(language: LanguageCode): Promise<Record<Word
 }
 
 /** Removes an entry, so the word counts as new again. */
-export async function deleteEntry(language: LanguageCode, lemma: string): Promise<void> {
-  await db
-    .delete(vocabEntries)
-    .where(and(eq(vocabEntries.language, language), eq(vocabEntries.lemma, lemma)));
+export async function deleteEntry(id: string): Promise<void> {
+  await db.delete(vocabEntries).where(eq(vocabEntries.id, id));
 }
 
 /** Every known lemma of a language (from any source), alphabetically. */
@@ -74,59 +87,88 @@ export async function listKnownLemmas(language: LanguageCode): Promise<string[]>
     .from(vocabEntries)
     .where(and(eq(vocabEntries.language, language), eq(vocabEntries.status, "known")))
     .orderBy(vocabEntries.lemma);
-  return rows.map((r) => r.lemma);
+  return [...new Set(rows.map((r) => r.lemma))];
 }
 
-/** Lemmas per lookup query, well below SQLite's cap on bound parameters per statement. */
-const LOOKUP_BATCH_SIZE = 1000;
-
-/** Returns the status of each given lemma that is already stored. */
-export async function getStoredStatuses(
-  language: LanguageCode,
-  lemmas: string[]
-): Promise<Map<string, WordStatus>> {
-  const unique = [...new Set(lemmas)];
-  const chunks = Array.from({ length: Math.ceil(unique.length / LOOKUP_BATCH_SIZE) }, (_, i) =>
-    unique.slice(i * LOOKUP_BATCH_SIZE, (i + 1) * LOOKUP_BATCH_SIZE)
-  );
-  const rows = await Promise.all(
-    chunks.map((chunk) =>
-      db
-        .select({ lemma: vocabEntries.lemma, status: vocabEntries.status })
-        .from(vocabEntries)
-        .where(and(eq(vocabEntries.language, language), inArray(vocabEntries.lemma, chunk)))
-    )
-  );
-  return new Map(rows.flat().map((r) => [r.lemma, r.status]));
-}
-
+/** A stored entry as far as matching items against the vocabulary needs it. */
 export interface StoredEntry {
+  id: string;
+  lemma: string;
+  partOfSpeech: PartOfSpeech | null;
+  kind: WordKind;
+  gender: Gender | null;
   status: WordStatus;
+  translation: string | null;
   createdAt: string;
   exportedAt: string | null;
 }
 
-/** Returns status and dates of each given lemma that is already stored. */
+/** SQLite caps bound parameters per statement; 14 columns × 500 rows stays well below it. */
+const BATCH_SIZE = 500;
+
+/** Every stored entry of a language with one of the lemmas, whatever its part of speech or gender. */
+async function entriesWithLemmas(language: LanguageCode, lemmas: string[]): Promise<StoredEntry[]> {
+  const unique = [...new Set(lemmas.map(normalizeLemma))];
+  const chunks = Array.from({ length: Math.ceil(unique.length / BATCH_SIZE) }, (_, i) =>
+    unique.slice(i * BATCH_SIZE, (i + 1) * BATCH_SIZE)
+  );
+  const rows = await Promise.all(
+    chunks.map((chunk) =>
+      db
+        .select({
+          id: vocabEntries.id,
+          lemma: vocabEntries.lemma,
+          partOfSpeech: vocabEntries.partOfSpeech,
+          kind: vocabEntries.kind,
+          gender: vocabEntries.gender,
+          status: vocabEntries.status,
+          translation: vocabEntries.translation,
+          createdAt: vocabEntries.createdAt,
+          exportedAt: vocabEntries.exportedAt,
+        })
+        .from(vocabEntries)
+        .where(and(eq(vocabEntries.language, language), inArray(vocabEntries.lemma, chunk)))
+    )
+  );
+  return rows.flat();
+}
+
+/**
+ * The stored entries that share a lemma with one of the given items, by vocabKey. Which entry an
+ * item stands for is decided by matchStored, not by looking its key up.
+ */
 export async function getStoredEntries(
   language: LanguageCode,
-  lemmas: string[]
+  items: KeyedItem[]
 ): Promise<Map<string, StoredEntry>> {
+  if (items.length === 0) return new Map();
+  const rows = await entriesWithLemmas(
+    language,
+    items.map((i) => i.lemma)
+  );
+  return new Map(rows.map((r) => [vocabKey(r), r]));
+}
+
+/** The stored entries sharing each lemma (homographs of each other), by lemma. */
+export async function getLemmaSiblings(
+  language: LanguageCode,
+  lemmas: string[]
+): Promise<Map<string, StoredEntry[]>> {
   if (lemmas.length === 0) return new Map();
-  const rows = await db
-    .select({
-      lemma: vocabEntries.lemma,
-      status: vocabEntries.status,
-      createdAt: vocabEntries.createdAt,
-      exportedAt: vocabEntries.exportedAt,
-    })
-    .from(vocabEntries)
-    .where(and(eq(vocabEntries.language, language), inArray(vocabEntries.lemma, lemmas)));
-  return new Map(rows.map(({ lemma, ...entry }) => [lemma, entry]));
+  return Map.groupBy(await entriesWithLemmas(language, lemmas), (r) => r.lemma);
+}
+
+/** The stored entry an item stands for (see matchStored), or null if the item is new. */
+export async function findStoredEntry(
+  language: LanguageCode,
+  item: KeyedItem
+): Promise<StoredEntry | null> {
+  return matchStored(await getStoredEntries(language, [item]), item) ?? null;
 }
 
 export interface EntryInput {
   lemma: string;
-  partOfSpeech: string | null;
+  partOfSpeech: PartOfSpeech | null;
   kind: WordKind;
   gender?: Gender | null;
   pluralOnly?: boolean;
@@ -134,12 +176,11 @@ export interface EntryInput {
   exampleSentence?: string | null;
 }
 
-/** SQLite caps bound parameters per statement; 14 columns × 500 rows stays well below it. */
-const BATCH_SIZE = 500;
-
 /**
- * Inserts entries with the given status and source. Existing (language, lemma) rows keep
- * their data and source but get the new status (and exportedAt, if given).
+ * Inserts entries with the given status and source. Existing rows with the same vocabKey keep
+ * their data and source but get the new status (and exportedAt, if given). An entry that matches a
+ * stored one only by lemma (see matchStored) is taken to be that entry, so it does not create a
+ * second one. Gender is kept for nouns only, and not for plural-only ones.
  */
 export async function upsertEntries(
   entries: EntryInput[],
@@ -149,8 +190,23 @@ export async function upsertEntries(
   source: WordSource,
   exportedAt: string | null = null
 ): Promise<void> {
-  const normalized = entries.map((e) => ({ ...e, lemma: normalizeLemma(e.lemma) }));
-  const unique = [...new Map(normalized.map((e) => [e.lemma, e])).values()];
+  const normalized = entries.map((e) => {
+    const partOfSpeech = normalizePartOfSpeech(e.partOfSpeech);
+    return {
+      ...e,
+      lemma: normalizeLemma(e.lemma),
+      partOfSpeech,
+      gender: partOfSpeech === "noun" && !e.pluralOnly ? (e.gender ?? null) : null,
+    };
+  });
+  const stored = await getStoredEntries(language, normalized);
+  const resolved = normalized.map((e) => {
+    const match = matchStored(stored, e);
+    return match
+      ? { ...e, partOfSpeech: match.partOfSpeech, kind: match.kind, gender: match.gender }
+      : e;
+  });
+  const unique = [...new Map(resolved.map((e) => [vocabKey(e), e])).values()];
   const now = new Date().toISOString();
   for (let i = 0; i < unique.length; i += BATCH_SIZE) {
     await db
@@ -162,8 +218,9 @@ export async function upsertEntries(
           lemma: e.lemma,
           partOfSpeech: e.partOfSpeech,
           kind: e.kind,
-          gender: e.gender ?? null,
+          gender: e.gender,
           pluralOnly: e.pluralOnly ?? false,
+          homographKey: homographKey(e),
           status,
           source,
           translation: e.translation,
@@ -175,7 +232,7 @@ export async function upsertEntries(
         }))
       )
       .onConflictDoUpdate({
-        target: [vocabEntries.language, vocabEntries.lemma],
+        target: [vocabEntries.language, vocabEntries.lemma, vocabEntries.homographKey],
         set: exportedAt ? { status, exportedAt, updatedAt: now } : { status, updatedAt: now },
       });
   }

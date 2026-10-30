@@ -9,10 +9,11 @@ import type {
   LanguageCode,
   WordStudyStatus,
 } from "../types";
+import { keyItems, matchStored, vocabKey } from "../lemma";
 import { db } from ".";
 import { getExercisesSource } from "./extractions";
 import { exerciseAttempts, exercises, exerciseSets, grammarItems } from "./schema";
-import { getStoredStatuses } from "./vocab";
+import { getStoredEntries } from "./vocab";
 
 export interface ExerciseRecord {
   before: string;
@@ -117,17 +118,18 @@ export async function getExerciseSet(id: string): Promise<ExerciseSet | null> {
     .from(exercises)
     .where(eq(exercises.setId, id))
     .orderBy(asc(exercises.position));
-  const lemmas = [...new Set(rows.flatMap((r) => r.words.map((w) => w.lemma)))];
+  const words = rows.flatMap((r) => r.words);
   const [attempts, stored, source] = await Promise.all([
     latestAttempts(rows.map((r) => r.id)),
-    getStoredStatuses(set.language, lemmas),
+    getStoredEntries(set.language, words),
     getExercisesSource(set.language),
   ]);
-  const statusOf = (lemma: string): WordStudyStatus =>
-    stored.has(lemma) ? "known" : source?.lemmas.has(lemma) ? "studying" : "unknown";
+  const studied = keyItems(source?.items ?? []);
+  const statusOf = (word: ExerciseWord): WordStudyStatus =>
+    matchStored(stored, word) ? "known" : matchStored(studied, word) ? "studying" : "unknown";
   return {
     ...set,
-    wordStatus: Object.fromEntries(lemmas.map((l) => [l, statusOf(l)])),
+    wordStatus: Object.fromEntries(words.map((w) => [vocabKey(w), statusOf(w)])),
     exercisesSourceId: source?.id ?? null,
     exercises: rows.map(
       (r): Exercise => ({

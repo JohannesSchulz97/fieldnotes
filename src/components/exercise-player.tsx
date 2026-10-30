@@ -14,6 +14,7 @@ import {
   submitExerciseAnswer,
 } from "@/app/actions";
 import { type Grade, LEARNED_SUGGESTION_SCORE } from "@/lib/exercises";
+import { vocabKey } from "@/lib/lemma";
 import type { Exercise, ExerciseSet, ExerciseWord, WordStudyStatus } from "@/lib/types";
 
 interface Result {
@@ -75,10 +76,10 @@ export function ExercisePlayer({ set }: { set: ExerciseSet }) {
   /** Word lookups and the study action for the words of one exercise. */
   function studyFor(e: Exercise): WordStudy {
     return {
-      status: (lemma) => wordStatus[lemma] ?? ("unknown" satisfies WordStudyStatus),
+      status: (word) => wordStatus[vocabKey(word)] ?? ("unknown" satisfies WordStudyStatus),
       study: async (word: ExerciseWord) => {
-        setSourceId(await studyExerciseWord(e.id, word.lemma));
-        setWordStatus((s) => ({ ...s, [word.lemma]: "studying" }));
+        setSourceId(await studyExerciseWord(e.id, vocabKey(word)));
+        setWordStatus((s) => ({ ...s, [vocabKey(word)]: "studying" }));
       },
       sourceHref: sourceId ? `/extractions/${sourceId}` : null,
     };

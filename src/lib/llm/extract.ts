@@ -2,7 +2,7 @@ import "server-only";
 import { zodTextFormat } from "openai/helpers/zod";
 import { z } from "zod";
 import { getNativeLanguage } from "../languages";
-import { normalizeLemma } from "../lemma";
+import { normalizeLemma, PARTS_OF_SPEECH, vocabKey } from "../lemma";
 import { splitSentences } from "../sentences";
 import type { ExtractedItem, LanguageCode } from "../types";
 import { getClient, model, reasoningEffort, trackUsage } from "./client";
@@ -13,7 +13,7 @@ const Extraction = z.object({
   items: z.array(
     z.object({
       lemma: z.string(),
-      partOfSpeech: z.string().nullable(),
+      partOfSpeech: z.enum(PARTS_OF_SPEECH).nullable(),
       kind: z.enum(["word", "expression"]),
       gender: z.enum(["m", "f"]).nullable(),
       pluralOnly: z.boolean(),
@@ -53,11 +53,12 @@ export async function llmExtract(text: string, language: LanguageCode): Promise<
   const parsed = response.output_parsed;
   if (!parsed) throw new Error("LLM returned no parseable extraction");
 
-  // The model occasionally repeats a lemma; keep the first occurrence so lemmas stay unique.
+  // The model occasionally repeats an item; keep the first occurrence so keys stay unique. Words that
+  // only share a lemma ("son" the determiner and "son" the noun) are different items.
   const seen = new Set<string>();
   const unique = parsed.items
     .map((i) => ({ ...i, lemma: normalizeLemma(i.lemma) }))
-    .filter((i) => !seen.has(i.lemma) && seen.add(i.lemma));
+    .filter((i) => !seen.has(vocabKey(i)) && seen.add(vocabKey(i)));
   const items = unique.map(({ sentence, ...item }) => ({
     ...item,
     exampleSentence: sentences[sentence] ?? "",

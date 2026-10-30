@@ -7,7 +7,7 @@ import type { ExerciseWord, WordStudyStatus } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
 export interface WordStudy {
-  status: (lemma: string) => WordStudyStatus;
+  status: (word: ExerciseWord) => WordStudyStatus;
   /** Puts the word on the study list. */
   study: (word: ExerciseWord) => Promise<void>;
   /** Link to the exercises source, once it exists. */
@@ -29,7 +29,7 @@ export function ExerciseWordSpan({
 }) {
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const status = study.status(word.lemma);
+  const status = study.status(word);
 
   async function handleStudy() {
     setPending(true);

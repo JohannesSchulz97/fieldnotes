@@ -1,4 +1,5 @@
 import type { CEFR_LEVELS, GRAMMAR_CATEGORY_VALUES } from "./grammar";
+import type { PARTS_OF_SPEECH } from "./lemma";
 
 /** ISO 639-1 language code, e.g. "fr", "en". */
 export type LanguageCode = string;
@@ -15,15 +16,18 @@ export type WordKind = "word" | "expression";
 /** Grammatical gender of a noun. Null for non-nouns and languages without gender. */
 export type Gender = "m" | "f";
 
-/** A stored vocabulary entry. Identity: (language, lemma). */
+/** Closed set, see PARTS_OF_SPEECH. */
+export type PartOfSpeech = (typeof PARTS_OF_SPEECH)[number];
+
+/** A stored vocabulary entry. Identity: (language, lemma, and for words part of speech and gender), see vocabKey. */
 export interface VocabEntry {
   id: string;
   language: LanguageCode;
   lemma: string;
-  /** Informational only, not part of identity. */
-  partOfSpeech: string | null;
+  /** Part of identity for words. Null only for expressions, which may also have one. */
+  partOfSpeech: PartOfSpeech | null;
   kind: WordKind;
-  /** Nouns only: the lemma is bare ("quai"); gender and plural-only drive how it is displayed. */
+  /** Part of identity for words. Nouns only: the lemma is bare ("quai"); gender and plural-only drive how it is displayed. */
   gender: Gender | null;
   pluralOnly: boolean;
   status: WordStatus;
@@ -40,7 +44,8 @@ export interface VocabEntry {
 /** An unknown word/expression found in a pasted text. */
 export interface ExtractedItem {
   lemma: string;
-  partOfSpeech: string | null;
+  /** Items saved before the set was closed may hold other text; read them through normalizePartOfSpeech. */
+  partOfSpeech: PartOfSpeech | null;
   kind: WordKind;
   /** Nouns only; see VocabEntry. Absent on items extracted before gender was stored. */
   gender?: Gender | null;
@@ -52,6 +57,15 @@ export interface ExtractedItem {
   exampleSentence: string;
   /** The item exactly as it appears in exampleSentence, e.g. "assise" for "s'asseoir". */
   form: string;
+}
+
+/** A known entry that shares its lemma with a new item but is another word, e.g. "son" the noun and the determiner. */
+export interface KnownHomograph {
+  lemma: string;
+  partOfSpeech: PartOfSpeech | null;
+  kind: WordKind;
+  gender: Gender | null;
+  translation: string | null;
 }
 
 /** An item that was new when the text was extracted and has since been exported to Anki. */
@@ -77,6 +91,8 @@ export interface ExtractionResult {
   targetLanguage: LanguageCode;
   /** Items not yet in the vocabulary DB. Ignored items appear in no list. */
   items: ExtractedItem[];
+  /** For new items whose lemma is known under another key: the known entries, by vocabKey of the item. */
+  homographs: Record<string, KnownHomograph[]>;
   /** Items exported to Anki from this text (added to the vocabulary after the extraction). */
   learnedItems: LearnedItem[];
   /** Items known before the extraction, or marked known since. */
@@ -184,6 +200,10 @@ export interface ExerciseWord {
   /** The word exactly as it appears in the sentence. */
   form: string;
   lemma: string;
+  /** Absent on words generated before these were stored; such words match the vocabulary by lemma alone. */
+  partOfSpeech?: PartOfSpeech | null;
+  gender?: Gender | null;
+  kind?: WordKind;
   translation: string;
 }
 
@@ -231,7 +251,7 @@ export interface ExerciseSet {
   level: CefrLevel;
   item: { id: string; name: string; explanation: string; status: GrammarStatus };
   exercises: Exercise[];
-  /** Status of every lemma in the exercises' words. */
+  /** Status of every word of the exercises, by vocabKey. */
   wordStatus: Record<string, WordStudyStatus>;
   /** The language's exercises source, once a word was added to it. */
   exercisesSourceId: string | null;

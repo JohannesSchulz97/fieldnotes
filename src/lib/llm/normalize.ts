@@ -1,8 +1,8 @@
 import "server-only";
 import { zodTextFormat } from "openai/helpers/zod";
 import { z } from "zod";
-import { normalizeLemma } from "../lemma";
-import type { Gender, LanguageCode, WordKind } from "../types";
+import { normalizeLemma, PARTS_OF_SPEECH } from "../lemma";
+import type { Gender, LanguageCode, PartOfSpeech, WordKind } from "../types";
 import { getClient, model, reasoningEffort, trackUsage } from "./client";
 import { normalizeInstructions } from "./prompts";
 
@@ -11,7 +11,7 @@ const CONCURRENCY = 4;
 
 export interface NormalizedItem {
   lemma: string;
-  partOfSpeech: string | null;
+  partOfSpeech: PartOfSpeech | null;
   kind: WordKind;
   gender: Gender | null;
   pluralOnly: boolean;
@@ -22,7 +22,7 @@ const Normalization = z.object({
   items: z.array(
     z.object({
       lemma: z.string(),
-      partOfSpeech: z.string().nullable(),
+      partOfSpeech: z.enum(PARTS_OF_SPEECH).nullable(),
       kind: z.enum(["word", "expression"]),
       gender: z.enum(["m", "f"]).nullable(),
       pluralOnly: z.boolean(),

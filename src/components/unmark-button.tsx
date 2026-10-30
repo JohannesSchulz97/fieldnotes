@@ -4,13 +4,13 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { unmarkItem } from "@/app/actions";
 
-export function UnmarkButton({ language, lemma }: { language: string; lemma: string }) {
+export function UnmarkButton({ language, id }: { language: string; id: string }) {
   const [pending, setPending] = useState(false);
 
   async function handleClick() {
     setPending(true);
     try {
-      await unmarkItem(language, lemma);
+      await unmarkItem(language, { id });
     } finally {
       setPending(false);
     }

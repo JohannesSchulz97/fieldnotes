@@ -1,5 +1,6 @@
 import { integer, real, sqliteTable, text, uniqueIndex } from "drizzle-orm/sqlite-core";
 import { CEFR_LEVELS, GRAMMAR_CATEGORY_VALUES } from "../grammar";
+import { PARTS_OF_SPEECH } from "../lemma";
 import type { ExerciseWord, ExtractedItem } from "../types";
 
 export const vocabEntries = sqliteTable(
@@ -8,10 +9,17 @@ export const vocabEntries = sqliteTable(
     id: text("id").primaryKey(),
     language: text("language").notNull(),
     lemma: text("lemma").notNull(),
-    partOfSpeech: text("part_of_speech"),
+    /** Part of identity for words (see homographKey). Null only for expressions, which may also have one. */
+    partOfSpeech: text("part_of_speech", { enum: PARTS_OF_SPEECH }),
     kind: text("kind", { enum: ["word", "expression"] }).notNull(),
+    /** Nouns only, not plural-only ones. Part of identity for words. */
     gender: text("gender", { enum: ["m", "f"] }),
     pluralOnly: integer("plural_only", { mode: "boolean" }).notNull().default(false),
+    /**
+     * partOfSpeech|gender with "-" for null, "-|-" for expressions (see homographKey). Derived, so the unique index below
+     * can include them: SQLite treats NULLs in a unique index as distinct.
+     */
+    homographKey: text("homograph_key").notNull(),
     status: text("status", { enum: ["known", "ignored"] }).notNull(),
     source: text("source", { enum: ["extraction", "manual", "anki", "basic"] })
       .notNull()
@@ -24,7 +32,7 @@ export const vocabEntries = sqliteTable(
     createdAt: text("created_at").notNull(),
     updatedAt: text("updated_at").notNull(),
   },
-  (t) => [uniqueIndex("vocab_entries_language_lemma_idx").on(t.language, t.lemma)]
+  (t) => [uniqueIndex("vocab_entries_identity_idx").on(t.language, t.lemma, t.homographKey)]
 );
 
 /** One row per OpenAI call, for cost tracking. */
