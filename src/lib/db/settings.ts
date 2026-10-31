@@ -1,5 +1,6 @@
 import "server-only";
 import { eq } from "drizzle-orm";
+import { cache } from "react";
 import { z } from "zod";
 import { DEFAULT_LANGUAGE, isLearnable } from "../languages";
 import type { AnkiSettings, LanguageCode } from "../types";
@@ -40,13 +41,16 @@ export async function saveAnkiSettings(value: AnkiSettings): Promise<void> {
     .onConflictDoUpdate({ target: settings.key, set: { value, updatedAt } });
 }
 
-/** The languages being learned, in the order they were added; always at least the default. */
-export async function getLearningLanguages(): Promise<LanguageCode[]> {
+/**
+ * The languages being learned, in the order they were added; always at least the default.
+ * Memoized per request, since the layout and the page both need it.
+ */
+export const getLearningLanguages = cache(async (): Promise<LanguageCode[]> => {
   const [row] = await db.select().from(settings).where(eq(settings.key, "languages"));
   const parsed = z.array(z.string()).safeParse(row?.value);
   const languages = parsed.success ? parsed.data.filter(isLearnable) : [];
   return languages.length > 0 ? languages : [DEFAULT_LANGUAGE];
-}
+});
 
 /** Adds a learning language; a language already in the list stays where it is. */
 export async function addLearningLanguage(language: LanguageCode): Promise<void> {

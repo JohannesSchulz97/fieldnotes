@@ -1,5 +1,5 @@
 import "server-only";
-import { asc, desc, eq, inArray, type SQL } from "drizzle-orm";
+import { and, asc, count, desc, eq, inArray, sql, type SQL } from "drizzle-orm";
 import type {
   CefrLevel,
   Exercise,
@@ -61,35 +61,37 @@ async function latestAttempts(
 
 /** A language's sets, newest first, with their progress. */
 export async function listExerciseSets(language: LanguageCode): Promise<ExerciseSetSummary[]> {
-  const sets = await db
+  // The latest attempt per exercise has rank 1; equal timestamps fall back to insertion order.
+  const ranked = db.$with("ranked_attempts").as(
+    db
+      .select({
+        exerciseId: exerciseAttempts.exerciseId,
+        correct: exerciseAttempts.correct,
+        rank: sql<number>`row_number() over (partition by ${exerciseAttempts.exerciseId} order by ${exerciseAttempts.createdAt} desc, rowid desc)`.as(
+          "rank"
+        ),
+      })
+      .from(exerciseAttempts)
+  );
+  return db
+    .with(ranked)
     .select({
       id: exerciseSets.id,
       grammarItemId: exerciseSets.grammarItemId,
       grammarItemName: grammarItems.name,
       level: exerciseSets.level,
+      total: count(exercises.id),
+      answered: count(ranked.exerciseId),
+      correct: sql<number>`coalesce(sum(${ranked.correct}), 0)`.mapWith(Number),
       createdAt: exerciseSets.createdAt,
     })
     .from(exerciseSets)
     .innerJoin(grammarItems, eq(grammarItems.id, exerciseSets.grammarItemId))
+    .leftJoin(exercises, eq(exercises.setId, exerciseSets.id))
+    .leftJoin(ranked, and(eq(ranked.exerciseId, exercises.id), eq(ranked.rank, 1)))
     .where(eq(exerciseSets.language, language))
+    .groupBy(exerciseSets.id, grammarItems.name)
     .orderBy(desc(exerciseSets.createdAt));
-  if (sets.length === 0) return [];
-  const rows = await db
-    .select({ id: exercises.id, setId: exercises.setId })
-    .from(exercises)
-    .where(inArray(exercises.setId, sets.map((s) => s.id)));
-  const attempts = await latestAttempts(rows.map((r) => r.id));
-  const bySet = Map.groupBy(rows, (r) => r.setId);
-  return sets.map((s) => {
-    const ids = (bySet.get(s.id) ?? []).map((r) => r.id);
-    const answered = ids.map((id) => attempts.get(id)).filter((a) => a !== undefined);
-    return {
-      ...s,
-      total: ids.length,
-      answered: answered.length,
-      correct: answered.filter((a) => a.correct).length,
-    };
-  });
 }
 
 /** A set with its exercises in order, each with its latest attempt. */

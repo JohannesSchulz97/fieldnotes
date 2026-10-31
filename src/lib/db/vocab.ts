@@ -109,10 +109,12 @@ const BATCH_SIZE = 500;
 /** Every stored entry of a language with one of the lemmas, whatever its part of speech or gender. */
 async function entriesWithLemmas(language: LanguageCode, lemmas: string[]): Promise<StoredEntry[]> {
   const unique = [...new Set(lemmas.map(normalizeLemma))];
-  const rows: StoredEntry[] = [];
-  for (let i = 0; i < unique.length; i += BATCH_SIZE) {
-    rows.push(
-      ...(await db
+  const chunks = Array.from({ length: Math.ceil(unique.length / BATCH_SIZE) }, (_, i) =>
+    unique.slice(i * BATCH_SIZE, (i + 1) * BATCH_SIZE)
+  );
+  const rows = await Promise.all(
+    chunks.map((chunk) =>
+      db
         .select({
           id: vocabEntries.id,
           lemma: vocabEntries.lemma,
@@ -125,15 +127,10 @@ async function entriesWithLemmas(language: LanguageCode, lemmas: string[]): Prom
           exportedAt: vocabEntries.exportedAt,
         })
         .from(vocabEntries)
-        .where(
-          and(
-            eq(vocabEntries.language, language),
-            inArray(vocabEntries.lemma, unique.slice(i, i + BATCH_SIZE))
-          )
-        ))
-    );
-  }
-  return rows;
+        .where(and(eq(vocabEntries.language, language), inArray(vocabEntries.lemma, chunk)))
+    )
+  );
+  return rows.flat();
 }
 
 /**
