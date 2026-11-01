@@ -1,3 +1,18 @@
+# Fieldnotes
+
+**Fieldnotes is a language-learning tool for curious people, not curriculum followers.**
+
+Children don’t learn from lesson plans. They pick up a language from songs, stories and conversations, following their curiosity. Fieldnotes is built for learning that way. Hear a lyric, read an article, catch a line from a film: drop it in and take it apart. The new words, the grammar holding it together, what it really means.
+
+However, freedom doesn’t mean chaos. Underneath runs a systematic engine.
+Every find feeds a living map of what you know: your vocabulary, your grammar, measured against a full catalogue, and the mistakes you keep making. Based on that map, an AI integration will support your learning journey, by creating exercises that target your actual errors using words you already know.
+
+And when you just want to talk, you can chat in the language you’re learning with an AI that knows exactly where you are. It uses the words and grammar you know and stretches you a little beyond them.
+
+No streaks, no fixed path. Just your own notes from the field, with real structure behind them.
+
+## Development
+
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
 ## Getting Started
