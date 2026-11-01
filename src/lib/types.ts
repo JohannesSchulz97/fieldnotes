@@ -1,5 +1,6 @@
 import type { CEFR_LEVELS, GRAMMAR_CATEGORY_VALUES } from "./grammar";
 import type { PARTS_OF_SPEECH } from "./lemma";
+import type { Gloss } from "./tokens";
 
 /** ISO 639-1 language code, e.g. "fr", "en". */
 export type LanguageCode = string;
@@ -87,6 +88,8 @@ export interface ExtractionResult {
   paragraphs: string[][];
   /** Translation into the target language per sentence (same numbering); null until translated. */
   translations: string[] | null;
+  /** Word glosses per sentence (same numbering); null until the text is glossed. */
+  glosses: Gloss[][] | null;
   sourceLanguage: LanguageCode;
   targetLanguage: LanguageCode;
   /** Items not yet in the vocabulary DB. Ignored items appear in no list. */

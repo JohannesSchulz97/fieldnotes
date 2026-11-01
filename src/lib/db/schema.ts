@@ -1,6 +1,7 @@
 import { integer, real, sqliteTable, text, uniqueIndex } from "drizzle-orm/sqlite-core";
 import { CEFR_LEVELS, GRAMMAR_CATEGORY_VALUES } from "../grammar";
 import { PARTS_OF_SPEECH } from "../lemma";
+import type { Gloss } from "../tokens";
 import type { ExerciseWord, ExtractedItem } from "../types";
 
 export const vocabEntries = sqliteTable(
@@ -72,6 +73,11 @@ export const extractions = sqliteTable(
     items: text("items", { mode: "json" }).$type<ExtractedItem[]>().notNull(),
     /** Translation per sentence (into targetLanguage), aligned with splitSentences(text); null until translated. */
     translations: text("translations", { mode: "json" }).$type<string[]>(),
+    /**
+     * Word glosses per sentence (same numbering as translations): groups of words, as token indices
+     * of tokenizeSentence, with their meaning in context. Null until glossed.
+     */
+    glosses: text("glosses", { mode: "json" }).$type<Gloss[][]>(),
     /** Cost of the latest LLM run for this text. */
     costUsd: real("cost_usd"),
     createdAt: text("created_at").notNull(),

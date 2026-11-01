@@ -49,7 +49,7 @@ export function GrammarSelection({
 }) {
   const ref = useRef<HTMLDivElement>(null);
   const [selection, setSelection] = useState<
-    (GrammarTarget & { top: number; left: number }) | null
+    (GrammarTarget & { top: number; left: number; gloss: string | null }) | null
   >(null);
   const [state, setState] = useState<GrammarAnalysisState | null>(null);
   // Increments per analysis, so late responses for an earlier selection are dropped.
@@ -65,12 +65,17 @@ export function GrammarSelection({
       if (!el || el !== sentenceElement(sel.focusNode) || !root.contains(el) || !span) {
         return setSelection(null);
       }
-      const rect = sel.getRangeAt(0).getBoundingClientRect();
+      const range = sel.getRangeAt(0);
+      // A selection inside one glossed group (a tapped-and-held word on a phone) shows that gloss.
+      const group = glossElement(range.startContainer);
+      const gloss = group && group === glossElement(range.endContainer) ? group.dataset.gloss ?? null : null;
+      const rect = range.getBoundingClientRect();
       const box = root.getBoundingClientRect();
       setSelection({
         sentence: Number(el.dataset.sentence),
         sentenceText: el.textContent ?? "",
         span,
+        gloss,
         top: rect.bottom - box.top + 6,
         left: rect.left - box.left + rect.width / 2,
       });
@@ -150,21 +155,36 @@ export function GrammarSelection({
     <div ref={ref} className={cn("relative", className)}>
       {children}
       {selection && (
-        <Button
-          size="sm"
-          className="absolute z-10 -translate-x-1/2 shadow-md"
+        <div
+          className="absolute z-10 flex -translate-x-1/2 flex-col items-center gap-1"
           style={{ top: selection.top, left: selection.left }}
-          // Keep the text selected while pressing the button.
-          onPointerDown={(e) => e.preventDefault()}
-          onMouseDown={(e) => e.preventDefault()}
-          onClick={() => start(selection)}
         >
-          Analyse grammar
-        </Button>
+          {selection.gloss && (
+            <span className="rounded-md border bg-popover px-2 py-1 text-sm text-popover-foreground shadow-md">
+              {selection.gloss}
+            </span>
+          )}
+          <Button
+            size="sm"
+            className="shadow-md"
+            // Keep the text selected while pressing the button.
+            onPointerDown={(e) => e.preventDefault()}
+            onMouseDown={(e) => e.preventDefault()}
+            onClick={() => start(selection)}
+          >
+            Analyse grammar
+          </Button>
+        </div>
       )}
       {state && actions && <GrammarPanel extractionId={extractionId} state={state} {...actions} />}
     </div>
   );
+}
+
+/** The glossed group (data-gloss) containing node, if any. */
+function glossElement(node: Node | null): HTMLElement | null {
+  const el = node instanceof Element ? node : node?.parentElement;
+  return el?.closest<HTMLElement>("[data-gloss]") ?? null;
 }
 
 /** The selectable sentence element containing node, if any. */

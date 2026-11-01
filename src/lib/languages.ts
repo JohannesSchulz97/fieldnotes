@@ -52,6 +52,8 @@ export interface LanguageProfile {
   formExamples?: string;
   /** Examples of inflected input forms next to their lemma. */
   inflectedExamples?: string;
+  /** Examples of how words of a sentence are grouped and glossed (translation step). */
+  glossExamples?: string;
   grammarNaming?: {
     /** Example construct names. */
     examples: string;
@@ -74,6 +76,7 @@ const PROFILES: Record<LanguageCode, LanguageProfile> = {
     contextNoteExample: `"to go" for the reflexive "se rendre à"`,
     formExamples: `"assise" for "s'asseoir", "s'est rendu compte" for "se rendre compte"`,
     inflectedExamples: `"assise" → "s'asseoir", "chevaux" → "cheval"`,
+    glossExamples: `"il s'agit de" (words "il", "s", "agit", "de") is one group, "it is about"; "ne … pas" is one group, "not"; "aujourd'hui" (words "aujourd", "hui") is one group, "today"; "l'homme" is two groups, "l" ("the") and "homme" ("man")`,
     grammarNaming: {
       examples: `"gérondif (en + participe présent)", "subjonctif (après conjonction de concession)", "ne … que (restriction)"`,
       triggerWord: `"bien que" → conjonction de concession`,

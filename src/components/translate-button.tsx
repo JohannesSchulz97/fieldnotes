@@ -3,9 +3,10 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { translateExtraction } from "@/app/actions";
+import { glossExtraction, translateExtraction } from "@/app/actions";
 
-export function TranslateButton({ id }: { id: string }) {
+/** Translates a text, or, with glossOnly, adds word glosses to its existing translation. */
+export function TranslateButton({ id, glossOnly = false }: { id: string; glossOnly?: boolean }) {
   const router = useRouter();
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -14,10 +15,10 @@ export function TranslateButton({ id }: { id: string }) {
     setPending(true);
     setError(null);
     try {
-      await translateExtraction(id);
+      await (glossOnly ? glossExtraction(id) : translateExtraction(id));
       router.refresh();
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Translation failed");
+      setError(e instanceof Error ? e.message : glossOnly ? "Glossing failed" : "Translation failed");
     } finally {
       setPending(false);
     }
@@ -27,7 +28,7 @@ export function TranslateButton({ id }: { id: string }) {
     <div className="flex items-center gap-2">
       {error && <span className="text-sm text-destructive">{error}</span>}
       <Button variant="outline" size="sm" onClick={handleClick} disabled={pending}>
-        {pending ? "Translating…" : "Translate"}
+        {pending ? (glossOnly ? "Adding glosses…" : "Translating…") : glossOnly ? "Add word glosses" : "Translate"}
       </Button>
     </div>
   );

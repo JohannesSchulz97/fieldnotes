@@ -5,6 +5,7 @@ import { matchStored, normalizeLemma, normalizePartOfSpeech, vocabKey } from "..
 import type { LlmExtraction } from "../llm/extract";
 import { splitParagraphs, splitSentences } from "../sentences";
 import type { SourceDetails } from "../source";
+import type { Gloss } from "../tokens";
 import type {
   ExtractedItem,
   ExtractionResult,
@@ -87,10 +88,22 @@ export async function insertExtraction(
   return id;
 }
 
-export async function saveTranslations(id: string, translations: string[]): Promise<void> {
+export async function saveTranslations(
+  id: string,
+  translations: string[],
+  glosses: Gloss[][] | null
+): Promise<void> {
   await db
     .update(extractions)
-    .set({ translations, updatedAt: new Date().toISOString() })
+    .set({ translations, glosses, updatedAt: new Date().toISOString() })
+    .where(eq(extractions.id, id));
+}
+
+/** Stores word glosses for an already translated text. */
+export async function saveGlosses(id: string, glosses: Gloss[][]): Promise<void> {
+  await db
+    .update(extractions)
+    .set({ glosses, updatedAt: new Date().toISOString() })
     .where(eq(extractions.id, id));
 }
 
@@ -164,6 +177,7 @@ export async function loadExtraction(id: string): Promise<ExtractionResult | nul
     sourceUrl: row.sourceUrl,
     paragraphs: splitParagraphs(row.text),
     translations: row.translations,
+    glosses: row.glosses,
     sourceLanguage: row.sourceLanguage,
     targetLanguage: row.targetLanguage,
     items,

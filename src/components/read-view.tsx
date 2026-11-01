@@ -1,7 +1,8 @@
 "use client";
 
-import { Fragment, useEffect, useRef, useState, type ReactNode } from "react";
-import { findWords } from "@/lib/highlight";
+import { Fragment, useEffect, useId, useRef, useState } from "react";
+import { GlossedText, type GlossHover } from "@/components/glossed-text";
+import type { Gloss } from "@/lib/tokens";
 import { cn } from "@/lib/utils";
 import { useStoredChoice } from "@/lib/use-stored-choice";
 
@@ -24,12 +25,15 @@ const FOCUS_HIGHLIGHT_MS = 2500;
 export function ReadView({
   paragraphs,
   translations,
+  glosses,
   newForms,
   focusSentence,
   active,
 }: {
   paragraphs: string[][];
   translations: string[] | null;
+  /** Word glosses per sentence (same numbering), shown on hover in the original view. */
+  glosses: Gloss[][] | null;
   /** How the extraction's new words appear in the text (ExtractedItem.form). */
   newForms: string[];
   /** Sentence to scroll to and highlight once the view is visible, e.g. from a grammar example link. */
@@ -39,6 +43,8 @@ export function ReadView({
   const [mode, setMode] = useStoredChoice<Mode>("read-mode", MODES, "original");
   const [revealed, setRevealed] = useState<Set<number>>(new Set());
   const [highlighted, setHighlighted] = useState<number | null>(null);
+  const [hover, setHover] = useState<GlossHover | null>(null);
+  const tooltipId = useId();
   const viewRef = useRef<HTMLDivElement>(null);
   // The sentence last scrolled to, so it happens once per link, not on every mode change.
   const focusedRef = useRef<number | null>(null);
@@ -62,6 +68,23 @@ export function ReadView({
     return () => clearTimeout(timer);
   }, [focusSentence, active, effectiveMode]);
 
+  // The peek gives way to anything else: pressing the mouse (a selection may start), a selection,
+  // or scrolling the group away from under the tooltip.
+  useEffect(() => {
+    const clear = () => setHover(null);
+    const onSelectionChange = () => {
+      if (!document.getSelection()?.isCollapsed) clear();
+    };
+    document.addEventListener("pointerdown", clear);
+    document.addEventListener("selectionchange", onSelectionChange);
+    window.addEventListener("scroll", clear, true);
+    return () => {
+      document.removeEventListener("pointerdown", clear);
+      document.removeEventListener("selectionchange", onSelectionChange);
+      window.removeEventListener("scroll", clear, true);
+    };
+  }, []);
+
   function toggle(n: number) {
     // A click that ends a text selection selects; it does not reveal the translation.
     if (!document.getSelection()?.isCollapsed) return;
@@ -76,14 +99,25 @@ export function ReadView({
   const focusClass = (n: number) =>
     cn("transition-colors duration-700", highlighted === n && "bg-yellow-200/70 dark:bg-yellow-500/30");
 
-  const marked = (text: string) => <MarkedWords text={text} forms={newForms} />;
+  const marked = (text: string, n?: number) => (
+    <GlossedText
+      id={n === undefined ? undefined : String(n)}
+      text={text}
+      forms={newForms}
+      glosses={n === undefined ? undefined : glosses?.[n]}
+      hover={hover}
+      tooltipId={tooltipId}
+      onHover={setHover}
+    />
+  );
+  const hasGlosses = effectiveMode === "original" && !!glosses?.some((g) => g.length > 0);
 
   const hint = [
     newForms.length > 0 ? "New words are in bold." : "",
     !translations
       ? "Translate the text to see translated sentences."
       : effectiveMode === "original"
-        ? "Click a sentence to see its translation."
+        ? `${hasGlosses ? "Hover a word for its meaning. " : ""}Click a sentence to see its translation.`
         : "",
     effectiveMode !== "interlinear" ? "Select words to analyse their grammar." : "",
   ]
@@ -121,12 +155,14 @@ export function ReadView({
                     data-sentence={n}
                     onClick={translations ? () => toggle(n) : undefined}
                     className={cn(
-                      translations && "cursor-pointer rounded hover:bg-muted",
+                      translations && "cursor-pointer rounded",
+                      // With word glosses the hovered word is the highlight; without, the sentence.
+                      translations && !glosses?.[n]?.length && "hover:bg-muted",
                       revealed.has(n) && "bg-muted",
                       focusClass(n)
                     )}
                   >
-                    {marked(text)}
+                    {marked(text, n)}
                   </span>{" "}
                   {translations && revealed.has(n) && (
                     <span className="my-1 block border-l-2 pl-3 text-sm text-muted-foreground">
@@ -177,18 +213,17 @@ export function ReadView({
           ))}
         </div>
       )}
+
+      {hover && (
+        <div
+          id={tooltipId}
+          role="tooltip"
+          className="pointer-events-none fixed z-20 max-w-xs -translate-x-1/2 -translate-y-full rounded-md border bg-popover px-2 py-1 text-sm text-popover-foreground shadow-md"
+          style={{ top: hover.rect.top - 6, left: hover.rect.left + hover.rect.width / 2 }}
+        >
+          {hover.gloss}
+        </div>
+      )}
     </div>
   );
-}
-
-/** The text with every whole-word occurrence of the forms in bold. */
-function MarkedWords({ text, forms }: { text: string; forms: string[] }) {
-  const parts: ReactNode[] = [];
-  let at = 0;
-  for (const [start, end] of findWords(text, forms)) {
-    parts.push(text.slice(at, start), <strong key={start} className="font-semibold">{text.slice(start, end)}</strong>);
-    at = end;
-  }
-  parts.push(text.slice(at));
-  return parts;
 }

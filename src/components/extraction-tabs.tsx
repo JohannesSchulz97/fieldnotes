@@ -61,6 +61,7 @@ export function ExtractionTabs({
           <ReadView
             paragraphs={result.paragraphs}
             translations={result.translations}
+            glosses={result.glosses}
             newForms={items.map((i) => i.form)}
             focusSentence={focusSentence}
             active={tab === "read"}
