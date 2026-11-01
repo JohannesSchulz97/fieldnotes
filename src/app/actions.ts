@@ -10,6 +10,7 @@ import {
   getExtractionText,
   hashText,
   insertExtraction,
+  saveGlosses,
   saveTranslations,
   updateExtraction,
   updateSourceDetails,
@@ -66,7 +67,7 @@ import {
 } from "@/lib/llm/grammar";
 import { getNativeLanguage, isLearnable, languageName } from "@/lib/languages";
 import { llmNormalize } from "@/lib/llm/normalize";
-import { llmTranslate } from "@/lib/llm/translate";
+import { llmGloss, llmTranslate } from "@/lib/llm/translate";
 import { splitSentences } from "@/lib/sentences";
 import { parseSourceDetails } from "@/lib/source";
 import type {
@@ -144,7 +145,20 @@ export async function updateSource(id: string, title: string, link: string): Pro
 export async function translateExtraction(id: string): Promise<void> {
   const source = await getExtractionText(id);
   if (source === null) throw new Error("Extraction not found");
-  await saveTranslations(id, await llmTranslate(splitSentences(source.text)));
+  const { translations, glosses } = await llmTranslate(
+    splitSentences(source.text),
+    source.sourceLanguage
+  );
+  await saveTranslations(id, translations, glosses);
+  revalidatePath(`/extractions/${id}`);
+}
+
+/** Adds word glosses to an already translated text, keeping its translation. */
+export async function glossExtraction(id: string): Promise<void> {
+  const source = await getExtractionSentences(id);
+  if (source === null) throw new Error("Extraction not found");
+  if (!source.translations) throw new Error("Translate the text first");
+  await saveGlosses(id, await llmGloss(source.sentences, source.translations, source.sourceLanguage));
   revalidatePath(`/extractions/${id}`);
 }
 
