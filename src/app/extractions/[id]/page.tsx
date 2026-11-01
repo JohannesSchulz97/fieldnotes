@@ -51,7 +51,10 @@ export default async function ExtractionPage({
           {result.kind === "text" && (
             <div className="flex shrink-0 gap-2">
               {!result.translations && <TranslateButton id={result.id} />}
-              {result.translations && !result.glosses && <TranslateButton id={result.id} glossOnly />}
+              {/* Also when glossing gave nothing usable, so it can be tried again. */}
+              {result.translations && !result.glosses?.some((g) => g.length > 0) && (
+                <TranslateButton id={result.id} glossOnly />
+              )}
               <ReextractButton id={result.id} />
             </div>
           )}

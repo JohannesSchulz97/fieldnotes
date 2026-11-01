@@ -18,9 +18,13 @@ export interface Gloss {
 /** The most words one gloss may cover. Longer groups are dropped as the model's overreach. */
 export const MAX_GLOSS_TOKENS = 4;
 
-// Letter runs, with hyphens between letters kept inside ("peut-être"). Apostrophes split, so an
-// elided "l'homme" is the two words "l" and "homme". Digits and punctuation are not words.
-const WORD = /\p{L}[\p{L}\p{M}]*(?:-\p{L}[\p{L}\p{M}]*)*/gu;
+// A word part starts with a letter or a number ("3,50", "1.5") and runs on through letters, marks
+// and digits ("1er", "18h30"). Hyphens between parts stay inside ("peut-être", "Jean-Luc").
+// Apostrophes split, so an elided "l'homme" is the two words "l" and "homme"; the gloss prompt
+// groups pieces that make one word ("aujourd'hui"). Punctuation is not a word.
+// Changing this shifts the token indices of stored glosses.
+const PART = String.raw`(?:\p{N}+(?:[.,]\p{N}+)*|\p{L})[\p{L}\p{M}\p{N}]*`;
+const WORD = new RegExp(`${PART}(?:-${PART})*`, "gu");
 
 /**
  * Splits a sentence into words. Shared by the translation step (which glosses by index) and the

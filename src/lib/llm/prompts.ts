@@ -1,5 +1,6 @@
-import { getNativeLanguage, getProfile } from "../languages";
+import { getNativeLanguage, getProfile, languageName } from "../languages";
 import { PARTS_OF_SPEECH } from "../lemma";
+import { MAX_GLOSS_TOKENS } from "../tokens";
 import type { LanguageCode } from "../types";
 
 /** `"a", "b", "c"` */
@@ -72,6 +73,35 @@ Each input line is one entry. Lines may contain noise besides the word or expres
 ${lemmaRules(language)}
 
 Output one item per line that contains vocabulary, in input order. Keep expressions as one item; do not split them into words. Skip lines without vocabulary (empty, only a translation, proper nouns).`;
+}
+
+/** How sentences' words are grouped and glossed; shared by translating and by glossing a translated text. */
+function glossRules(language: LanguageCode): string {
+  const p = getProfile(language);
+  const examples = p.glossExamples ? `\n- Examples: ${p.glossExamples}.` : "";
+
+  return `Each sentence is also given as its numbered words ("words: 0=<word> 1=<word> ..."). Besides the sentence, return groups that gloss the words: each group is a range of consecutive word numbers (from, to, both inclusive) and the meaning of that range in this sentence, in ${languageName(getNativeLanguage())}, as short as possible (one to three words where you can; no explanations).
+- Cover every word, in order, with no overlaps and no gaps.
+- A group is a single word, unless several words only mean something together in this sentence: a fixed expression, a verb with its separated particle, a negation pair. Never group a word with an article or an elided particle just because they sit together. A group has at most ${MAX_GLOSS_TOKENS} words.
+- The words are split at apostrophes. Pieces that only make a word together are one group; an elided article, pronoun or particle is a word of its own.
+- Gloss a word as it is used here (its inflected form and sense in this sentence), not as a dictionary entry.
+- The words are ${languageName(language)}. Leave proper names as they are.${examples}`;
+}
+
+/** Translation of numbered sentences; withGlosses adds the word groups (see glossRules). */
+export function translateInstructions(language: LanguageCode, withGlosses: boolean): string {
+  const base = `Translate each numbered sentence into natural, faithful ${languageName(getNativeLanguage())}. The input is given as "[n] sentence". Return one translation per input sentence with its number, using the surrounding sentences as context.`;
+  if (!withGlosses) return base;
+  return `${base} The translation is a natural sentence of its own: do not build it from the groups.
+
+${glossRules(language)}`;
+}
+
+/** Word groups for sentences that already have a translation. */
+export function glossInstructions(language: LanguageCode): string {
+  return `Each numbered sentence comes with its existing ${languageName(getNativeLanguage())} translation. Do not return the translation; return only the groups, consistent with it.
+
+${glossRules(language)}`;
 }
 
 export function namingProtocol(language: LanguageCode): string {

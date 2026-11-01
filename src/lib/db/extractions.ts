@@ -91,7 +91,7 @@ export async function insertExtraction(
 export async function saveTranslations(
   id: string,
   translations: string[],
-  glosses: Gloss[][]
+  glosses: Gloss[][] | null
 ): Promise<void> {
   await db
     .update(extractions)

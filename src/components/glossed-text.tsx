@@ -3,9 +3,12 @@
 import { Fragment, type ReactNode } from "react";
 import { findWords } from "@/lib/highlight";
 import { tokenizeSentence, type Gloss } from "@/lib/tokens";
+import { cn } from "@/lib/utils";
 
 /** What the reading view needs to show a tooltip for a hovered group. */
 export interface GlossHover {
+  /** Which group: the sentence's id and the group's position in it. */
+  id: string;
   gloss: string;
   rect: DOMRect;
 }
@@ -16,15 +19,24 @@ export interface GlossHover {
  * carry data-gloss, which the selection chip reads for a selection inside one group.
  */
 export function GlossedText({
+  id,
   text,
   forms,
   glosses,
+  hover,
+  tooltipId,
   onHover,
 }: {
+  /** Tells this sentence's groups apart from other sentences' in GlossHover.id. */
+  id?: string;
   text: string;
   /** How the new words appear in the text; shown in bold wherever they occur. */
   forms: string[];
   glosses?: Gloss[];
+  /** The group currently hovered, if any; it is underlined and described by the tooltip. */
+  hover?: GlossHover | null;
+  /** The tooltip element's id, for aria-describedby on the hovered group. */
+  tooltipId?: string;
   onHover?: (hover: GlossHover | null) => void;
 }) {
   const tokens = tokenizeSentence(text);
@@ -64,15 +76,23 @@ export function GlossedText({
       nodes.push(...run);
     } else {
       const { gloss } = groups[group];
+      const groupId = `${id}:${group}`;
+      // Underlined from the hover state rather than CSS :hover, so it goes away with the tooltip
+      // (e.g. while dragging a selection).
+      const hovered = hover?.id === groupId;
       nodes.push(
         <span
           key={pieces[i].key}
           data-gloss={gloss}
-          className="underline-offset-4 decoration-muted-foreground/60 decoration-dotted hover:underline"
+          aria-describedby={hovered ? tooltipId : undefined}
+          className={cn(
+            "underline-offset-4 decoration-muted-foreground/60 decoration-dotted",
+            hovered && "underline"
+          )}
           onPointerEnter={(e) => {
             // Only a mouse that is not dragging a selection; touch has no hover.
             if (e.pointerType !== "mouse" || e.buttons !== 0) return;
-            onHover?.({ gloss, rect: e.currentTarget.getBoundingClientRect() });
+            onHover?.({ id: groupId, gloss, rect: e.currentTarget.getBoundingClientRect() });
           }}
           onPointerLeave={() => onHover?.(null)}
         >

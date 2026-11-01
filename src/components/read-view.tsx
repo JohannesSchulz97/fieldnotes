@@ -1,6 +1,6 @@
 "use client";
 
-import { Fragment, useEffect, useRef, useState } from "react";
+import { Fragment, useEffect, useId, useRef, useState } from "react";
 import { GlossedText, type GlossHover } from "@/components/glossed-text";
 import type { Gloss } from "@/lib/tokens";
 import { cn } from "@/lib/utils";
@@ -44,6 +44,7 @@ export function ReadView({
   const [revealed, setRevealed] = useState<Set<number>>(new Set());
   const [highlighted, setHighlighted] = useState<number | null>(null);
   const [hover, setHover] = useState<GlossHover | null>(null);
+  const tooltipId = useId();
   const viewRef = useRef<HTMLDivElement>(null);
   // The sentence last scrolled to, so it happens once per link, not on every mode change.
   const focusedRef = useRef<number | null>(null);
@@ -100,9 +101,12 @@ export function ReadView({
 
   const marked = (text: string, n?: number) => (
     <GlossedText
+      id={n === undefined ? undefined : String(n)}
       text={text}
       forms={newForms}
       glosses={n === undefined ? undefined : glosses?.[n]}
+      hover={hover}
+      tooltipId={tooltipId}
       onHover={setHover}
     />
   );
@@ -212,6 +216,7 @@ export function ReadView({
 
       {hover && (
         <div
+          id={tooltipId}
           role="tooltip"
           className="pointer-events-none fixed z-20 max-w-xs -translate-x-1/2 -translate-y-full rounded-md border bg-popover px-2 py-1 text-sm text-popover-foreground shadow-md"
           style={{ top: hover.rect.top - 6, left: hover.rect.left + hover.rect.width / 2 }}
