@@ -1,3 +1,4 @@
+import type { UIMessage } from "ai";
 import { integer, real, sqliteTable, text, uniqueIndex } from "drizzle-orm/sqlite-core";
 import { CEFR_LEVELS, GRAMMAR_CATEGORY_VALUES } from "../grammar";
 import { PARTS_OF_SPEECH } from "../lemma";
@@ -46,7 +47,7 @@ export const vocabEntries = sqliteTable(
 export const llmUsage = sqliteTable("llm_usage", {
   id: text("id").primaryKey(),
   kind: text("kind", {
-    enum: ["extraction", "normalization", "translation", "grammar", "exercises", "cards"],
+    enum: ["extraction", "normalization", "translation", "grammar", "exercises", "chat", "cards"],
   }).notNull(),
   model: text("model").notNull(),
   inputTokens: integer("input_tokens").notNull(),
@@ -187,6 +188,29 @@ export const exerciseAttempts = sqliteTable("exercise_attempts", {
     .references(() => exercises.id, { onDelete: "cascade" }),
   answer: text("answer").notNull(),
   correct: integer("correct", { mode: "boolean" }).notNull(),
+  createdAt: text("created_at").notNull(),
+});
+
+/** A conversation with the chat assistant, about one language's data. */
+export const chats = sqliteTable("chats", {
+  id: text("id").primaryKey(),
+  language: text("language").notNull(),
+  /** Taken from the first message. */
+  title: text("title").notNull(),
+  /** Tokens used by the chat's model calls so far, against the per-chat cap. */
+  tokens: integer("tokens").notNull().default(0),
+  createdAt: text("created_at").notNull(),
+  updatedAt: text("updated_at").notNull(),
+});
+
+/** One message of a chat, in the AI SDK's UIMessage format (parts, tool calls included). */
+export const chatMessages = sqliteTable("chat_messages", {
+  /** The UIMessage id. */
+  id: text("id").primaryKey(),
+  chatId: text("chat_id")
+    .notNull()
+    .references(() => chats.id, { onDelete: "cascade" }),
+  message: text("message", { mode: "json" }).$type<UIMessage>().notNull(),
   createdAt: text("created_at").notNull(),
 });
 
