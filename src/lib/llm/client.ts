@@ -18,6 +18,17 @@ export function getClient(): OpenAI {
   return client;
 }
 
+/** Cost in USD of one call's tokens; null if the model has no known price. */
+function costOf(inputTokens: number, cachedInputTokens: number, outputTokens: number): number | null {
+  const price = PRICES[model];
+  return price
+    ? ((inputTokens - cachedInputTokens) * price.input +
+        cachedInputTokens * price.cachedInput +
+        outputTokens * price.output) /
+        1_000_000
+    : null;
+}
+
 /** Records the token usage of one call and returns its cost in USD (null if the model has no known price). */
 export async function trackUsage(
   kind: UsageRecord["kind"],
@@ -25,13 +36,7 @@ export async function trackUsage(
 ): Promise<number | null> {
   if (!usage) return null;
   const cachedInputTokens = usage.input_tokens_details?.cached_tokens ?? 0;
-  const price = PRICES[model];
-  const costUsd = price
-    ? ((usage.input_tokens - cachedInputTokens) * price.input +
-        cachedInputTokens * price.cachedInput +
-        usage.output_tokens * price.output) /
-      1_000_000
-    : null;
+  const costUsd = costOf(usage.input_tokens, cachedInputTokens, usage.output_tokens);
   await recordUsage({
     kind,
     model,
@@ -41,4 +46,17 @@ export async function trackUsage(
     costUsd,
   });
   return costUsd;
+}
+
+/** Like trackUsage, for token counts that do not come from the OpenAI SDK (the chat's). */
+export async function trackTokenUsage(
+  kind: UsageRecord["kind"],
+  tokens: { inputTokens: number; cachedInputTokens: number; outputTokens: number }
+): Promise<void> {
+  await recordUsage({
+    kind,
+    model,
+    ...tokens,
+    costUsd: costOf(tokens.inputTokens, tokens.cachedInputTokens, tokens.outputTokens),
+  });
 }
