@@ -10,6 +10,7 @@ const links = [
   { href: "/vocab", label: "Vocabulary" },
   { href: "/grammar", label: "Grammar" },
   { href: "/exercises", label: "Exercises" },
+  { href: "/chat", label: "Chat" },
 ];
 
 export function SiteNav({ active, learning }: { active: string; learning: string[] }) {
@@ -17,7 +18,7 @@ export function SiteNav({ active, learning }: { active: string; learning: string
 
   return (
     <header className="border-b">
-      <nav className="mx-auto flex h-14 max-w-5xl items-center gap-6 px-4">
+      <nav className="mx-auto flex h-(--nav-height) max-w-5xl items-center gap-6 px-4">
         <span className="font-semibold">Fieldnotes</span>
         {links.map(({ href, label }) => (
           <Link
@@ -28,7 +29,8 @@ export function SiteNav({ active, learning }: { active: string; learning: string
               (pathname === href ||
                 (href === "/" && pathname.startsWith("/extractions")) ||
                 (href === "/exercises" && pathname.startsWith("/exercises/")) ||
-                (href === "/grammar" && pathname.startsWith("/grammar/"))) &&
+                (href === "/grammar" && pathname.startsWith("/grammar/")) ||
+                (href === "/chat" && pathname.startsWith("/chat/"))) &&
                 "font-medium text-foreground"
             )}
           >

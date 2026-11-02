@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import { ChatWidget } from "@/components/chat-widget";
 import { SiteNav } from "@/components/site-nav";
 import { getActiveLanguage } from "@/lib/active-language";
 import { getLearningLanguages } from "@/lib/db/settings";
@@ -30,6 +31,7 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
       <body className="min-h-full flex flex-col">
         <SiteNav active={active} learning={learning} />
         {children}
+        <ChatWidget key={active} />
       </body>
     </html>
   );

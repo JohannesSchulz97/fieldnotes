@@ -30,12 +30,14 @@ export interface VocabPage {
 export async function listVocab({
   language,
   source,
+  status,
   query,
   page,
   pageSize,
 }: {
   language: LanguageCode;
   source?: WordSource;
+  status?: WordStatus;
   query?: string;
   page: number;
   pageSize: number;
@@ -44,6 +46,7 @@ export async function listVocab({
   const where = and(
     eq(vocabEntries.language, language),
     source ? eq(vocabEntries.source, source) : undefined,
+    status ? eq(vocabEntries.status, status) : undefined,
     pattern
       ? or(
           sql`${vocabEntries.lemma} like ${pattern} escape '\\'`,
