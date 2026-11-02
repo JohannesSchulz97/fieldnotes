@@ -79,7 +79,7 @@ export function homographKey(item: Pick<KeyedItem, "partOfSpeech" | "gender" | "
 }
 
 /** Whether an item is a word used as an interjection, which is a use of a word, not a word class ("Attention !"). */
-function isInterjection(item: KeyedItem): boolean {
+export function isInterjection(item: KeyedItem): boolean {
   return item.kind !== "expression" && normalizePartOfSpeech(item.partOfSpeech) === "interjection";
 }
 
@@ -122,6 +122,8 @@ function storedLacksKeyParts(entry: KeyedItem): boolean {
  *    agrees; for a word used as an interjection, or of a stored interjection, any word entry
  *    with the same lemma ("attention" the noun) (a known entry first in all cases);
  * 3. otherwise none: the item is new.
+ * Labels alone cannot tell which word an interjection is a use of: with only "bien" the noun
+ * stored, "Bien !" (the adverb) matches the noun. Accepted, as such cases are rare (#50).
  */
 export function matchStored<T extends KeyedItem & { status?: string }>(
   stored: ReadonlyMap<string, T>,

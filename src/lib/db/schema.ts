@@ -10,7 +10,7 @@ export const vocabEntries = sqliteTable(
     id: text("id").primaryKey(),
     language: text("language").notNull(),
     lemma: text("lemma").notNull(),
-    /** Part of identity for words (see homographKey). Null only for expressions, which may also have one. */
+    /** Its class is part of identity for words (see homographKey). Null only for expressions, which may also have one. */
     partOfSpeech: text("part_of_speech", { enum: PARTS_OF_SPEECH }),
     kind: text("kind", { enum: ["word", "expression"] }).notNull(),
     /** Nouns only, not plural-only ones. Part of identity for words. */

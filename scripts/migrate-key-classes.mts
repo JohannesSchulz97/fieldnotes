@@ -19,14 +19,11 @@
 import { eq, inArray } from "drizzle-orm";
 import { db } from "../src/lib/db";
 import { extractions, vocabEntries } from "../src/lib/db/schema";
-import { homographKey, normalizePartOfSpeech, vocabKey } from "../src/lib/lemma";
+import { homographKey, isInterjection, vocabKey } from "../src/lib/lemma";
 
 type Entry = typeof vocabEntries.$inferSelect;
 
 const apply = process.argv.includes("--apply");
-
-const isInterjection = (e: Entry) =>
-  e.kind === "word" && normalizePartOfSpeech(e.partOfSpeech) === "interjection";
 
 /** The entry a group merges into: a non-interjection, then a known one, then the oldest. */
 function survivor(group: Entry[]): Entry {
