@@ -99,6 +99,13 @@
       "when": 1793525191274,
       "tag": "0013_word_glosses",
       "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "6",
+      "when": 1793601805601,
+      "tag": "0014_unusual_karen_page",
+      "breakpoints": true
     }
   ]
 }

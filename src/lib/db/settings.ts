@@ -11,14 +11,22 @@ export const DEFAULT_ANKI_SETTINGS: AnkiSettings = {
   direction: "learning-native",
   example: "off",
   sentenceTranslation: false,
+  exampleSource: "short",
   partOfSpeech: true,
+  pattern: true,
+  forms: true,
+  register: true,
 };
 
 export const AnkiSettingsSchema = z.object({
   direction: z.enum(["learning-native", "native-learning", "both"]),
   example: z.enum(["off", "front", "back"]),
   sentenceTranslation: z.boolean(),
+  exampleSource: z.enum(["short", "short-then-source", "source", "both"]),
   partOfSpeech: z.boolean(),
+  pattern: z.boolean(),
+  forms: z.boolean(),
+  register: z.boolean(),
 });
 
 const LEGACY_DIRECTIONS: Record<string, string> = { "fr-en": "learning-native", "en-fr": "native-learning" };

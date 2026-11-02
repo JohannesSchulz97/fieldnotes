@@ -12,7 +12,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { markExported, markItem, unmarkItem, updateAnkiSettings } from "@/app/actions";
+import { getCardFacts, markExported, markItem, unmarkItem, updateAnkiSettings } from "@/app/actions";
 import { AnkiSettingsPanel } from "@/components/anki-settings-panel";
 import { Highlighted } from "@/components/highlighted";
 import { buildAnkiFile } from "@/lib/anki";
@@ -20,6 +20,7 @@ import { formatLemma, formatPartOfSpeech } from "@/lib/format-lemma";
 import { vocabKey } from "@/lib/lemma";
 import type {
   AnkiSettings,
+  CardItem,
   ExtractedItem,
   ExtractionResult,
   KnownHomograph,
@@ -54,6 +55,7 @@ export function ExtractionView({
   ankiSettings: AnkiSettings;
 }) {
   const [error, setError] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
   const [learned, setLearned] = useState(result.learnedItems);
   const [known, setKnown] = useState(result.knownItems);
   const [selectedNew, setSelectedNew] = useState<Selection>(new Set());
@@ -107,10 +109,14 @@ export function ExtractionView({
     const keys = new Set(toExport.map(vocabKey));
     setExporting(from);
     setError(null);
+    setNotice(null);
     try {
-      await markExported(toExport, result.sourceLanguage, result.targetLanguage);
+      const { facts, failed } = await getCardFacts(toExport, result.sourceLanguage);
+      const cards: CardItem[] = toExport.map((i) => ({ ...i, facts: facts[vocabKey(i)] ?? null }));
+      if (failed) setNotice("Card facts could not be generated; the cards were exported without them.");
+      await markExported(cards, result.sourceLanguage, result.targetLanguage);
       download(
-        buildAnkiFile(result.sourceLanguage, toExport, ankiSettings, translationOf),
+        buildAnkiFile(result.sourceLanguage, cards, ankiSettings, translationOf),
         `anki-${result.sourceLanguage}-${new Date().toISOString().slice(0, 10)}.txt`
       );
       const exportedAt = new Date().toISOString();
@@ -143,6 +149,7 @@ export function ExtractionView({
   return (
     <div className="flex flex-col gap-8">
       {error && <p className="text-sm text-destructive">{error}</p>}
+      {notice && <p className="text-sm text-muted-foreground">{notice}</p>}
 
       <section className="flex flex-col gap-3">
         <div className="flex items-center justify-between">

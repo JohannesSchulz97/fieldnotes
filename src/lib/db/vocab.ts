@@ -1,6 +1,7 @@
 import "server-only";
 import { and, count, desc, eq, inArray, or, sql } from "drizzle-orm";
 import type {
+  CardFacts,
   Gender,
   LanguageCode,
   PartOfSpeech,
@@ -101,6 +102,7 @@ export interface StoredEntry {
   translation: string | null;
   createdAt: string;
   exportedAt: string | null;
+  facts: CardFacts;
 }
 
 /** SQLite caps bound parameters per statement; 14 columns × 500 rows stays well below it. */
@@ -125,12 +127,20 @@ async function entriesWithLemmas(language: LanguageCode, lemmas: string[]): Prom
           translation: vocabEntries.translation,
           createdAt: vocabEntries.createdAt,
           exportedAt: vocabEntries.exportedAt,
+          pattern: vocabEntries.pattern,
+          forms: vocabEntries.forms,
+          register: vocabEntries.register,
+          shortExample: vocabEntries.shortExample,
+          shortExampleTranslation: vocabEntries.shortExampleTranslation,
         })
         .from(vocabEntries)
         .where(and(eq(vocabEntries.language, language), inArray(vocabEntries.lemma, chunk)))
     )
   );
-  return rows.flat();
+  return rows.flat().map(({ pattern, forms, register, shortExample, shortExampleTranslation, ...entry }) => ({
+    ...entry,
+    facts: { pattern, forms, register, shortExample, shortExampleTranslation },
+  }));
 }
 
 /**
@@ -174,13 +184,21 @@ export interface EntryInput {
   pluralOnly?: boolean;
   translation: string | null;
   exampleSentence?: string | null;
+  /** Card facts to store; they replace missing ones on an existing entry when exporting. */
+  facts?: CardFacts | null;
+}
+
+/** Whether any card fact is set. An entry without any has not had its facts generated (or they were all empty). */
+export function hasCardFacts(facts: CardFacts): boolean {
+  return Object.values(facts).some((v) => v !== null);
 }
 
 /**
  * Inserts entries with the given status and source. Existing rows with the same vocabKey keep
  * their data and source but get the new status (and exportedAt, if given). An entry that matches a
  * stored one only by lemma (see matchStored) is taken to be that entry, so it does not create a
- * second one. Gender is kept for nouns only, and not for plural-only ones.
+ * second one. Gender is kept for nouns only, and not for plural-only ones. Translations are
+ * stored with ", " between meanings. When exporting, the given card facts replace the entry's.
  */
 export async function upsertEntries(
   entries: EntryInput[],
@@ -195,6 +213,7 @@ export async function upsertEntries(
     return {
       ...e,
       lemma: normalizeLemma(e.lemma),
+      translation: e.translation?.replace(/\s*;\s*/g, ", ") ?? null,
       partOfSpeech,
       gender: partOfSpeech === "noun" && !e.pluralOnly ? (e.gender ?? null) : null,
     };
@@ -226,6 +245,11 @@ export async function upsertEntries(
           translation: e.translation,
           translationLanguage,
           exampleSentence: e.exampleSentence ?? null,
+          pattern: e.facts?.pattern ?? null,
+          forms: e.facts?.forms ?? null,
+          register: e.facts?.register ?? null,
+          shortExample: e.facts?.shortExample ?? null,
+          shortExampleTranslation: e.facts?.shortExampleTranslation ?? null,
           exportedAt,
           createdAt: now,
           updatedAt: now,
@@ -233,7 +257,19 @@ export async function upsertEntries(
       )
       .onConflictDoUpdate({
         target: [vocabEntries.language, vocabEntries.lemma, vocabEntries.homographKey],
-        set: exportedAt ? { status, exportedAt, updatedAt: now } : { status, updatedAt: now },
+        set: exportedAt
+          ? {
+              status,
+              exportedAt,
+              updatedAt: now,
+              // Facts of the export replace stored ones; a row without facts leaves them as they are.
+              pattern: sql`coalesce(excluded.pattern, ${vocabEntries.pattern})`,
+              forms: sql`coalesce(excluded.forms, ${vocabEntries.forms})`,
+              register: sql`coalesce(excluded.register, ${vocabEntries.register})`,
+              shortExample: sql`coalesce(excluded.short_example, ${vocabEntries.shortExample})`,
+              shortExampleTranslation: sql`coalesce(excluded.short_example_translation, ${vocabEntries.shortExampleTranslation})`,
+            }
+          : { status, updatedAt: now },
       });
   }
 }

@@ -46,6 +46,16 @@ export interface LanguageProfile {
   pluralOnlyExample?: string;
   /** "mf": nouns are masculine or feminine; "none": no noun gender. Unset: the model decides. */
   gender?: "mf" | "none";
+  /** Example of a governed preposition kept out of a single word's lemma, e.g. `"appeler", not "appeler à"`. */
+  governedPrepositionExample?: string;
+  /** Example of a participle given as its verb's lemma, e.g. `"étant" → "être"`. */
+  participleExample?: string;
+  /** A participle that is an adjective in dictionaries and stays one. */
+  adjectivalParticipleExample?: string;
+  /** Placeholders the dictionary writes for the governed complement, for the pattern of a card. */
+  patternPlaceholders?: string;
+  /** Examples of principal forms learners cannot derive, in dictionary notation after the headword. */
+  formsExamples?: string;
   /** A context note example for the extraction prompt. */
   contextNoteExample?: string;
   /** Examples of a form in a sentence next to its lemma. */
@@ -73,6 +83,11 @@ const PROFILES: Record<LanguageCode, LanguageProfile> = {
     nounExamples: ["quai", "arbre", "envie"],
     pluralOnlyExample: "gens",
     gender: "mf",
+    governedPrepositionExample: `"appeler", not "appeler à"`,
+    participleExample: `"étant" → "être"`,
+    adjectivalParticipleExample: "fatigué",
+    patternPlaceholders: "qqn, qqch, + inf",
+    formsExamples: `"-aux" for "cheval", "-euse" for "heureux", "bel, belle" for "beau"`,
     contextNoteExample: `"to go" for the reflexive "se rendre à"`,
     formExamples: `"assise" for "s'asseoir", "s'est rendu compte" for "se rendre compte"`,
     inflectedExamples: `"assise" → "s'asseoir", "chevaux" → "cheval"`,
