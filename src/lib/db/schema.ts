@@ -17,7 +17,7 @@ export const vocabEntries = sqliteTable(
     gender: text("gender", { enum: ["m", "f"] }),
     pluralOnly: integer("plural_only", { mode: "boolean" }).notNull().default(false),
     /**
-     * partOfSpeech|gender with "-" for null, "-|-" for expressions (see homographKey). Derived, so the unique index below
+     * class of partOfSpeech|gender with "-" for null, "-|-" for expressions (see homographKey). Derived, so the unique index below
      * can include them: SQLite treats NULLs in a unique index as distinct.
      */
     homographKey: text("homograph_key").notNull(),
