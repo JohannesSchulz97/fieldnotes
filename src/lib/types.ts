@@ -20,7 +20,7 @@ export type Gender = "m" | "f";
 /** Closed set, see PARTS_OF_SPEECH. */
 export type PartOfSpeech = (typeof PARTS_OF_SPEECH)[number];
 
-/** A stored vocabulary entry. Identity: (language, lemma, and for words part of speech and gender), see vocabKey. */
+/** A stored vocabulary entry. Identity: (language, lemma, and for words class of part of speech and gender), see vocabKey. */
 export interface VocabEntry {
   id: string;
   language: LanguageCode;
