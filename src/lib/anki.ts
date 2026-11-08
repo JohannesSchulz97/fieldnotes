@@ -1,6 +1,7 @@
-import { formatLemma } from "./format-lemma";
+import { formatLemma, partOfSpeechLabel } from "./format-lemma";
 import { findWord } from "./highlight";
-import type { AnkiSettings, ExtractedItem, LanguageCode } from "./types";
+import { getNativeLanguage } from "./languages";
+import type { AnkiSettings, CardItem, LanguageCode } from "./types";
 
 function escapeHtml(text: string): string {
   return text
@@ -11,7 +12,7 @@ function escapeHtml(text: string): string {
     .replace(/[\t\r\n]+/g, " ");
 }
 
-function sentenceHtml(item: ExtractedItem): string {
+function sentenceHtml(item: CardItem): string {
   const match = findWord(item.exampleSentence, item.form);
   if (!match) return escapeHtml(item.exampleSentence);
   const [start, end] = match;
@@ -19,11 +20,30 @@ function sentenceHtml(item: ExtractedItem): string {
   return `${escapeHtml(s.slice(0, start))}<b>${escapeHtml(s.slice(start, end))}</b>${escapeHtml(s.slice(end))}`;
 }
 
-function exampleHtml(item: ExtractedItem, translation: string | null, settings: AnkiSettings): string {
+/** An example line in italics, with its translation under it if wanted and known. */
+function exampleLine(html: string, translation: string | null, settings: AnkiSettings): string {
   const translated =
     settings.sentenceTranslation && translation ? `<br><small>${escapeHtml(translation)}</small>` : "";
-  return `<br><br><i>${sentenceHtml(item)}</i>${translated}`;
+  return `<i>${html}</i>${translated}`;
 }
+
+/** The example block as settings.exampleSource asks for it; empty when there is nothing to show. */
+function exampleHtml(item: CardItem, translation: string | null, settings: AnkiSettings): string {
+  const facts = item.facts;
+  const short = facts?.shortExample
+    ? exampleLine(escapeHtml(facts.shortExample), facts.shortExampleTranslation, settings)
+    : null;
+  const source = exampleLine(sentenceHtml(item), translation, settings);
+  const lines = {
+    short: [short],
+    "short-then-source": [short ?? source],
+    source: [source],
+    both: [short, source],
+  }[settings.exampleSource].filter((l) => l !== null);
+  return lines.length > 0 ? `<br><br>${lines.join("<br><br>")}` : "";
+}
+
+const small = (text: string) => `<br><small>${escapeHtml(text)}</small>`;
 
 /**
  * Builds the HTML of a card's two fields. With direction "both" the fields are learned/native
@@ -31,18 +51,25 @@ function exampleHtml(item: ExtractedItem, translation: string | null, settings: 
  */
 export function buildCard(
   language: LanguageCode,
-  item: ExtractedItem,
+  item: CardItem,
   settings: AnkiSettings,
   sentenceTranslation: string | null
 ): { front: string; back: string } {
-  const learned = escapeHtml(formatLemma(language, item));
-  const native = escapeHtml(item.translation);
-  const [front, answer] =
+  const facts = item.facts;
+  const pos = settings.partOfSpeech && item.partOfSpeech
+    ? small(partOfSpeechLabel(getNativeLanguage(), item.partOfSpeech))
+    : "";
+
+  const headword = escapeHtml(
+    formatLemma(language, { ...item, forms: settings.forms ? facts?.forms : null })
+  );
+  const learned =
+    headword + (settings.pattern && facts?.pattern ? small(facts.pattern) : "") + pos;
+  const native =
+    escapeHtml(item.translation) + pos + (settings.register && facts?.register ? small(facts.register) : "");
+
+  const [front, back] =
     settings.direction === "native-learning" ? [native, learned] : [learned, native];
-  const back =
-    settings.partOfSpeech && item.partOfSpeech
-      ? `${answer}<br><small>${escapeHtml(item.partOfSpeech)}</small>`
-      : answer;
 
   const example = settings.example === "off" ? "" : exampleHtml(item, sentenceTranslation, settings);
   return settings.example === "front"
@@ -53,7 +80,7 @@ export function buildCard(
 /** Builds a tab-separated file for Anki's File → Import. */
 export function buildAnkiFile(
   language: LanguageCode,
-  items: ExtractedItem[],
+  items: CardItem[],
   settings: AnkiSettings,
   translationOf: (sentence: string) => string | null
 ): string {

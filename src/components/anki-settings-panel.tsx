@@ -81,14 +81,25 @@ export function AnkiSettingsPanel({
           { value: "back", label: "On back" },
         ]}
       />
-      <div className="flex items-center gap-6 pl-28 text-sm">
+      <Choice
+        label="Example from"
+        value={settings.exampleSource}
+        onChange={(v) => set("exampleSource", v)}
+        options={[
+          { value: "short", label: "Short example" },
+          { value: "short-then-source", label: "Short, else text" },
+          { value: "source", label: "Text" },
+          { value: "both", label: "Both" },
+        ]}
+      />
+      <div className="flex flex-wrap items-center gap-x-6 gap-y-2 pl-28 text-sm">
         <label className="flex items-center gap-2">
           <Checkbox
             checked={settings.sentenceTranslation}
             disabled={settings.example === "off"}
             onCheckedChange={(checked) => set("sentenceTranslation", checked)}
           />
-          Sentence translation
+          Example translation
         </label>
         <label className="flex items-center gap-2">
           <Checkbox
@@ -97,7 +108,32 @@ export function AnkiSettingsPanel({
           />
           Part of speech
         </label>
+        <label className="flex items-center gap-2">
+          <Checkbox
+            checked={settings.pattern}
+            onCheckedChange={(checked) => set("pattern", checked)}
+          />
+          Pattern
+        </label>
+        <label className="flex items-center gap-2">
+          <Checkbox
+            checked={settings.forms}
+            onCheckedChange={(checked) => set("forms", checked)}
+          />
+          Forms
+        </label>
+        <label className="flex items-center gap-2">
+          <Checkbox
+            checked={settings.register}
+            onCheckedChange={(checked) => set("register", checked)}
+          />
+          Register
+        </label>
       </div>
+      <p className="pl-28 text-xs text-muted-foreground">
+        Pattern, forms, register and the short example are generated when you export, so the
+        preview does not show them.
+      </p>
       {settings.direction === "both" && (
         <p className="pl-28 text-xs text-muted-foreground">
           One note per word; Anki creates the reverse card. &quot;On front&quot; puts the example

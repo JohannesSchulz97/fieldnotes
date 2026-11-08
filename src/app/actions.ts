@@ -45,12 +45,14 @@ import {
   deleteEntry,
   findStoredEntry,
   getStoredEntries,
+  hasCardFacts,
   listKnownLemmas,
   upsertEntries,
 } from "@/lib/db/vocab";
 import { keyItems, matchStored, vocabKey } from "@/lib/lemma";
 import { EXERCISE_COUNTS, type Grade, gradeAnswer } from "@/lib/exercises";
 import { llmGenerateExercises } from "@/lib/llm/exercises";
+import { llmCardFacts } from "@/lib/llm/card-facts";
 import { llmExtract } from "@/lib/llm/extract";
 import {
   CEFR_LEVELS,
@@ -72,6 +74,8 @@ import { splitSentences } from "@/lib/sentences";
 import { parseSourceDetails } from "@/lib/source";
 import type {
   AnkiSettings,
+  CardFacts,
+  CardItem,
   ExtractedItem,
   Gender,
   GrammarExplanation,
@@ -184,9 +188,47 @@ export async function markItem(
   revalidatePath("/");
 }
 
-/** Marks exported items as known and records the export time. The file itself is built client-side. */
-export async function markExported(
+export interface CardFactsOutcome {
+  /** Facts by vocabKey of the item, for every item that has any. */
+  facts: Record<string, CardFacts>;
+  /** The call to generate facts failed; the items it covered have none. */
+  failed: boolean;
+}
+
+/**
+ * Card facts for the items about to be exported: those the stored entry already has are reused,
+ * the others come from one LLM call. A failed call is reported, not thrown, so the export can go on without.
+ */
+export async function getCardFacts(
   items: ExtractedItem[],
+  language: LanguageCode
+): Promise<CardFactsOutcome> {
+  if (items.some((i) => !i?.lemma?.trim())) throw new Error("Invalid items");
+  const stored = await getStoredEntries(language, items);
+  const facts: Record<string, CardFacts> = {};
+  const missing: ExtractedItem[] = [];
+  for (const item of items) {
+    const entry = matchStored(stored, item);
+    if (entry && hasCardFacts(entry.facts)) facts[vocabKey(item)] = entry.facts;
+    else missing.push(item);
+  }
+  if (missing.length === 0) return { facts, failed: false };
+  try {
+    const generated = await llmCardFacts(language, missing);
+    missing.forEach((item, i) => {
+      const f = generated[i];
+      if (f && hasCardFacts(f)) facts[vocabKey(item)] = f;
+    });
+    return { facts, failed: false };
+  } catch (e) {
+    console.warn("Generating card facts failed, exporting without:", e);
+    return { facts, failed: true };
+  }
+}
+
+/** Marks exported items as known, stores their card facts and records the export time. The file itself is built client-side. */
+export async function markExported(
+  items: CardItem[],
   language: LanguageCode,
   translationLanguage: LanguageCode
 ): Promise<void> {

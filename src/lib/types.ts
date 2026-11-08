@@ -20,6 +20,25 @@ export type Gender = "m" | "f";
 /** Closed set, see PARTS_OF_SPEECH. */
 export type PartOfSpeech = (typeof PARTS_OF_SPEECH)[number];
 
+/** Register of a word that is not neutral. Neutral words have none (null). */
+export type Register = "familiar" | "formal" | "literary" | "vulgar";
+
+/**
+ * What a flashcard shows besides the headword and its translation. Stored with the entry but not
+ * part of its identity; generated when the word is exported. Every field is null when it adds nothing.
+ */
+export interface CardFacts {
+  /** Governed complement as a dictionary lists it, e.g. "rêver de qqch / qqn". */
+  pattern: string | null;
+  /** Principal forms a learner cannot derive with the regular rule, written after the headword, e.g. "-aux". */
+  forms: string | null;
+  register: Register | null;
+  /** A 3-6 word phrase in the learned language, only when the other facts do not show how the word is used. */
+  shortExample: string | null;
+  /** Native-language translation of shortExample. */
+  shortExampleTranslation: string | null;
+}
+
 /** A stored vocabulary entry. Identity: (language, lemma, and for words class of part of speech and gender), see vocabKey. */
 export interface VocabEntry {
   id: string;
@@ -36,6 +55,11 @@ export interface VocabEntry {
   translation: string | null;
   translationLanguage: LanguageCode;
   exampleSentence: string | null;
+  pattern: string | null;
+  forms: string | null;
+  register: Register | null;
+  shortExample: string | null;
+  shortExampleTranslation: string | null;
   /** Set when exported to Anki (export also marks the entry known). */
   exportedAt: string | null;
   createdAt: string;
@@ -58,6 +82,11 @@ export interface ExtractedItem {
   exampleSentence: string;
   /** The item exactly as it appears in exampleSentence, e.g. "assise" for "s'asseoir". */
   form: string;
+}
+
+/** An item to put on a card, with the card facts if there are any. */
+export interface CardItem extends ExtractedItem {
+  facts?: CardFacts | null;
 }
 
 /** A known entry that shares its lemma with a new item but is another word, e.g. "son" the noun and the determiner. */
@@ -269,6 +298,14 @@ export interface AnkiSettings {
   example: "off" | "front" | "back";
   /** Add the translated sentence under the example, if the text was translated. */
   sentenceTranslation: boolean;
-  /** Show the part of speech on the back of the card. */
+  /** Which example the example block holds: the short example if there is one, the source sentence, or both. */
+  exampleSource: "short" | "short-then-source" | "source" | "both";
+  /** Show the part of speech on both sides of the card. */
   partOfSpeech: boolean;
+  /** Show the governed complement under the headword. */
+  pattern: boolean;
+  /** Append the irregular principal forms to the headword. */
+  forms: boolean;
+  /** Show the register label (familiar, formal, ...) on the native side. */
+  register: boolean;
 }
