@@ -12,6 +12,7 @@ import type {
 } from "../types";
 import {
   homographKey,
+  isInterjection,
   type KeyedItem,
   matchStored,
   normalizeLemma,
@@ -200,8 +201,10 @@ export function hasCardFacts(facts: CardFacts): boolean {
  * Inserts entries with the given status and source. Existing rows with the same vocabKey keep
  * their data and source but get the new status (and exportedAt, if given). An entry that matches a
  * stored one only by lemma (see matchStored) is taken to be that entry, so it does not create a
- * second one. Gender is kept for nouns only, and not for plural-only ones. Translations are
- * stored with ", " between meanings. When exporting, the given card facts replace the entry's.
+ * second one, except that a stored interjection takes the class of the first item of a real class
+ * that matches it ("attention" stored from "Attention !", then met as the noun). Gender is kept for
+ * nouns only, and not for plural-only ones. Translations are stored with ", " between meanings.
+ * When exporting, the given card facts replace the entry's.
  */
 export async function upsertEntries(
   entries: EntryInput[],
@@ -222,14 +225,40 @@ export async function upsertEntries(
     };
   });
   const stored = await getStoredEntries(language, normalized);
+  // Interjection is a use of a word, not its class (see matchStored), so a stored interjection is
+  // relabeled. The match is updated in place, so later items of the batch resolve to the new labels.
+  const relabeled = new Map<string, (typeof normalized)[number]>();
   const resolved = normalized.map((e) => {
     const match = matchStored(stored, e);
-    return match
-      ? { ...e, partOfSpeech: match.partOfSpeech, kind: match.kind, gender: match.gender }
-      : e;
+    if (!match) return e;
+    if (
+      isInterjection(match) &&
+      e.kind === "word" &&
+      e.partOfSpeech !== null &&
+      !isInterjection(e) &&
+      !relabeled.has(match.id)
+    ) {
+      relabeled.set(match.id, e);
+      Object.assign(match, { partOfSpeech: e.partOfSpeech, gender: e.gender });
+      return e;
+    }
+    return { ...e, partOfSpeech: match.partOfSpeech, kind: match.kind, gender: match.gender };
   });
   const unique = [...new Map(resolved.map((e) => [vocabKey(e), e])).values()];
   const now = new Date().toISOString();
+  // No other entry has the new key: matchStored would have matched it exactly instead.
+  for (const [id, e] of relabeled) {
+    await db
+      .update(vocabEntries)
+      .set({
+        partOfSpeech: e.partOfSpeech,
+        gender: e.gender,
+        pluralOnly: e.pluralOnly ?? false,
+        homographKey: homographKey(e),
+        updatedAt: now,
+      })
+      .where(eq(vocabEntries.id, id));
+  }
   for (let i = 0; i < unique.length; i += BATCH_SIZE) {
     await db
       .insert(vocabEntries)

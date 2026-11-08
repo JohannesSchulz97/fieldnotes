@@ -39,7 +39,7 @@ export interface CardFacts {
   shortExampleTranslation: string | null;
 }
 
-/** A stored vocabulary entry. Identity: (language, lemma, and for words part of speech and gender), see vocabKey. */
+/** A stored vocabulary entry. Identity: (language, lemma, and for words class of part of speech and gender), see vocabKey. */
 export interface VocabEntry {
   id: string;
   language: LanguageCode;

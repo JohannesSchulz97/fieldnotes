@@ -11,14 +11,14 @@ export const vocabEntries = sqliteTable(
     id: text("id").primaryKey(),
     language: text("language").notNull(),
     lemma: text("lemma").notNull(),
-    /** Part of identity for words (see homographKey). Null only for expressions, which may also have one. */
+    /** Its class is part of identity for words (see homographKey). Null only for expressions, which may also have one. */
     partOfSpeech: text("part_of_speech", { enum: PARTS_OF_SPEECH }),
     kind: text("kind", { enum: ["word", "expression"] }).notNull(),
     /** Nouns only, not plural-only ones. Part of identity for words. */
     gender: text("gender", { enum: ["m", "f"] }),
     pluralOnly: integer("plural_only", { mode: "boolean" }).notNull().default(false),
     /**
-     * partOfSpeech|gender with "-" for null, "-|-" for expressions (see homographKey). Derived, so the unique index below
+     * class of partOfSpeech|gender with "-" for null, "-|-" for expressions (see homographKey). Derived, so the unique index below
      * can include them: SQLite treats NULLs in a unique index as distinct.
      */
     homographKey: text("homograph_key").notNull(),
