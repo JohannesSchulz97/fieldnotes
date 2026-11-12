@@ -26,7 +26,6 @@ import {
   setGrammarStatus as dbSetGrammarStatus,
 } from "@/lib/db/grammar";
 import {
-  createExerciseSet as dbCreateExerciseSet,
   deleteExerciseSet as dbDeleteExerciseSet,
   getExerciseSentence,
   getExpectedAnswers,
@@ -46,12 +45,11 @@ import {
   findStoredEntry,
   getStoredEntries,
   hasCardFacts,
-  listKnownLemmas,
   upsertEntries,
 } from "@/lib/db/vocab";
 import { keyItems, matchStored, vocabKey } from "@/lib/lemma";
 import { EXERCISE_COUNTS, type Grade, gradeAnswer } from "@/lib/exercises";
-import { llmGenerateExercises } from "@/lib/llm/exercises";
+import { generateExerciseSet, saveCatalogConstruct } from "@/lib/exercise-generation";
 import { llmCardFacts } from "@/lib/llm/card-facts";
 import { llmExtract } from "@/lib/llm/extract";
 import {
@@ -494,25 +492,7 @@ export async function addCatalogConstruct(constructId: string): Promise<string> 
   const language = await getActiveLanguage();
   const entry = typeof constructId === "string" ? getConstruct(language, constructId) : null;
   if (!entry) throw new Error("Unknown catalogue construct");
-  const id = await createGrammarItem(
-    language,
-    getNativeLanguage(),
-    {
-      constructId: entry.id,
-      name: entry.name,
-      category: entry.category,
-      level: entry.level,
-      explanation: cardExplanation(language, entry, getNativeLanguage()) ?? entry.description,
-    },
-    (entry.card?.examples ?? []).map(({ sentence, form, translation }) => ({
-      origin: "generated" as const,
-      sentence,
-      form,
-      translation,
-      extractionId: null,
-      sentenceIndex: null,
-    }))
-  );
+  const id = await saveCatalogConstruct(language, entry);
   revalidatePath("/grammar", "layout");
   return id;
 }
@@ -552,21 +532,15 @@ export async function createExercises(grammarItemId: string, count: number): Pro
   if (!EXERCISE_COUNTS.includes(count as (typeof EXERCISE_COUNTS)[number])) {
     throw new Error("Invalid number of exercises");
   }
-  const [item] = await listGrammarItems({ ids: [grammarItemId] });
-  if (!item) throw new Error("Grammar item not found");
-  const knownLemmas = await listKnownLemmas(item.language);
-  const { exercises, costUsd } = await llmGenerateExercises({
-    item,
-    level: item.level,
+  const language = typeof grammarItemId === "string" ? await getGrammarItemLanguage(grammarItemId) : null;
+  if (!language) throw new Error("Grammar item not found");
+  const { setId } = await generateExerciseSet({
+    language,
+    targets: [{ kind: "item", itemId: grammarItemId }],
     count,
-    knownLemmas,
   });
-  const id = await dbCreateExerciseSet(
-    { grammarItemId: item.id, language: item.language, level: item.level, costUsd },
-    exercises
-  );
   revalidatePath("/exercises");
-  return id;
+  return setId;
 }
 
 const MAX_ANSWER_LENGTH = 200;

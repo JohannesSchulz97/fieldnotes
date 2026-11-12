@@ -1,11 +1,18 @@
 "use client";
 
 import { useChat } from "@ai-sdk/react";
-import { DefaultChatTransport, isToolUIPart, type UIMessage } from "ai";
+import {
+  DefaultChatTransport,
+  isToolUIPart,
+  lastAssistantMessageIsCompleteWithApprovalResponses,
+  type UIMessage,
+} from "ai";
 import { SendHorizontal } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
+import { type ReactNode, useEffect, useRef, useState } from "react";
 import Markdown, { type Components } from "react-markdown";
 import remarkGfm from "remark-gfm";
+import { type ApprovalHandler, CreateExercisesPart } from "@/components/chat-tool-parts";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
@@ -20,6 +27,22 @@ const TOOL_LABELS: Record<string, string> = {
   list_sources: "Looked through your sources",
   get_source: "Read a source",
 };
+
+/** Whether the last message holds a tool call that waits for the learner's approval. */
+function awaitingApproval(messages: UIMessage[]): boolean {
+  const last = messages.at(-1);
+  return (
+    last?.role === "assistant" &&
+    last.parts.some((p) => isToolUIPart(p) && p.state === "approval-requested" && !p.approval.isAutomatic)
+  );
+}
+
+/** Whether a message holds the result of a call that created exercises. */
+function createdExercises(message: UIMessage): boolean {
+  return message.parts.some(
+    (p) => isToolUIPart(p) && p.type === "tool-create_exercises" && p.state === "output-available"
+  );
+}
 
 /** The text of a failed request: the server's message when it sent one. */
 function errorText(error: Error): string {
@@ -61,7 +84,15 @@ const MARKDOWN: Components = {
   blockquote: (props) => <blockquote className="my-2 border-l-2 pl-3 text-muted-foreground" {...dom(props)} />,
 };
 
-function MessageView({ message }: { message: UIMessage }) {
+function MessageView({
+  message,
+  onApproval,
+  busy,
+}: {
+  message: UIMessage;
+  onApproval: ApprovalHandler;
+  busy: boolean;
+}) {
   const user = message.role === "user";
   return (
     <div className={cn("flex flex-col gap-1", user ? "items-end" : "items-start")}>
@@ -85,6 +116,9 @@ function MessageView({ message }: { message: UIMessage }) {
         }
         if (isToolUIPart(part)) {
           const name = part.type.replace(/^tool-/, "");
+          if (part.type === "tool-create_exercises") {
+            return <CreateExercisesPart key={i} part={part} onApproval={onApproval} disabled={busy} />;
+          }
           return (
             <p key={i} className="text-xs text-muted-foreground">
               {TOOL_LABELS[name] ?? "Looked something up"}
@@ -108,6 +142,8 @@ export function ChatView({
   full = false,
   onFirstMessage,
   onBusyChange,
+  emptyHint = "Ask about your vocabulary or grammar, e.g. “Which A2 constructs have I not saved yet?”",
+  placeholder = "Message",
   className,
 }: {
   chatId: string;
@@ -118,10 +154,14 @@ export function ChatView({
   onFirstMessage?: () => void;
   /** Called when a reply starts or ends. */
   onBusyChange?: (busy: boolean) => void;
+  /** Shown before the first message. */
+  emptyHint?: ReactNode;
+  placeholder?: string;
   className?: string;
 }) {
+  const router = useRouter();
   const [input, setInput] = useState("");
-  const { messages, sendMessage, status, error, stop } = useChat({
+  const { messages, sendMessage, status, error, stop, addToolApprovalResponse } = useChat({
     id: chatId,
     messages: initialMessages,
     transport: new DefaultChatTransport({
@@ -131,21 +171,30 @@ export function ChatView({
         body: { id, message: messages[messages.length - 1] },
       }),
     }),
+    // An answer to an approval request goes to the server at once, which then runs the tool.
+    sendAutomaticallyWhen: lastAssistantMessageIsCompleteWithApprovalResponses,
+    // New exercises (and maybe a new grammar item) change the page behind the chat.
+    onFinish: ({ message }) => {
+      if (createdExercises(message)) router.refresh();
+    },
   });
   const busy = status === "submitted" || status === "streaming";
-  const bottom = useRef<HTMLDivElement>(null);
+  // A pending approval must be answered before the chat goes on.
+  const waiting = awaitingApproval(messages);
+  const list = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     onBusyChange?.(busy);
   }, [busy, onBusyChange]);
 
   useEffect(() => {
-    bottom.current?.scrollIntoView({ block: "end" });
+    // Scrolls the message list only, not the page around it.
+    list.current?.scrollTo({ top: list.current.scrollHeight });
   }, [messages, status]);
 
   function submit() {
     const text = input.trim();
-    if (!text || busy || full) return;
+    if (!text || busy || full || waiting) return;
     if (messages.length === 0) onFirstMessage?.();
     sendMessage({ text });
     setInput("");
@@ -153,14 +202,15 @@ export function ChatView({
 
   return (
     <div className={cn("flex min-h-0 flex-1 flex-col", className)}>
-      <div className="flex-1 space-y-3 overflow-y-auto px-3 py-3">
-        {messages.length === 0 && (
-          <p className="text-sm text-muted-foreground">
-            Ask about your vocabulary or grammar, e.g. “Which A2 constructs have I not saved yet?”
-          </p>
-        )}
+      <div ref={list} className="flex-1 space-y-3 overflow-y-auto px-3 py-3">
+        {messages.length === 0 && <p className="text-sm text-muted-foreground">{emptyHint}</p>}
         {messages.map((m) => (
-          <MessageView key={m.id} message={m} />
+          <MessageView
+            key={m.id}
+            message={m}
+            busy={busy}
+            onApproval={(id, approved) => addToolApprovalResponse({ id, approved })}
+          />
         ))}
         {status === "submitted" && <p className="text-xs text-muted-foreground">Thinking…</p>}
         {error && <p className="text-sm text-destructive">{errorText(error)}</p>}
@@ -169,7 +219,9 @@ export function ChatView({
             This chat has reached its token limit. Start a new chat to continue.
           </p>
         )}
-        <div ref={bottom} />
+        {waiting && !busy && (
+          <p className="text-xs text-muted-foreground">Answer the request above to continue.</p>
+        )}
       </div>
       <form
         className="flex items-end gap-2 border-t p-3"
@@ -189,7 +241,7 @@ export function ChatView({
           }}
           rows={1}
           maxLength={8000}
-          placeholder="Message"
+          placeholder={placeholder}
           aria-label="Message"
           disabled={full}
           className="max-h-32 min-h-9 flex-1 resize-none"
@@ -199,7 +251,7 @@ export function ChatView({
             Stop
           </Button>
         ) : (
-          <Button type="submit" size="icon-lg" aria-label="Send" disabled={!input.trim() || full}>
+          <Button type="submit" size="icon-lg" aria-label="Send" disabled={!input.trim() || full || waiting}>
             <SendHorizontal />
           </Button>
         )}

@@ -1,3 +1,4 @@
+import type { ExerciseType } from "./exercises";
 import type { CEFR_LEVELS, GRAMMAR_CATEGORY_VALUES } from "./grammar";
 import type { PARTS_OF_SPEECH } from "./lemma";
 import type { Gloss } from "./tokens";
@@ -248,6 +249,10 @@ export type WordStudyStatus = "known" | "studying" | "unknown";
 /** A fill-in-the-blank exercise: before + answer + after is the full sentence. */
 export interface Exercise {
   id: string;
+  /** Always "fill_blank" so far; the player shows each type its own way. */
+  type: ExerciseType;
+  /** The construct the exercise practises, for the link to its theory. */
+  grammar: { id: string; name: string };
   before: string;
   answer: string;
   after: string;

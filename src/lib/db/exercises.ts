@@ -134,6 +134,9 @@ export async function getExerciseSet(id: string): Promise<ExerciseSet | null> {
     exercises: rows.map(
       (r): Exercise => ({
         id: r.id,
+        type: "fill_blank",
+        // Every exercise of a set practises the set's construct, until sets hold several.
+        grammar: { id: set.item.id, name: set.item.name },
         before: r.before,
         answer: r.answer,
         after: r.after,
