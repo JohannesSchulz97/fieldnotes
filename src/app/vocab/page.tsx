@@ -126,6 +126,9 @@ export default async function VocabPage({
                     <Badge variant="secondary">expr.</Badge>
                   )}
                 </div>
+                {entry.pattern && (
+                  <div className="text-xs text-muted-foreground">{entry.pattern}</div>
+                )}
                 {entry.partOfSpeech && (
                   <div className="text-xs text-muted-foreground">
                     {formatPartOfSpeech(entry)}

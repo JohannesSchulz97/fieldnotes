@@ -4,7 +4,7 @@ import { db } from ".";
 import { llmUsage } from "./schema";
 
 export interface UsageRecord {
-  kind: "extraction" | "normalization" | "translation" | "grammar" | "exercises" | "chat";
+  kind: "extraction" | "normalization" | "translation" | "grammar" | "exercises" | "chat" | "cards";
   model: string;
   inputTokens: number;
   cachedInputTokens: number;

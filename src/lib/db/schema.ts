@@ -29,6 +29,12 @@ export const vocabEntries = sqliteTable(
     translation: text("translation"),
     translationLanguage: text("translation_language").notNull(),
     exampleSentence: text("example_sentence"),
+    /** Card facts (see CardFacts), generated at export. Not part of identity. Null = none. */
+    pattern: text("pattern"),
+    forms: text("forms"),
+    register: text("register", { enum: ["familiar", "formal", "literary", "vulgar"] }),
+    shortExample: text("short_example"),
+    shortExampleTranslation: text("short_example_translation"),
     /** ISO timestamps, matching VocabEntry. */
     exportedAt: text("exported_at"),
     createdAt: text("created_at").notNull(),
@@ -41,7 +47,7 @@ export const vocabEntries = sqliteTable(
 export const llmUsage = sqliteTable("llm_usage", {
   id: text("id").primaryKey(),
   kind: text("kind", {
-    enum: ["extraction", "normalization", "translation", "grammar", "exercises", "chat"],
+    enum: ["extraction", "normalization", "translation", "grammar", "exercises", "chat", "cards"],
   }).notNull(),
   model: text("model").notNull(),
   inputTokens: integer("input_tokens").notNull(),
