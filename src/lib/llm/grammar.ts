@@ -215,23 +215,32 @@ export function explainInstructions(language: LanguageCode): string {
 - examples: 2 short, everyday sentences (at most 10 words) in the text's language, each using the construct as its clear focus, with no other difficult grammar or rare words. form: the part that shows the construct, copied character for character. translation: natural ${getNativeLanguage()}.`;
 }
 
-/** Explains a construct in general terms, with two short examples. */
+/**
+ * Explains a construct in general terms, with two short examples. Either from where it was seen
+ * (form and sentence) or, for a construct asked for by name, from a short description.
+ */
 export async function llmExplainGrammar({
   language,
   name,
   form,
   sentence,
+  description,
 }: {
   language: LanguageCode;
   name: string;
-  form: string;
-  sentence: string;
+  form?: string;
+  sentence?: string;
+  description?: string;
 }): Promise<GrammarExplanation> {
+  const input =
+    form && sentence
+      ? `Construct: ${name}\n\nSeen as "${form}" in: ${sentence}`
+      : `Construct: ${name}${description ? `\n\nDescription: ${description}` : ""}`;
   const response = await getClient().responses.parse({
     model,
     reasoning: { effort: reasoningEffort },
     instructions: explainInstructions(language),
-    input: `Construct: ${name}\n\nSeen as "${form}" in: ${sentence}`,
+    input,
     text: { format: zodTextFormat(Explanation, "grammar_explanation") },
   });
   await trackUsage("grammar", response.usage);

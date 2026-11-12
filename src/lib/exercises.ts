@@ -5,6 +5,20 @@ export const EXERCISE_COUNTS = [5, 10, 20] as const;
 
 export const DEFAULT_EXERCISE_COUNT = 10;
 
+/** Most exercises one set may have, whoever asks for it (the button or the chat). */
+export const MAX_EXERCISE_COUNT = 20;
+
+/**
+ * Kinds of exercise. Only fill-in-the-blank exists so far; a new kind adds its value here, its
+ * generator and its view in the player.
+ */
+export const EXERCISE_TYPES = ["fill_blank"] as const;
+
+export type ExerciseType = (typeof EXERCISE_TYPES)[number];
+
+/** Longest free-text wish (theme, words, situation) that goes along with a request for exercises. */
+export const MAX_EXERCISE_BRIEF_LENGTH = 1_000;
+
 /** Share of correct answers from which the summary suggests marking the construct learned. */
 export const LEARNED_SUGGESTION_SCORE = 0.9;
 

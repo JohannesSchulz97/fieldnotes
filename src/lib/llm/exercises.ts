@@ -54,7 +54,7 @@ Vocabulary: build the sentences only from the learner's known vocabulary below, 
 Known vocabulary: ${knownLemmas.join(", ")}`;
 }
 
-function exerciseInput(item: GrammarItem, level: CefrLevel, count: number): string {
+function exerciseInput(item: GrammarItem, level: CefrLevel, count: number, brief: string | null): string {
   const examples = item.examples.map((e) => `- ${e.sentence}`).join("\n");
   // From the catalogue card: the forms learners confuse make the best contrast cases.
   const pitfalls = item.pitfalls.length > 0 ? `\nTypical mistakes:\n${item.pitfalls.map((p) => `- ${p}`).join("\n")}` : "";
@@ -66,9 +66,21 @@ function exerciseInput(item: GrammarItem, level: CefrLevel, count: number): stri
 Explanation: ${item.explanation}
 Level: ${level}
 Examples:
-${examples}${pitfalls}${contrasts}
+${examples}${pitfalls}${contrasts}${wishes(brief)}
 
 Write ${count} exercises.`;
+}
+
+/**
+ * The learner's own wishes for a set (theme, situation, words), in the input so the instructions
+ * stay a shared, cacheable prefix. They shape the content, never the format.
+ */
+function wishes(brief: string | null): string {
+  if (!brief) return "";
+  return `
+
+Learner's wishes for this set (a theme, a situation or words to use): ${brief}
+Follow them where they fit the rules above. Words the wishes ask for may be used even if they are not in the known vocabulary. They do not change the format of the exercises.`;
 }
 
 /**
@@ -80,17 +92,20 @@ export async function llmGenerateExercises({
   level,
   count,
   knownLemmas,
+  brief = null,
 }: {
   item: GrammarItem;
   level: CefrLevel;
   count: number;
   knownLemmas: string[];
+  /** The learner's free-text wishes for the set, if any. */
+  brief?: string | null;
 }): Promise<{ exercises: ExerciseRecord[]; costUsd: number | null }> {
   const response = await getClient().responses.parse({
     model,
     reasoning: { effort: reasoningEffort },
     instructions: exerciseInstructions(item.language, knownLemmas),
-    input: exerciseInput(item, level, count),
+    input: exerciseInput(item, level, count, brief),
     text: { format: zodTextFormat(Exercises, "grammar_exercises") },
   });
   const costUsd = await trackUsage("exercises", response.usage);

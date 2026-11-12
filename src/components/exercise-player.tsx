@@ -1,6 +1,7 @@
 "use client";
 
 import { Check, X } from "lucide-react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { CreateExercises } from "@/components/create-exercises";
@@ -14,6 +15,7 @@ import {
   submitExerciseAnswer,
 } from "@/app/actions";
 import { type Grade, LEARNED_SUGGESTION_SCORE } from "@/lib/exercises";
+import { grammarItemHref } from "@/lib/grammar";
 import { vocabKey } from "@/lib/lemma";
 import type { Exercise, ExerciseSet, ExerciseWord, WordStudyStatus } from "@/lib/types";
 
@@ -205,9 +207,17 @@ export function ExercisePlayer({ set }: { set: ExerciseSet }) {
 
   return (
     <section className="flex flex-col gap-4">
-      <p className="text-sm text-muted-foreground">
-        {index + 1} / {exercises.length}
-      </p>
+      <div className="flex flex-wrap items-baseline justify-between gap-2 text-sm text-muted-foreground">
+        <span>
+          {index + 1} / {exercises.length}
+        </span>
+        <Link
+          href={grammarItemHref(exercise.grammar.id)}
+          className="underline-offset-4 hover:text-foreground hover:underline"
+        >
+          Theory: {exercise.grammar.name}
+        </Link>
+      </div>
       {result ? (
         <div className="flex flex-col gap-3">
           <p className={result.grade === "correct" ? "font-medium" : "font-medium text-destructive"}>

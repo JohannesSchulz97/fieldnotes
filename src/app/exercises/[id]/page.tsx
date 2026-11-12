@@ -5,6 +5,7 @@ import { ActiveLanguageSync } from "@/components/active-language-sync";
 import { ExercisePlayer } from "@/components/exercise-player";
 import { getActiveLanguage } from "@/lib/active-language";
 import { getExerciseSet } from "@/lib/db/exercises";
+import { grammarItemHref } from "@/lib/grammar";
 
 export default async function ExerciseSetPage({ params }: { params: Promise<{ id: string }> }) {
   await connection();
@@ -20,7 +21,15 @@ export default async function ExerciseSetPage({ params }: { params: Promise<{ id
           ← All exercises
         </Link>
         <h1 className="text-2xl font-semibold">{set.item.name}</h1>
-        <p className="text-sm text-muted-foreground">{set.item.explanation}</p>
+        <p className="text-sm text-muted-foreground">
+          {set.item.explanation}{" "}
+          <Link
+            href={grammarItemHref(set.item.id)}
+            className="whitespace-nowrap underline underline-offset-4 hover:text-foreground"
+          >
+            Theory
+          </Link>
+        </p>
       </div>
       <ExercisePlayer set={set} />
     </main>

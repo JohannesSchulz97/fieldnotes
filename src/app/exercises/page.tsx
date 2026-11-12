@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { connection } from "next/server";
+import { ExerciseChat } from "@/components/exercise-chat";
 import { getActiveLanguage } from "@/lib/active-language";
 import { listExerciseSets } from "@/lib/db/exercises";
 import type { ExerciseSetSummary } from "@/lib/types";
@@ -18,9 +19,11 @@ export default async function ExercisesPage() {
   return (
     <main className="mx-auto w-full max-w-5xl px-4 py-8">
       <h1 className="mb-6 text-2xl font-semibold">Exercises</h1>
+      {/* Keyed by language: a chat belongs to one language. */}
+      <ExerciseChat key={language} initialChatId={crypto.randomUUID()} />
       {sets.length === 0 ? (
         <p className="text-sm text-muted-foreground">
-          No exercises yet. Create some for a construct in the{" "}
+          No exercises yet. Ask for some above, or create them for a construct in the{" "}
           <Link href="/grammar" className="underline underline-offset-4 hover:text-foreground">
             grammar list
           </Link>

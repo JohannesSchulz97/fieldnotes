@@ -61,3 +61,8 @@ export function normalizeGrammarName(name: string): string {
 export function grammarNameKey(name: string): string {
   return normalizeGrammarName(name).toLowerCase();
 }
+
+/** Where the theory of a saved grammar item is shown: its entry in the unfiltered grammar list. */
+export function grammarItemHref(id: string): string {
+  return `/grammar#item-${id}`;
+}
